@@ -1,0 +1,29 @@
+name: Demo defect
+description: Report a reproducible issue in the Nexora demo.
+title: "bug: "
+labels:
+  - bug
+  - demo
+body:
+  - type: markdown
+    attributes:
+      value: "Report issues against the demo only. Do not include real network credentials, personal data, or router secrets."
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened?
+      description: Include the screen and exact steps.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should happen?
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Windows version and demo revision
+    validations:
+      required: true

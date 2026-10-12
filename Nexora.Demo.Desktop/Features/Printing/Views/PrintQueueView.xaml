@@ -1,0 +1,117 @@
+<UserControl x:Class="Nexora.Demo.Desktop.Features.Printing.Views.PrintQueueView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FlowDirection="RightToLeft"
+             Background="{StaticResource AppBgBrush}" Loaded="TabCardWorkflow_PrintQueueLoaded">
+    <!-- Shared card printing workspace. -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <DockPanel Grid.Row="0" Margin="0,0,0,12">
+            <StackPanel>
+                <TextBlock Text="قائمة الطباعة" FontSize="21" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                <TextBlock Text="الكروت المولدة تظهر هنا للمعاينة وضبط القالب قبل الطباعة." FontSize="11.5" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" />
+            </StackPanel>
+            <Border DockPanel.Dock="Left" Background="#FBEDEF" BorderBrush="#F0CDD0" BorderThickness="1" CornerRadius="8" Padding="10,6" VerticalAlignment="Center">
+                <TextBlock Text="قائمة الطباعة" FontSize="10.5" Foreground="{StaticResource PrimaryBrush}" />
+            </Border>
+        </DockPanel>
+
+        <Border Grid.Row="1" Background="#FBEDEF" BorderBrush="#F0CDD0" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,12">
+            <TextBlock Text="اختر الكروت والقالب، ثم راجع المعاينة أو أرسل مهمة الطباعة إلى الطابعة المحددة." FontSize="11" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" />
+        </Border>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.15*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="0.85*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" Margin="0,0,0,9">
+                        <TextBlock Text="اختيار الكروت للطباعة" FontSize="14" FontWeight="Bold" />
+                        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal"><Button Content="إضافة المحدد لقائمة الطباعة" Style="{StaticResource PrimaryButton}" Height="32" Padding="10,0" Margin="0,0,6,0" Click="AddSelectedToQueueButton_Click"/><Button Content="تحديث" Style="{StaticResource SecondaryButton}" Height="32" Padding="10,0" Click="RefreshQueueButton_Click" /></StackPanel>
+                    </DockPanel>
+                    <DataGrid x:Name="PrintQueueGrid" Grid.Row="1" FlowDirection="RightToLeft" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" SelectionMode="Extended" SelectionUnit="FullRow" SelectionChanged="PrintQueueGrid_SelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" EnableRowVirtualization="True" RowHeight="36" ColumnHeaderHeight="42" FontSize="11.5">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="رقم الكرت" Binding="{Binding CardNumber}" Width="115" />
+                            <DataGridTextColumn Header="اسم المستخدم" Binding="{Binding Username}" Width="120" />
+                            <DataGridTextColumn Header="الباقة" Binding="{Binding PackageName}" Width="145" />
+                            <DataGridTextColumn Header="الجهة" Binding="{Binding TargetSystem}" Width="130" />
+                            <DataGridTextColumn Header="نقطة البيع" Binding="{Binding PointOfSale}" Width="125" />
+                            <DataGridTextColumn Header="رقم الدفعة" Binding="{Binding BatchId}" Width="155" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="14">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <TextBlock Text="القالب الافتراضي" FontSize="15" FontWeight="Bold" Margin="0,0,0,10" />
+                        <TextBlock Text="نمط البطاقة" Style="{StaticResource FieldLabel}" />
+                        <ComboBox x:Name="TemplateComboBox" Height="40" Margin="0,0,0,12" SelectionChanged="TemplateComboBox_SelectionChanged">
+                            <ComboBoxItem Content="قياسي أحمر" Tag="standard" IsSelected="True" />
+                            <ComboBoxItem Content="مضغوط" Tag="compact" />
+                            <ComboBoxItem Content="أفقي عريض" Tag="wide" />
+                        </ComboBox>
+                        <Border x:Name="PrintPreviewBorder" Background="#A01818" BorderBrush="#760D0D" BorderThickness="1" CornerRadius="9" Padding="15" MinHeight="140" MaxHeight="210" MaxWidth="420" HorizontalAlignment="Stretch">
+                            <Grid FlowDirection="RightToLeft">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <DockPanel Grid.Row="0">
+                                    <Image Source="pack://application:,,,/Nexora.Demo.Desktop;component/Assets/Brand/nexora-network-card-mark.png" Width="28" Height="25" Stretch="Uniform" DockPanel.Dock="Right" />
+                                    <StackPanel Margin="7,0,0,0">
+                                        <TextBlock Text="NEXORA" FontSize="13.5" FontWeight="Bold" Foreground="White" />
+                                        <TextBlock Text="مساند لكروت الشبكات" FontSize="9" Foreground="#FFFFE9E9" />
+                                    </StackPanel>
+                                </DockPanel>
+                                <StackPanel Grid.Row="1" Margin="0,12,0,8">
+                                    <TextBlock x:Name="PreviewNumberTextBlock" Text="رقم الكرت" FontSize="18" FontWeight="Bold" Foreground="White" TextAlignment="Right" FlowDirection="LeftToRight" />
+                                    <TextBlock x:Name="PreviewUsernameTextBlock" Text="اسم المستخدم" FontSize="10.5" Foreground="White" Margin="0,6,0,0" />
+                                    <TextBlock x:Name="PreviewPasswordTextBlock" Text="كلمة المرور" FontSize="10.5" Foreground="#FFFFE9E9" Margin="0,3,0,0" />
+                                </StackPanel>
+                                <DockPanel Grid.Row="2">
+                                    <TextBlock x:Name="PreviewPackageTextBlock" Text="الباقة" FontSize="9.5" FontWeight="SemiBold" Foreground="White" />
+                                    <TextBlock x:Name="PreviewPriceTextBlock" Text="السعر" DockPanel.Dock="Left" FontSize="9.5" Foreground="#FFFFE9E9" />
+                                </DockPanel>
+                            </Grid>
+                        </Border>
+                        <TextBlock x:Name="PrintPreviewStatusTextBlock" Text="اختر كرتًا من القائمة لتحديث المعاينة." Foreground="{StaticResource MutedBrush}" FontSize="10.5" TextWrapping="Wrap" Margin="0,9,0,10" />
+                        <Separator Margin="0,0,0,10" Background="{StaticResource BorderBrushSoft}" />
+                        <TextBlock Text="عناصر تظهر على البطاقة" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,7" />
+                        <UniformGrid Columns="2">
+                            <CheckBox x:Name="ShowNumberCheckBox" Content="رقم الكرت" IsChecked="True" Margin="0,3" Checked="PreviewFields_Changed" Unchecked="PreviewFields_Changed" />
+                            <CheckBox x:Name="ShowUsernameCheckBox" Content="اسم المستخدم" IsChecked="True" Margin="0,3" Checked="PreviewFields_Changed" Unchecked="PreviewFields_Changed" />
+                            <CheckBox x:Name="ShowPasswordCheckBox" Content="كلمة المرور" IsChecked="True" Margin="0,3" Checked="PreviewFields_Changed" Unchecked="PreviewFields_Changed" />
+                            <CheckBox x:Name="ShowPackageCheckBox" Content="الباقة" IsChecked="True" Margin="0,3" Checked="PreviewFields_Changed" Unchecked="PreviewFields_Changed" />
+                            <CheckBox x:Name="ShowPriceCheckBox" Content="السعر" IsChecked="True" Margin="0,3" Checked="PreviewFields_Changed" Unchecked="PreviewFields_Changed" />
+                        </UniformGrid>
+                        <WrapPanel Margin="0,12,0,0">
+                            <Button Content="تسجيل مراجعة المعاينة" Style="{StaticResource SecondaryButton}" Margin="0,0,8,7" Click="TabCardWorkflow_PreparePreviewButton_Click" />
+                            <Button Content="إرسال للطابعة" Style="{StaticResource PrimaryButton}" Margin="0,0,0,7" Click="TabCardWorkflow_SimulatePrintButton_Click" />
+                        </WrapPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <DockPanel Grid.Row="3" Margin="0,10,0,0">
+            <TextBlock x:Name="PrintQueueSummaryTextBlock" Text="قائمة الطباعة فارغة حتى إنشاء دفعة كروت." FontSize="10.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
+            <Button DockPanel.Dock="Left" Content="العودة إلى الإصدار" Style="{StaticResource SecondaryButton}" Height="35" Padding="14,0" Click="BackToIssuanceButton_Click" />
+        </DockPanel>
+    </Grid>
+</UserControl>

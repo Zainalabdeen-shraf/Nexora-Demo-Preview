@@ -1,0 +1,47 @@
+<UserControl x:Class="Nexora.Demo.Desktop.Features.Cards.Views.CardBatchesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FlowDirection="RightToLeft"
+             Background="{StaticResource AppBgBrush}">
+    <Grid Margin="2">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <DockPanel Grid.Row="0" Margin="0,0,0,2">
+            <StackPanel>
+                <TextBlock Text="الدفعات والإصدار" FontSize="21" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                <TextBlock Text="تتبّع كل دفعة والجهة المستهدفة والباقة وعدد الكروت الناتجة." FontSize="11.5" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" />
+            </StackPanel>
+            <Button DockPanel.Dock="Left" Content="إصدار دفعة جديدة" Style="{StaticResource PrimaryButton}" Click="NewBatchButton_Click" Margin="8,0,0,0" />
+        </DockPanel>
+        <UniformGrid Grid.Row="2" Columns="3" Margin="0,0,0,2">
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="10" Margin="0,0,6,0"><StackPanel><TextBlock Text="عدد الدفعات" FontSize="11" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="BatchCountTextBlock" Text="0" FontSize="21" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,3,0,0"/></StackPanel></Border>
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="10" Margin="3,0"><StackPanel><TextBlock Text="إجمالي الكروت المُنشأة" FontSize="11" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="CardCountTextBlock" Text="0" FontSize="21" FontWeight="Bold" Margin="0,3,0,0"/></StackPanel></Border>
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="10" Margin="6,0,0,0"><StackPanel><TextBlock Text="قيمة الإصدار المسجلة" FontSize="11" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="IssuanceValueTextBlock" Text="—" FontSize="21" FontWeight="Bold" Margin="0,3,0,0"/></StackPanel></Border>
+        </UniformGrid>
+        <Border Grid.Row="4" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="10">
+            <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <Grid Margin="0,0,0,10"><Grid.ColumnDefinitions><ColumnDefinition Width="1.5*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="1*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <TextBox x:Name="SearchTextBox" Grid.Column="0" Height="36" Padding="8,4" VerticalContentAlignment="Center" TextChanged="Filter_Changed" ToolTip="ابحث برقم الدفعة أو الباقة أو نقطة البيع" />
+                    <ComboBox x:Name="SystemFilterComboBox" Grid.Column="2" Height="36" SelectionChanged="Filter_Changed" SelectedIndex="0"><ComboBoxItem Content="كل الأنظمة" Tag="all"/><ComboBoxItem Content="HotSpot" Tag="hotspot"/><ComboBoxItem Content="User Manager" Tag="user-manager"/></ComboBox>
+                    <Button Grid.Column="4" Content="تحديث" Style="{StaticResource SecondaryButton}" Click="RefreshButton_Click" />
+                </Grid>
+                <DataGrid x:Name="BatchesGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" SelectionMode="Single" SelectionUnit="FullRow" MouseDoubleClick="BatchesGrid_MouseDoubleClick" HeadersVisibility="Column" RowHeight="38" ColumnHeaderHeight="40" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="رقم الدفعة" Binding="{Binding BatchId}" Width="170" />
+                        <DataGridTextColumn Header="جهة الإصدار" Binding="{Binding TargetSystem}" Width="155" />
+                        <DataGridTextColumn Header="الباقة" Binding="{Binding PackageName}" Width="150" />
+                        <DataGridTextColumn Header="عدد الكروت" Binding="{Binding Quantity}" Width="105" />
+                        <DataGridTextColumn Header="سعر الوحدة" Binding="{Binding UnitPrice, StringFormat={}{0:N0} ريال}" Width="110" />
+                        <DataGridTextColumn Header="قيمة الإصدار" Binding="{Binding TotalLabel}" Width="120" />
+                        <DataGridTextColumn Header="تاريخ الإنشاء" Binding="{Binding CreatedAtLabel}" Width="150" />
+                        <DataGridTextColumn Header="الحالة" Binding="{Binding LocalStatus}" Width="180" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+        <DockPanel Grid.Row="5" Margin="0,9,0,0">
+            <TextBlock x:Name="ResultSummaryTextBlock" Text="—" FontSize="10.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
+            <Button DockPanel.Dock="Left" Content="عرض كروت الدفعة المحددة" Style="{StaticResource PrimaryButton}" Click="OpenSelectedBatchButton_Click" Margin="8,0,0,0" />
+        </DockPanel>
+    </Grid>
+</UserControl>

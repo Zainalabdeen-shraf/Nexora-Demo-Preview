@@ -1,0 +1,72 @@
+<UserControl x:Class="Nexora.Demo.Desktop.Features.Reports.Views.ReportsCenterView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FlowDirection="RightToLeft"
+             Background="{StaticResource AppBgBrush}">
+    <Grid Margin="2">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <DockPanel Grid.Row="0" Margin="0,0,0,10">
+            <StackPanel>
+                <TextBlock Text="مركز التقارير" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                <TextBlock Text="اختر التقرير المطلوب؛ تتغير المؤشرات والأعمدة بحسب بياناته ومصدرها." FontSize="11.5" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" />
+            </StackPanel>
+            <Border DockPanel.Dock="Left" Background="{StaticResource PrimaryLightBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="8" Padding="10,7" VerticalAlignment="Center">
+                <TextBlock x:Name="ReportSourceBadgeTextBlock" Text="مصدر التقرير" Foreground="{StaticResource PrimaryBrush}" FontSize="10.5" FontWeight="SemiBold" />
+            </Border>
+        </DockPanel>
+
+        <Border Grid.Row="1" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="10" Margin="0,0,0,9">
+            <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <Grid Grid.Row="0"><Grid.ColumnDefinitions><ColumnDefinition Width="1.35*"/><ColumnDefinition Width="9"/><ColumnDefinition Width="1.1*"/><ColumnDefinition Width="9"/><ColumnDefinition Width="1.55*"/><ColumnDefinition Width="9"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0"><TextBlock Text="نوع التقرير" Style="{StaticResource FieldLabel}"/><ComboBox x:Name="ReportTypeComboBox" Height="35" SelectedIndex="0" SelectionChanged="Filters_Changed"><ComboBoxItem Content="الكروت والإصدار" Tag="cards"/><ComboBoxItem Content="الدفعات" Tag="batches"/><ComboBoxItem Content="معاملات المبيعات" Tag="sales"/><ComboBoxItem Content="تجهيز الطباعة" Tag="printing"/><ComboBoxItem Content="عمليات النظام" Tag="actions"/><ComboBoxItem Content="طلبات المزامنة" Tag="sync"/><ComboBoxItem Content="الاستخدام والجلسات" Tag="usage"/></ComboBox></StackPanel>
+                    <StackPanel Grid.Column="2"><TextBlock x:Name="SourceFilterLabelTextBlock" Text="جهة الإصدار" Style="{StaticResource FieldLabel}"/><ComboBox x:Name="SourceFilterComboBox" Height="35" SelectedIndex="0" SelectionChanged="Filters_Changed"><ComboBoxItem Content="كل الأنظمة" Tag="all"/><ComboBoxItem Content="HotSpot" Tag="hotspot"/><ComboBoxItem Content="User Manager" Tag="user-manager"/></ComboBox></StackPanel>
+                    <StackPanel Grid.Column="4"><TextBlock Text="بحث" Style="{StaticResource FieldLabel}"/><TextBox x:Name="SearchTextBox" Height="35" Padding="8,4" VerticalContentAlignment="Center" TextChanged="SearchTextBox_TextChanged" ToolTip="ابحث في حقول التقرير الحالية"/></StackPanel>
+                    <StackPanel Grid.Column="6"><TextBlock x:Name="StatusFilterLabelTextBlock" Text="الحالة" Style="{StaticResource FieldLabel}"/><ComboBox x:Name="StatusFilterComboBox" Height="35" SelectedIndex="0" SelectionChanged="Filters_Changed"><ComboBoxItem Content="كل الحالات" Tag="all"/><ComboBoxItem Content="متاحة" Tag="متاحة"/><ComboBoxItem Content="قيد الاستخدام" Tag="قيد الاستخدام"/><ComboBoxItem Content="منتهية" Tag="منتهية"/><ComboBoxItem Content="موقوفة" Tag="موقوفة"/></ComboBox></StackPanel>
+                </Grid>
+                <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="170"/><ColumnDefinition Width="12"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="170"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="6"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="6"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="6"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="من تاريخ" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <DatePicker x:Name="FromDatePicker" Grid.Column="1" Height="34" SelectedDateChanged="DateFilter_Changed"/>
+                    <TextBlock Grid.Column="3" Text="إلى تاريخ" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <DatePicker x:Name="ToDatePicker" Grid.Column="4" Height="34" SelectedDateChanged="DateFilter_Changed"/>
+                    <Button Grid.Column="6" Content="الأعمدة" Style="{StaticResource SecondaryButton}" Height="34" Click="ColumnsButton_Click"/>
+                    <Button Grid.Column="8" Content="تحديث" Style="{StaticResource SecondaryButton}" Height="34" Click="RefreshButton_Click"/>
+                    <Button Grid.Column="10" Content="تصدير CSV" Style="{StaticResource SecondaryButton}" Height="34" Click="ExportButton_Click"/>
+                    <Button Grid.Column="12" Content="طباعة التقرير" Style="{StaticResource PrimaryButton}" Height="34" Click="PrintButton_Click"/>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <UniformGrid Grid.Row="2" Columns="3" Margin="0,0,0,9">
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="10" Margin="0,0,6,0"><StackPanel><TextBlock x:Name="MetricOneLabelTextBlock" Text="عدد النتائج" FontSize="11" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="MetricOneValueTextBlock" Text="—" FontSize="21" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,3,0,0"/></StackPanel></Border>
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="10" Margin="3,0"><StackPanel><TextBlock x:Name="MetricTwoLabelTextBlock" Text="الإجمالي المرتبط" FontSize="11" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="MetricTwoValueTextBlock" Text="—" FontSize="21" FontWeight="Bold" Margin="0,3,0,0"/></StackPanel></Border>
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="10" Margin="6,0,0,0"><StackPanel><TextBlock x:Name="MetricThreeLabelTextBlock" Text="الحالة" FontSize="11" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="MetricThreeValueTextBlock" Text="—" FontSize="19" FontWeight="Bold" Margin="0,3,0,0"/></StackPanel></Border>
+        </UniformGrid>
+
+        <Border Grid.Row="3" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="8">
+            <Grid>
+                <DataGrid x:Name="ReportGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" SelectionMode="Single" SelectionUnit="FullRow" HeadersVisibility="Column" CanUserReorderColumns="True" RowHeight="37" ColumnHeaderHeight="40" FontSize="11.5" Sorting="ReportGrid_Sorting" MouseDoubleClick="ReportGrid_MouseDoubleClick" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn x:Name="ColumnOne" Header="الحقل الأول" Binding="{Binding Value1}" Width="1.2*" SortMemberPath="Value1"/>
+                        <DataGridTextColumn x:Name="ColumnTwo" Header="الحقل الثاني" Binding="{Binding Value2}" Width="1.2*" SortMemberPath="Value2"/>
+                        <DataGridTextColumn x:Name="ColumnThree" Header="الحقل الثالث" Binding="{Binding Value3}" Width="1.1*" SortMemberPath="Value3"/>
+                        <DataGridTextColumn x:Name="ColumnFour" Header="الحقل الرابع" Binding="{Binding Value4}" Width="1.1*" SortMemberPath="Value4"/>
+                        <DataGridTextColumn x:Name="ColumnFive" Header="الحقل الخامس" Binding="{Binding Value5}" Width="1.1*" SortMemberPath="Value5"/>
+                        <DataGridTextColumn x:Name="ColumnSix" Header="الحقل السادس" Binding="{Binding Value6}" Width="1.1*" SortMemberPath="Value6"/>
+                        <DataGridTextColumn x:Name="ColumnSeven" Header="الحقل السابع" Binding="{Binding Value7}" Width="1.2*" SortMemberPath="Value7"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <Border x:Name="EmptyStatePanel" Background="#F8F9FB" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="8" Visibility="Collapsed" IsHitTestVisible="False">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="430">
+                        <TextBlock x:Name="EmptyStateTitleTextBlock" Text="لا توجد نتائج مطابقة" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="EmptyStateDescriptionTextBlock" Text="غيّر الفلاتر أو اختر تقريرًا آخر." FontSize="12" Foreground="{StaticResource MutedBrush}" TextAlignment="Center" TextWrapping="Wrap" Margin="0,7,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+        <DockPanel Grid.Row="4" Margin="0,8,0,0">
+            <TextBlock x:Name="ResultSummaryTextBlock" Text="—" FontSize="10.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            <TextBlock x:Name="ReportUpdatedAtTextBlock" DockPanel.Dock="Left" Text="" FontSize="10" Foreground="{StaticResource MutedBrush}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+        </DockPanel>
+    </Grid>
+</UserControl>

@@ -1,0 +1,23 @@
+# Visual Studio / .NET
+.vs/
+**/bin/
+**/obj/
+**/*.user
+**/*.suo
+*.userosscache
+*.sln.docstates
+
+# Generated publish output and local demo data
+artifacts/
+publish/
+release/
+*.zip
+*.7z
+*.rar
+*.log
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

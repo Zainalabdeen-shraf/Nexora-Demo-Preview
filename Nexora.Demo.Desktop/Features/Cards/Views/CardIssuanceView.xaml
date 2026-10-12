@@ -1,0 +1,707 @@
+﻿<UserControl x:Class="Nexora.Demo.Desktop.Features.Cards.Views.CardIssuanceView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:Nexora.Demo.Desktop.Features.Cards.Views" FlowDirection="RightToLeft" Background="#F4F5F7" SnapsToDevicePixels="True">
+
+    <!-- TabCardArabicIssuanceLayoutV4: compact two-column Arabic RTL layout; shell/navigation remain external. -->
+    <UserControl.Resources>
+
+        <SolidColorBrush x:Key="TabCardInk" Color="#20242A" />
+
+        <SolidColorBrush x:Key="TabCardMuted" Color="#697078" />
+
+        <SolidColorBrush x:Key="TabCardAccent" Color="#A01818" />
+
+        <SolidColorBrush x:Key="TabCardAccentDark" Color="#7F1118" />
+
+        <SolidColorBrush x:Key="TabCardAccentSoft" Color="#F9EDED" />
+
+        <SolidColorBrush x:Key="TabCardLine" Color="#DEE1E6" />
+
+        <SolidColorBrush x:Key="TabCardField" Color="#F4F5F7" />
+
+
+
+        <Style x:Key="TabCardPanel" TargetType="Border">
+
+            <Setter Property="Background" Value="#FFFFFF" />
+
+            <Setter Property="BorderBrush" Value="{StaticResource TabCardLine}" />
+
+            <Setter Property="BorderThickness" Value="1" />
+
+            <Setter Property="CornerRadius" Value="13" />
+
+            <Setter Property="Padding" Value="7" />
+
+        </Style>
+
+        <Style x:Key="TabCardSectionTitle" TargetType="TextBlock">
+
+            <Setter Property="FontSize" Value="14" />
+
+            <Setter Property="FontWeight" Value="Bold" />
+
+            <Setter Property="Foreground" Value="{StaticResource TabCardInk}" />
+
+            <Setter Property="TextAlignment" Value="Right" />
+
+            <Setter Property="VerticalAlignment" Value="Center" />
+
+        </Style>
+
+        <Style x:Key="TabCardLabel" TargetType="TextBlock">
+
+            <Setter Property="FontSize" Value="11.5" />
+
+            <Setter Property="FontWeight" Value="SemiBold" />
+
+            <Setter Property="Foreground" Value="{StaticResource TabCardMuted}" />
+
+            <Setter Property="Margin" Value="0,0,0,4" />
+
+            <Setter Property="TextAlignment" Value="Right" />
+
+            <Setter Property="TextWrapping" Value="Wrap" />
+
+        </Style>
+
+        <Style x:Key="TabCardTextBox" TargetType="TextBox">
+
+            <Setter Property="Height" Value="33"/>
+
+            <Setter Property="Padding" Value="8,4" />
+
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+
+            <Setter Property="BorderBrush" Value="#C9CDD3" />
+
+            <Setter Property="BorderThickness" Value="1" />
+
+            <Setter Property="Background" Value="{StaticResource TabCardField}" />
+
+            <Setter Property="Foreground" Value="{StaticResource TabCardInk}" />
+
+            <Setter Property="FontSize" Value="13" />
+
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+
+        </Style>
+
+        <Style x:Key="TabCardComboBox" TargetType="ComboBox">
+
+            <Setter Property="Height" Value="33"/>
+
+            <Setter Property="Padding" Value="6,3" />
+
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+
+            <Setter Property="BorderBrush" Value="#C9CDD3" />
+
+            <Setter Property="BorderThickness" Value="1" />
+
+            <Setter Property="Background" Value="{StaticResource TabCardField}" />
+
+            <Setter Property="Foreground" Value="{StaticResource TabCardInk}" />
+
+            <Setter Property="FontSize" Value="12.5" />
+
+            <Setter Property="FlowDirection" Value="RightToLeft" />
+        </Style>
+
+        <Style x:Key="TabCardPrimaryButton" TargetType="Button">
+
+            <Setter Property="Height" Value="35" />
+
+            <Setter Property="Padding" Value="11,0" />
+
+            <Setter Property="Background" Value="{StaticResource TabCardAccent}" />
+
+            <Setter Property="BorderBrush" Value="{StaticResource TabCardAccent}" />
+
+            <Setter Property="BorderThickness" Value="1" />
+
+            <Setter Property="Foreground" Value="#FFFFFF" />
+
+            <Setter Property="FontSize" Value="12.5" />
+
+            <Setter Property="FontWeight" Value="SemiBold" />
+
+            <Setter Property="Cursor" Value="Hand" />
+
+            <Setter Property="Margin" Value="2" />
+
+        </Style>
+
+        <Style x:Key="TabCardSecondaryButton" TargetType="Button">
+
+            <Setter Property="Height" Value="31" />
+
+            <Setter Property="Padding" Value="10,0" />
+
+            <Setter Property="Background" Value="{StaticResource TabCardAccentSoft}" />
+
+            <Setter Property="BorderBrush" Value="#E2C7C9" />
+
+            <Setter Property="BorderThickness" Value="1" />
+
+            <Setter Property="Foreground" Value="{StaticResource TabCardAccentDark}" />
+
+            <Setter Property="FontSize" Value="12" />
+
+            <Setter Property="FontWeight" Value="SemiBold" />
+
+            <Setter Property="Cursor" Value="Hand" />
+
+            <Setter Property="Margin" Value="2" />
+
+        </Style>
+
+        <Style x:Key="TabCardPlusButton" TargetType="Button" BasedOn="{StaticResource TabCardSecondaryButton}">
+
+            <Setter Property="Width" Value="32" />
+
+            <Setter Property="MinWidth" Value="32" />
+
+            <Setter Property="Height" Value="29" />
+
+            <Setter Property="Padding" Value="0" />
+
+            <Setter Property="FontSize" Value="21" />
+
+            <Setter Property="Margin" Value="0,0,5,0" />
+
+        </Style>
+
+        <Style x:Key="TabCardRadio" TargetType="RadioButton">
+
+            <Setter Property="FontSize" Value="11.5" />
+
+            <Setter Property="Foreground" Value="{StaticResource TabCardInk}" />
+
+            <Setter Property="Margin" Value="0,2,8,2" />
+
+            <Setter Property="VerticalAlignment" Value="Center" />
+
+        </Style>
+
+        <Style x:Key="TabCardCheck" TargetType="CheckBox">
+
+            <Setter Property="FontSize" Value="11" />
+
+            <Setter Property="Foreground" Value="{StaticResource TabCardInk}" />
+
+            <Setter Property="Margin" Value="0,2,7,2" />
+
+            <Setter Property="VerticalAlignment" Value="Center" />
+
+        </Style>
+
+        <Style TargetType="DataGrid">
+
+            <Setter Property="Background" Value="#FFFFFF" />
+
+            <Setter Property="BorderBrush" Value="#E9DDE4" />
+
+            <Setter Property="BorderThickness" Value="1" />
+
+            <Setter Property="GridLinesVisibility" Value="Horizontal" />
+
+            <Setter Property="HorizontalGridLinesBrush" Value="#E8EAEE" />
+
+            <Setter Property="VerticalGridLinesBrush" Value="#E8EAEE" />
+
+            <Setter Property="HeadersVisibility" Value="Column" />
+
+            <Setter Property="CanUserAddRows" Value="False" />
+
+            <Setter Property="CanUserDeleteRows" Value="False" />
+
+            <Setter Property="IsReadOnly" Value="True" />
+
+            <Setter Property="RowHeight" Value="30" />
+
+            <Setter Property="ColumnHeaderHeight" Value="34" />
+
+            <Setter Property="FontSize" Value="11.5" />
+
+            <Setter Property="EnableRowVirtualization" Value="True" />
+
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader">
+
+            <Setter Property="Background" Value="#F9EDED" />
+
+            <Setter Property="Foreground" Value="#762027" />
+
+            <Setter Property="FontSize" Value="11.5" />
+
+            <Setter Property="FontWeight" Value="SemiBold" />
+
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+
+            <Setter Property="BorderBrush" Value="#E4D5D8" />
+
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+
+        </Style>
+
+            <local:OneBasedAlternationIndexConverter x:Key="OneBasedAlternationIndexConverter" />
+    </UserControl.Resources>
+
+
+    <Grid Margin="3" FlowDirection="LeftToRight">
+        <Grid.Resources>
+            <Style x:Key="TabCardInlineLabel" TargetType="TextBlock" BasedOn="{StaticResource TabCardLabel}">
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                <Setter Property="FlowDirection" Value="RightToLeft" />
+            </Style>
+            <Style x:Key="TabCardCompactCheck" TargetType="CheckBox" BasedOn="{StaticResource TabCardCheck}">
+                <Setter Property="FontSize" Value="10" />
+                <Setter Property="Margin" Value="0,1,8,1" />
+            </Style>
+        </Grid.Resources>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.92*" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="1.86*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Physical left: recent operations and compact live preview. -->
+        <Grid Grid.Column="0" FlowDirection="RightToLeft">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.78*" />
+                <RowDefinition Height="8" />
+                <RowDefinition Height="1.22*" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Style="{StaticResource TabCardPanel}" Padding="9">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" LastChildFill="True" FlowDirection="LeftToRight">
+                        <Border DockPanel.Dock="Right" Width="32" Height="32" CornerRadius="16" Background="#F9EDED">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="" FontSize="17" Foreground="{StaticResource TabCardAccent}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="آخر عمليات الطباعة" Style="{StaticResource TabCardSectionTitle}" Margin="8,0,0,0" />
+                        <TextBlock DockPanel.Dock="Left" Text="آخر الدفعات" FontSize="9.5" Foreground="{StaticResource TabCardMuted}" VerticalAlignment="Center" />
+                    </DockPanel>
+                    <Grid Grid.Row="2">
+                        <DataGrid x:Name="RecentBatchesGrid" FlowDirection="RightToLeft" AutoGenerateColumns="False" AlternationCount="1000000" SelectionMode="Single" SelectionUnit="FullRow" RowHeight="22" ColumnHeaderHeight="25" FontSize="10" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Hidden">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Header="#" Width="27">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGridRow}}, Path=AlternationIndex, Converter={StaticResource OneBasedAlternationIndexConverter}}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="الدفعة" Binding="{Binding BatchId}" Width="1.08*" />
+                                <DataGridTextColumn Header="التاريخ" Binding="{Binding CreatedAtLabel}" Width="1.25*" />
+                                <DataGridTextColumn Header="العدد" Binding="{Binding Quantity}" Width="42" />
+                                <DataGridTemplateColumn Header="الحالة" Width="67">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#E5F8EF" CornerRadius="10" Padding="4,2" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <TextBlock Text="محفوظة" Foreground="#15945B" FontSize="9.5" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <Border x:Name="RecentBatchesEmptyPanel" Background="#FFFFFF" Visibility="Collapsed" IsHitTestVisible="False">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8">
+                                <TextBlock FontFamily="Segoe MDL2 Assets" Text="" FontSize="24" Foreground="#D0D6E3" HorizontalAlignment="Center" />
+                                <TextBlock Text="لا توجد عمليات محفوظة بعد" Foreground="{StaticResource TabCardMuted}" FontSize="11" Margin="0,5,0,0" TextAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                    <TextBlock Grid.Row="3" Margin="0,5,0,0" Text="راجع حالة الدفعة وإجراءاتها من مساحة الطباعة." FontSize="9" Foreground="{StaticResource TabCardMuted}" TextWrapping="Wrap" />
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="2" Style="{StaticResource TabCardPanel}" Padding="7">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,6" FlowDirection="LeftToRight">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="" FontSize="17" Foreground="{StaticResource TabCardAccent}" VerticalAlignment="Center" DockPanel.Dock="Right" />
+                        <TextBlock Text="قالب الطباعة" Style="{StaticResource TabCardSectionTitle}" Margin="8,0,0,0" />
+                    </DockPanel>
+                    <ComboBox x:Name="PreviewTemplateComboBox" Style="{StaticResource TabCardComboBox}" FlowDirection="RightToLeft" Margin="0,0,0,8" SelectionChanged="PreviewTemplateComboBox_SelectionChanged">
+                        <ComboBoxItem Content="info1" Tag="nexora" IsSelected="True" />
+                        <ComboBoxItem Content="info2" Tag="light" />
+                        <ComboBoxItem Content="info3" Tag="compact" />
+                    </ComboBox>
+
+                    <Border x:Name="CardPreviewBorder" Background="#FFFFFF" BorderBrush="#E2C7C9" BorderThickness="1" CornerRadius="11" Padding="6" Height="235" MinHeight="215" MaxHeight="250" HorizontalAlignment="Stretch" ClipToBounds="True">
+                        <Grid FlowDirection="RightToLeft">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="3" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="4" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0" FlowDirection="LeftToRight">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" FlowDirection="LeftToRight" VerticalAlignment="Center">
+                                    <TextBlock Text="◢" FontSize="23" FontWeight="Bold" Foreground="{StaticResource TabCardAccent}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="TabCard" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TabCardAccentDark}" />
+                                        <TextBlock Text="إدارة كروت الشبكة" FontSize="8.5" Foreground="{StaticResource TabCardMuted}" />
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" FlowDirection="RightToLeft" VerticalAlignment="Center">
+                                    <TextBlock Text="كرت إنترنت" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource TabCardInk}" TextAlignment="Right" />
+                                    <TextBlock Text="MikroTik Hotspot" FontSize="9" Foreground="{StaticResource TabCardInk}" TextAlignment="Right" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Grid.Row="2" FlowDirection="LeftToRight">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="64" />
+                                    <ColumnDefinition Width="5" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="60" Height="60" Padding="3" Background="White" BorderBrush="#E2C7C9" BorderThickness="1" CornerRadius="6" VerticalAlignment="Center">
+                                    <Viewbox Stretch="Uniform" Width="54" Height="54">
+                                        <Canvas Width="96" Height="96" Background="White">
+                                            <!-- Decorative sample only; it is not a scannable QR credential. -->
+                                            <Border Width="31" Height="31" Background="#111827" Canvas.Left="2" Canvas.Top="2"><Border Margin="5" Background="White"><Border Margin="5" Background="#111827" /></Border></Border>
+                                            <Border Width="31" Height="31" Background="#111827" Canvas.Left="63" Canvas.Top="2"><Border Margin="5" Background="White"><Border Margin="5" Background="#111827" /></Border></Border>
+                                            <Border Width="31" Height="31" Background="#111827" Canvas.Left="2" Canvas.Top="63"><Border Margin="5" Background="White"><Border Margin="5" Background="#111827" /></Border></Border>
+                                            <Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="41" Canvas.Top="4" /><Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="49" Canvas.Top="12" />
+                                            <Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="41" Canvas.Top="20" /><Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="39" Canvas.Top="37" />
+                                            <Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="47" Canvas.Top="37" /><Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="55" Canvas.Top="37" />
+                                            <Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="38" Canvas.Top="45" /><Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="54" Canvas.Top="45" />
+                                            <Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="38" Canvas.Top="53" /><Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="46" Canvas.Top="53" />
+                                            <Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="63" Canvas.Top="39" /><Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="71" Canvas.Top="47" />
+                                            <Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="79" Canvas.Top="39" /><Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="63" Canvas.Top="55" />
+                                            <Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="79" Canvas.Top="55" /><Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="39" Canvas.Top="67" />
+                                            <Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="47" Canvas.Top="75" /><Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="55" Canvas.Top="83" />
+                                            <Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="63" Canvas.Top="71" /><Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="71" Canvas.Top="79" />
+                                            <Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="79" Canvas.Top="87" /><Rectangle Width="6" Height="6" Fill="#111827" Canvas.Left="87" Canvas.Top="71" />
+                                        </Canvas>
+                                    </Viewbox>
+                                </Border>
+                                <StackPanel Grid.Column="2" FlowDirection="RightToLeft" VerticalAlignment="Center">
+                                    <TextBlock x:Name="PreviewCredentialsCaptionTextBlock" Text="بيانات الدخول" FontSize="9" Foreground="{StaticResource TabCardMuted}" TextAlignment="Right" />
+                                    <Grid Margin="0,1,0,1" FlowDirection="RightToLeft">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="رقم الكرت:" FontSize="9.5" Foreground="{StaticResource TabCardInk}" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="PreviewCardNumberTextBlock" Grid.Column="1" Text="••••••••" FontSize="13.5" FontWeight="Bold" Foreground="{StaticResource TabCardInk}" FlowDirection="LeftToRight" TextAlignment="Right" Margin="2,0,0,0" />
+                                    </Grid>
+                                    <TextBlock x:Name="PreviewUsernameTextBlock" Text="اسم المستخدم: ••••••" FontSize="9.5" Foreground="{StaticResource TabCardInk}" Margin="0,1,0,0" TextAlignment="Right" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock x:Name="PreviewPasswordTextBlock" Text="كلمة المرور: ••••••" FontSize="9.5" Foreground="{StaticResource TabCardMuted}" Margin="0,1,0,0" TextAlignment="Right" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock x:Name="PreviewTimeTextBlock" Text="الوقت: —" FontSize="9" Foreground="{StaticResource TabCardInk}" Margin="0,1,0,0" TextAlignment="Right" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock x:Name="PreviewDataTextBlock" Text="التحميل: —" FontSize="9" Foreground="{StaticResource TabCardInk}" Margin="0,1,0,0" TextAlignment="Right" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock x:Name="PreviewSpeedTextBlock" Text="السرعة: —" FontSize="9" Foreground="{StaticResource TabCardMuted}" Margin="0,1,0,0" TextAlignment="Right" TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Grid.Row="4" FlowDirection="RightToLeft">
+                                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                <Grid Grid.Row="0" FlowDirection="RightToLeft">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="PreviewPackageTextBlock" Grid.Column="0" Text="الباقة والسعر" FontSize="8.5" Foreground="{StaticResource TabCardAccentDark}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock x:Name="PreviewValidityTextBlock" Grid.Column="1" Text="الصلاحية: —" FontSize="8.5" Foreground="{StaticResource TabCardMuted}" TextAlignment="Left" TextTrimming="CharacterEllipsis" Margin="5,0,0,0" />
+                                </Grid>
+                                <TextBlock x:Name="PreviewProfileTextBlock" Grid.Row="1" Text="ملف الاستخدام" FontSize="8" Foreground="{StaticResource TabCardMuted}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock x:Name="PreviewPriceTextBlock" Visibility="Collapsed" Text="السعر: —" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+                    <TextBlock x:Name="PreviewBatchTextBlock" Text="اختر الباقة لعرض معلوماتها هنا." FontSize="9" Foreground="{StaticResource TabCardMuted}" TextWrapping="Wrap" Margin="0,3,0,2" MaxHeight="19" />
+                    <WrapPanel FlowDirection="RightToLeft" Margin="0,1,0,0">
+                        <CheckBox x:Name="ShowCardNumberCheckBox" Style="{StaticResource TabCardCompactCheck}" Content="رقم الكرت" IsChecked="True" Checked="PreviewOptionChanged" Unchecked="PreviewOptionChanged" FlowDirection="RightToLeft" />
+                        <CheckBox x:Name="ShowUsernameCheckBox" Style="{StaticResource TabCardCompactCheck}" Content="اسم المستخدم" IsChecked="True" Checked="PreviewOptionChanged" Unchecked="PreviewOptionChanged" FlowDirection="RightToLeft" />
+                        <CheckBox x:Name="ShowPasswordCheckBox" Style="{StaticResource TabCardCompactCheck}" Content="كلمة المرور" IsChecked="True" Checked="PreviewOptionChanged" Unchecked="PreviewOptionChanged" FlowDirection="RightToLeft" />
+                        <CheckBox x:Name="ShowPackageCheckBox" Style="{StaticResource TabCardCompactCheck}" Content="الباقة" IsChecked="True" Checked="PreviewOptionChanged" Unchecked="PreviewOptionChanged" FlowDirection="RightToLeft" />
+                        <CheckBox x:Name="ShowPriceCheckBox" Style="{StaticResource TabCardCompactCheck}" Content="السعر" IsChecked="True" Checked="PreviewOptionChanged" Unchecked="PreviewOptionChanged" FlowDirection="RightToLeft" />
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Physical right: settings and registration scroll; print actions remain pinned below. -->
+        <Grid Grid.Column="2" FlowDirection="RightToLeft">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="8" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel>
+                <Border Style="{StaticResource TabCardPanel}" Margin="0,0,0,8" Padding="7">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="3" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="3" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <DockPanel Grid.Row="0" LastChildFill="True" FlowDirection="LeftToRight">
+                            <Border DockPanel.Dock="Right" Width="34" Height="34" CornerRadius="17" Background="#F9EDED">
+                                <TextBlock FontFamily="Segoe MDL2 Assets" Text="" FontSize="17" Foreground="{StaticResource TabCardAccent}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <Border DockPanel.Dock="Left" Background="{StaticResource TabCardAccentSoft}" BorderBrush="#E2C7C9" BorderThickness="1" CornerRadius="7" Padding="7,4" VerticalAlignment="Center" Visibility="Collapsed">
+                                <TextBlock x:Name="TargetSystemBadgeTextBlock" Text="User Manager" FontSize="9.5" FontWeight="SemiBold" Foreground="{StaticResource TabCardAccentDark}" />
+                            </Border>
+                            <StackPanel>
+                                <TextBlock Text="إعدادات الدفعة" Style="{StaticResource TabCardSectionTitle}" x:Name="IssuanceSettingsHeadingTextBlock" FlowDirection="RightToLeft" />
+                                <TextBlock x:Name="IssuanceModeSubtitleTextBlock" Text="حدد الباقة والكمية وبيانات الكرت." FontSize="9.5" Foreground="{StaticResource TabCardMuted}" Margin="0,2,0,0" TextWrapping="Wrap" MaxHeight="28" Visibility="Collapsed" />
+                            </StackPanel>
+                        </DockPanel>
+
+                        <!-- Explicit aligned columns: left group and right group, with labels beside controls. -->
+                        <Grid Grid.Row="2" FlowDirection="LeftToRight">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0" FlowDirection="LeftToRight">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" /><RowDefinition Height="3" />
+                                    <RowDefinition Height="Auto" /><RowDefinition Height="3" />
+                                    <RowDefinition Height="Auto" /><RowDefinition Height="3" />
+                                    <RowDefinition Height="Auto" /><RowDefinition Height="3" />
+                                    <RowDefinition Height="Auto" /><RowDefinition Height="3" />
+                                    <RowDefinition Height="Auto" /><RowDefinition Height="3" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Row="0" Height="30" FlowDirection="LeftToRight">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="34" /><ColumnDefinition Width="*" /><ColumnDefinition Width="78" /></Grid.ColumnDefinitions>
+                                    <Button x:Name="AddPackageButton" Grid.Column="0" Content="+" Style="{StaticResource TabCardPlusButton}" ToolTip="إضافة باقة" Click="AddPackageButton_Click" />
+                                    <ComboBox x:Name="PackageComboBox" Grid.Column="1" Style="{StaticResource TabCardComboBox}" DisplayMemberPath="DisplayName" SelectionChanged="PackageComboBox_SelectionChanged" />
+                                    <TextBlock Grid.Column="2" Text="الباقة" Style="{StaticResource TabCardInlineLabel}" Margin="6,0,0,0" />
+                                </Grid>
+                                <Grid Grid.Row="2" Height="30" FlowDirection="LeftToRight">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="34" /><ColumnDefinition Width="*" /><ColumnDefinition Width="78" /></Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0" Content="+" Style="{StaticResource TabCardPlusButton}" ToolTip="إضافة قالب للعرض" Click="AddPrintTemplateButton_Click" />
+                                    <ComboBox x:Name="PrintTemplateComboBox" Grid.Column="1" Style="{StaticResource TabCardComboBox}" SelectionChanged="PrintTemplateComboBox_SelectionChanged">
+                                        <ComboBoxItem Content="default" Tag="nexora" IsSelected="True" />
+                                        <ComboBoxItem Content="قالب فاتح" Tag="light" />
+                                        <ComboBoxItem Content="قالب مضغوط" Tag="compact" />
+                                    </ComboBox>
+                                    <TextBlock Grid.Column="2" Text="قالب الطباعة" Style="{StaticResource TabCardInlineLabel}" Margin="6,0,0,0" />
+                                </Grid>
+                                <Grid Grid.Row="4" Height="30" FlowDirection="LeftToRight">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="34" /><ColumnDefinition Width="*" /><ColumnDefinition Width="78" /></Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0" Content="+" Style="{StaticResource TabCardPlusButton}" ToolTip="إضافة نقطة بيع" Click="AddPointOfSaleButton_Click" />
+                                    <ComboBox x:Name="PointOfSaleComboBox" Grid.Column="1" Style="{StaticResource TabCardComboBox}" SelectionChanged="FormSelectionChanged">
+                                        <ComboBoxItem Content="المركز الرئيسي" Tag="main" IsSelected="True" />
+                                        <ComboBoxItem Content="نقطة بيع الحي" Tag="neighborhood" />
+                                        <ComboBoxItem Content="وكيل الشبكة" Tag="agent" />
+                                    </ComboBox>
+                                    <TextBlock Grid.Column="2" Text="نقطة البيع" Style="{StaticResource TabCardInlineLabel}" Margin="6,0,0,0" />
+                                </Grid>
+                                <Grid Grid.Row="6" Height="30" FlowDirection="LeftToRight">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="48" /><ColumnDefinition Width="*" /><ColumnDefinition Width="86" /></Grid.ColumnDefinitions>
+                                    <TextBox x:Name="CardNumberLengthTextBox" Grid.Column="0" Style="{StaticResource TabCardTextBox}" Text="8" FlowDirection="LeftToRight" HorizontalContentAlignment="Center" TextChanged="FormTextChanged" ToolTip="الطول الكلي لرقم الكرت واسم المستخدم في User Manager" />
+                                    <ComboBox x:Name="CardNumberCharacterSetComboBox" Grid.Column="1" Style="{StaticResource TabCardComboBox}" SelectionChanged="FormSelectionChanged">
+                                        <ComboBoxItem Content="أرقام فقط" Tag="NumericOnly" IsSelected="True" />
+                                        <ComboBoxItem Content="حروف وأرقام" Tag="AlphaNumeric" />
+                                        <ComboBoxItem Content="حروف فقط" Tag="LettersOnly" />
+                                    </ComboBox>
+                                    <TextBlock Grid.Column="2" Text="نمط رقم الكرت" Style="{StaticResource TabCardInlineLabel}" Margin="6,0,0,0" x:Name="CardNumberPatternLabelTextBlock" FlowDirection="RightToLeft" />
+                                </Grid>
+                                <Border x:Name="UsernameSettingsPanel" Grid.Row="8" Background="#FFF9EDED" BorderBrush="#FFE2C7C9" BorderThickness="1" CornerRadius="7" Padding="2" Visibility="Collapsed">
+                                    <Grid Height="31" FlowDirection="LeftToRight">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="45" /><ColumnDefinition Width="*" /><ColumnDefinition Width="86" /></Grid.ColumnDefinitions>
+                                        <TextBox x:Name="UsernameLengthTextBox" Grid.Column="0" Style="{StaticResource TabCardTextBox}" Height="31" Text="6" FlowDirection="LeftToRight" HorizontalContentAlignment="Center" TextChanged="FormTextChanged" ToolTip="طول اسم المستخدم للهوتسبوت" />
+                                        <ComboBox x:Name="UsernameCharacterSetComboBox" Grid.Column="1" Style="{StaticResource TabCardComboBox}" Height="31" SelectionChanged="FormSelectionChanged">
+                                            <ComboBoxItem Content="أرقام فقط" Tag="NumericOnly" IsSelected="True" />
+                                            <ComboBoxItem Content="حروف وأرقام" Tag="AlphaNumeric" />
+                                            <ComboBoxItem Content="حروف فقط" Tag="LettersOnly" />
+                                        </ComboBox>
+                                        <TextBlock Grid.Column="2" Text="اسم المستخدم" Style="{StaticResource TabCardInlineLabel}" Margin="5,0,0,0" />
+                                    </Grid>
+                                </Border>
+                                <StackPanel x:Name="PasswordGenerationPanel" Grid.Row="10" Visibility="Collapsed">
+                                    <Grid Height="30" FlowDirection="LeftToRight">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="45" /><ColumnDefinition Width="*" /><ColumnDefinition Width="86" /></Grid.ColumnDefinitions>
+                                        <TextBox x:Name="PasswordLengthTextBox" Grid.Column="0" Style="{StaticResource TabCardTextBox}" Text="4" FlowDirection="LeftToRight" HorizontalContentAlignment="Center" TextChanged="FormTextChanged" />
+                                        <ComboBox x:Name="PasswordCharacterSetComboBox" Grid.Column="1" Style="{StaticResource TabCardComboBox}" SelectionChanged="FormSelectionChanged">
+                                            <ComboBoxItem Content="أرقام فقط" Tag="NumericOnly" IsSelected="True" />
+                                            <ComboBoxItem Content="حروف وأرقام" Tag="AlphaNumeric" />
+                                            <ComboBoxItem Content="حروف فقط" Tag="LettersOnly" />
+                                        </ComboBox>
+                                        <TextBlock Grid.Column="2" Text="نمط كلمة المرور" Style="{StaticResource TabCardInlineLabel}" Margin="5,0,0,0" />
+                                    </Grid>
+                                </StackPanel>
+                                <Grid Grid.Row="12" Height="30" FlowDirection="LeftToRight">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="86" /></Grid.ColumnDefinitions>
+                                    <TextBox x:Name="RouterProfileTextBox" Grid.Column="0" Style="{StaticResource TabCardTextBox}" FlowDirection="LeftToRight" TextChanged="FormTextChanged" ToolTip="ملف الاستخدام أو بروفايل الراوتر" />
+                                    <TextBlock Grid.Column="1" Text="ملف الاستخدام" Style="{StaticResource TabCardInlineLabel}" Margin="5,0,0,0" />
+                                </Grid>
+                            </Grid>
+
+                            <Grid Grid.Column="2" FlowDirection="LeftToRight">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" /><RowDefinition Height="3" />
+                                    <RowDefinition Height="Auto" /><RowDefinition Height="3" />
+                                    <RowDefinition Height="Auto" /><RowDefinition Height="3" />
+                                    <RowDefinition Height="Auto" /><RowDefinition Height="3" />
+                                    <RowDefinition Height="Auto" /><RowDefinition Height="3" />
+                                    <RowDefinition Height="Auto" /><RowDefinition Height="3" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Row="0" Height="30" FlowDirection="LeftToRight">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="86" /></Grid.ColumnDefinitions>
+                                    <TextBox x:Name="QuantityTextBox" Grid.Column="0" Style="{StaticResource TabCardTextBox}" Text="4080" FlowDirection="LeftToRight" HorizontalContentAlignment="Center" TextChanged="FormTextChanged" />
+                                    <TextBlock Grid.Column="1" Text="عدد الكروت" Style="{StaticResource TabCardInlineLabel}" Margin="6,0,0,0" />
+                                </Grid>
+                                <Grid Grid.Row="2" Height="30" FlowDirection="LeftToRight">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="86" /></Grid.ColumnDefinitions>
+                                    <TextBox x:Name="CardPrefixTextBox" Grid.Column="0" Style="{StaticResource TabCardTextBox}" FlowDirection="LeftToRight" TextChanged="FormTextChanged" ToolTip="بادئة تضاف قبل رقم الكرت" />
+                                    <TextBlock Grid.Column="1" Text="بداية الكرت" Style="{StaticResource TabCardInlineLabel}" Margin="6,0,0,0" />
+                                </Grid>
+                                <Grid Grid.Row="4" Height="30" FlowDirection="LeftToRight">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="86" /></Grid.ColumnDefinitions>
+                                    <TextBox x:Name="CardSuffixTextBox" Grid.Column="0" Style="{StaticResource TabCardTextBox}" FlowDirection="LeftToRight" TextChanged="FormTextChanged" ToolTip="لاحقة تضاف بعد رقم الكرت" />
+                                    <TextBlock Grid.Column="1" Text="نهاية الكرت" Style="{StaticResource TabCardInlineLabel}" Margin="6,0,0,0" />
+                                </Grid>
+                                <Grid Grid.Row="6" Height="30" FlowDirection="LeftToRight">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="86" /></Grid.ColumnDefinitions>
+                                    <ComboBox x:Name="PasswordModeComboBox" Grid.Column="0" Style="{StaticResource TabCardComboBox}" SelectionChanged="PasswordModeComboBox_SelectionChanged">
+                                        <ComboBoxItem Content="كلمة مرور فارغة" Tag="Empty" IsSelected="True" />
+                                        <ComboBoxItem Content="مثل اسم المستخدم" Tag="SameAsUsername" />
+                                        <ComboBoxItem Content="كلمة مرور مختلفة" Tag="Generated" />
+                                    </ComboBox>
+                                    <TextBlock x:Name="PasswordModeLabelTextBlock" Grid.Column="1" Text="صيغة الكرت" Style="{StaticResource TabCardInlineLabel}" Margin="6,0,0,0" />
+                                </Grid>
+                                <StackPanel x:Name="ManagerUserPanel" Grid.Row="8">
+                                    <Grid Height="30" FlowDirection="LeftToRight">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="86" /></Grid.ColumnDefinitions>
+                                        <ComboBox x:Name="ManagerUserComboBox" Grid.Column="0" Style="{StaticResource TabCardComboBox}" SelectionChanged="FormSelectionChanged">
+                                            <ComboBoxItem Content="admin" Tag="admin" IsSelected="True" />
+                                            <ComboBoxItem Content="مشغل الشبكة" Tag="network-operator" />
+                                            <ComboBoxItem Content="مسؤول نقطة البيع" Tag="pos-operator" />
+                                        </ComboBox>
+                                        <TextBlock Grid.Column="1" Text="مستخدم يوزر" Style="{StaticResource TabCardInlineLabel}" Margin="6,0,0,0" />
+                                    </Grid>
+                                </StackPanel>
+                                <Grid Grid.Row="10" Height="30" FlowDirection="LeftToRight">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="86" /></Grid.ColumnDefinitions>
+                                    <ComboBox x:Name="SharedUsersComboBox" Grid.Column="0" Style="{StaticResource TabCardComboBox}" SelectionChanged="FormSelectionChanged" ToolTip="{Binding Text, ElementName=SharedUsersHelpTextBlock}">
+                                        <ComboBoxItem Content="جهاز واحد" Tag="1" IsSelected="True" />
+                                        <ComboBoxItem Content="جهازان" Tag="2" />
+                                        <ComboBoxItem Content="3 أجهزة" Tag="3" />
+                                        <ComboBoxItem Content="5 أجهزة" Tag="5" />
+                                        <ComboBoxItem Content="10 أجهزة" Tag="10" />
+                                    </ComboBox>
+                                    <TextBlock Grid.Column="1" Text="عدد المتزامنين" Style="{StaticResource TabCardInlineLabel}" Margin="6,0,0,0" />
+                                </Grid>
+                                <TextBlock x:Name="SharedUsersHelpTextBlock" Grid.Row="12" FontSize="9" Foreground="{StaticResource TabCardMuted}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="24" FlowDirection="RightToLeft" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" VerticalAlignment="Center" Visibility="Collapsed" />
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Row="4" FlowDirection="LeftToRight">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <WrapPanel Grid.Column="1" FlowDirection="RightToLeft" VerticalAlignment="Center">
+                                <RadioButton x:Name="RandomGenerationRadioButton" GroupName="CardNumberGeneration" Content="عشوائي" IsChecked="True" Style="{StaticResource TabCardRadio}" Checked="GenerationMode_Changed" FlowDirection="RightToLeft" />
+                                <RadioButton x:Name="SequentialGenerationRadioButton" GroupName="CardNumberGeneration" Content="بالتتابع" Style="{StaticResource TabCardRadio}" Checked="GenerationMode_Changed" FlowDirection="RightToLeft" />
+                            </WrapPanel>
+                            <TextBlock Grid.Column="2" Text="طريقة التوليد" Style="{StaticResource TabCardInlineLabel}" />
+                            <StackPanel x:Name="SequenceStartPanel" Grid.Column="0" Orientation="Horizontal" Visibility="Collapsed" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <TextBlock Text="بداية التسلسل" Style="{StaticResource TabCardInlineLabel}" Margin="0,0,6,0" />
+                                <TextBox x:Name="SequenceStartTextBox" Width="70" Height="31" Style="{StaticResource TabCardTextBox}" Text="1" FlowDirection="LeftToRight" TextChanged="FormTextChanged" />
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <Border Style="{StaticResource TabCardPanel}" Padding="7">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="3" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="3" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="4" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <DockPanel Grid.Row="0" FlowDirection="LeftToRight">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="" FontSize="17" Foreground="{StaticResource TabCardAccent}" VerticalAlignment="Center" DockPanel.Dock="Right" />
+                            <TextBlock Text="خيارات التسجيل" Style="{StaticResource TabCardSectionTitle}" Margin="8,0,0,0" />
+                        </DockPanel>
+                        <Grid Grid.Row="2" FlowDirection="LeftToRight">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="10" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <RadioButton x:Name="AppendToPreviousBatchRadioButton" Grid.Column="0" GroupName="BatchRegistrationMode" Content="الإلحاق بدفعة سابقة" Style="{StaticResource TabCardRadio}" FlowDirection="RightToLeft" Checked="BatchMode_Changed" VerticalAlignment="Center" />
+                            <RadioButton x:Name="NewBatchRadioButton" Grid.Column="2" GroupName="BatchRegistrationMode" Content="تسجيل دفعة جديدة" IsChecked="True" Style="{StaticResource TabCardRadio}" FlowDirection="RightToLeft" Checked="BatchMode_Changed" VerticalAlignment="Center" />
+                        </Grid>
+                        <Grid Grid.Row="4" FlowDirection="LeftToRight">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="38" /><ColumnDefinition Width="1.15*" /><ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="10" /><ColumnDefinition Width="1.55*" /><ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="PickExistingBatchButton" Grid.Column="0" Content="" FontFamily="Segoe MDL2 Assets" Style="{StaticResource TabCardPlusButton}" Click="PickExistingBatchButton_Click" ToolTip="اختيار دفعة سابقة" />
+                            <Grid x:Name="ExistingBatchPanel" Grid.Column="1" IsEnabled="False">
+                                <ComboBox x:Name="ExistingBatchComboBox" Style="{StaticResource TabCardComboBox}" DisplayMemberPath="BatchId" SelectionChanged="ExistingBatchComboBox_SelectionChanged" />
+                            </Grid>
+                            <TextBlock Grid.Column="2" Text="رقم الدفعة السابقة" Style="{StaticResource TabCardInlineLabel}" Margin="7,0,0,0" />
+                            <TextBox x:Name="CommentTextBox" Grid.Column="4" Style="{StaticResource TabCardTextBox}" FlowDirection="RightToLeft" TextAlignment="Right" TextChanged="FormTextChanged" ToolTip="ملاحظة اختيارية لهذه الدفعة" />
+                            <TextBlock Grid.Column="5" Text="ملاحظة" Style="{StaticResource TabCardInlineLabel}" Margin="7,0,0,0" />
+                        </Grid>
+                        <TextBlock x:Name="BatchRegistrationHintTextBlock" Grid.Row="6" Text="سيُنشأ رقم دفعة تلقائيًا." FontSize="9" Foreground="{StaticResource TabCardMuted}" TextWrapping="NoWrap" MaxHeight="18" TextTrimming="CharacterEllipsis" />
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <!-- These actions are fixed in the right pane so the primary buttons never scroll off-screen. -->
+            <Border Grid.Row="2" Style="{StaticResource TabCardPanel}" Padding="10">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="6" /><RowDefinition Height="Auto" /><RowDefinition Height="6" /><RowDefinition Height="Auto" /><RowDefinition Height="4" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" FlowDirection="LeftToRight">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="" FontSize="17" Foreground="{StaticResource TabCardAccent}" VerticalAlignment="Center" DockPanel.Dock="Right" />
+                        <TextBlock Text="خيارات الطباعة" Style="{StaticResource TabCardSectionTitle}" Margin="8,0,0,0" />
+                    </DockPanel>
+                    <Grid Grid.Row="2" FlowDirection="LeftToRight">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="0" /><ColumnDefinition Width="1.13*" /><ColumnDefinition Width="0.92*" /></Grid.ColumnDefinitions>
+                        <RadioButton x:Name="FastFilePrintModeRadioButton" Grid.Column="0" GroupName="PrintMode" Content="طباعة ملف سريع لأكثر من ٥٬٠٠٠ كرت" IsEnabled="False" Visibility="Collapsed" FontSize="9.5" Foreground="{StaticResource TabCardMuted}" FlowDirection="RightToLeft" VerticalAlignment="Center" />
+                        <RadioButton x:Name="SequentialPrintModeRadioButton" Grid.Column="1" GroupName="PrintMode" Content="طباعة بالتتابع" Style="{StaticResource TabCardRadio}" Checked="PrintMode_Changed" FlowDirection="RightToLeft" VerticalAlignment="Center" />
+                        <RadioButton x:Name="DefaultPrintModeRadioButton" Grid.Column="2" GroupName="PrintMode" Content="طباعة انفرادية" IsChecked="True" Style="{StaticResource TabCardRadio}" Checked="PrintMode_Changed" FlowDirection="RightToLeft" VerticalAlignment="Center" />
+                    </Grid>
+                    <Grid Grid.Row="4" FlowDirection="LeftToRight">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="1.08*" /><ColumnDefinition Width="10" /><ColumnDefinition Width="0.84*" /></Grid.ColumnDefinitions>
+                        <Button x:Name="PrintBatchActionButton" Grid.Column="0" Style="{StaticResource TabCardPrimaryButton}" Height="40" FontSize="12.5" Click="GenerateAndPrintButton_Click">
+                            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center">
+                                <TextBlock Text="إنشاء وتجهيز الطباعة" VerticalAlignment="Center" />
+                                <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="15" VerticalAlignment="Center" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="AddBatchActionButton" Grid.Column="2" Content="إضافة    +" Style="{StaticResource TabCardSecondaryButton}" Height="40" FontSize="12.5" Click="GenerateBatchButton_Click" />
+                    </Grid>
+                    <TextBlock x:Name="IssuanceStatusTextBlock" Grid.Row="6" Text="أنشئ الدفعة ثم تابعها من إدارة الكروت والدفعات والطباعة." FontSize="9" Foreground="{StaticResource TabCardMuted}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="26" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Retained legacy commands and single-card mode for code compatibility; not shown in this streamlined layout. -->
+        <StackPanel Visibility="Collapsed" Width="0" Height="0">
+            <TextBlock Text="" />
+            <RadioButton x:Name="SingleCardModeRadioButton" GroupName="PrintMode" Content="كرت واحد" Checked="PrintMode_Changed" FlowDirection="RightToLeft" />
+            <Button x:Name="GenerateLocalButton" Click="GenerateBatchButton_Click" />
+            <Button x:Name="UploadRouterButton" Click="UploadRouterButton_Click" />
+            <Button x:Name="UploadAndPrintButton" Click="GenerateAndPrintButton_Click" />
+            <Button x:Name="OnlineSaleButton" Click="OnlineSaleButton_Click" />
+            <Button x:Name="OffersButton" Click="OffersButton_Click" />
+            <Button x:Name="PrintOptionsButton" Click="PrintOptionsButton_Click" />
+            <Button x:Name="OpenGeneratedCardsButton" Click="OpenGeneratedCardsButton_Click" />
+            <Button x:Name="OpenPrintQueueButton" Click="OpenPrintQueueButton_Click" />
+        </StackPanel>
+    </Grid>
+</UserControl>

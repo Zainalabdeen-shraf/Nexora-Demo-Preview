@@ -1,0 +1,70 @@
+name: Windows Build & Demo Package
+
+on:
+  push:
+    branches:
+      - main
+      - "demo/**"
+      - "feature/**"
+    tags:
+      - "demo-v*"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-package:
+    name: Build WPF and package Windows demo
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+
+      - name: Install .NET 10 SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore solution
+        run: dotnet restore .\Nexora.Demo.slnx
+
+      - name: Build Release
+        run: dotnet build .\Nexora.Demo.slnx --configuration Release --no-restore
+
+      - name: Publish self-contained Windows x64 app
+        run: >-
+          dotnet publish .\Nexora.Demo.Desktop\Nexora.Demo.Desktop.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          --output .\artifacts\publish
+
+      - name: Create downloadable ZIP
+        shell: pwsh
+        run: |
+          $publishPath = Join-Path $PWD 'artifacts\publish'
+          $zipPath = Join-Path $PWD 'artifacts\Nexora-Demo-Preview-win-x64.zip'
+          if (-not (Test-Path -LiteralPath $publishPath -PathType Container)) {
+            throw "Publish output was not created: $publishPath"
+          }
+          if (Test-Path -LiteralPath $zipPath) { Remove-Item -LiteralPath $zipPath -Force }
+          Compress-Archive -Path (Join-Path $publishPath '*') -DestinationPath $zipPath -CompressionLevel Optimal
+          if (-not (Test-Path -LiteralPath $zipPath -PathType Leaf)) { throw 'ZIP packaging failed.' }
+
+      - name: Upload runnable demo artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: Nexora-Demo-Preview-win-x64
+          path: .\artifacts\Nexora-Demo-Preview-win-x64.zip
+          if-no-files-found: error
+          retention-days: 14
