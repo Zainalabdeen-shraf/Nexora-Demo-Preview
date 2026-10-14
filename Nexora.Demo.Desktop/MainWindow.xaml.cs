@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
@@ -45,16 +45,16 @@ public partial class MainWindow : Window
     };
     private readonly Dictionary<string, string[]> _sectionTabs = new(StringComparer.Ordinal)
     {
-        ["network-users"] = ["كل الحسابات", "النشطون الآن", "غير النشطين", "مستخدمو HotSpot", "مستخدمو User Manager"],
-        ["cards"] = ["إصدار الكروت", "إدارة الكروت", "إدارة الدفعات"],
-        ["packages"] = ["كتالوج الباقات", "باقات HotSpot", "باقات User Manager"],
+        ["network-users"] = ["كل الحسابات", "النشطون الآن", "غير النشطين"],        ["cards"] = ["إصدار الكروت", "إدارة الكروت", "إدارة الدفعات", "المعلقات", "استيراد الكروت"],
+        ["packages"] = ["كتالوج الباقات"],
         ["sales"] = ["ملخص المبيعات", "معاملات البيع", "نقاط البيع"],
-        ["printing"] = ["قائمة الطباعة"],
+        ["printing"] = ["تصميم القالب", "قائمة الطباعة"],
         ["networks"] = ["مصادر المصادقة", "HotSpot", "User Manager"],
         ["reports"] = ["مركز التقارير"],
         ["settings"] = ["إعدادات النظام", "الموقع والهوية", "النسخ الاحتياطي", "الصيانة"]
     };
     private string _currentSection = "dashboard";
+    private DemoAccountSystem _selectedCardSystem = DemoAccountSystem.UserManager;
     private readonly DemoCardIssuanceService _demoCardIssuanceService = new();
     private readonly DemoSalesService _demoSalesService = new();
     private readonly Dictionary<string, UserControl> _featureViewCache = new(StringComparer.Ordinal);
@@ -316,8 +316,12 @@ public partial class MainWindow : Window
         SectionContentPanel.Visibility = Visibility.Visible;
         DashboardPage.Visibility = key == "dashboard" ? Visibility.Visible : Visibility.Collapsed;
         SectionPage.Visibility = key == "dashboard" ? Visibility.Collapsed : Visibility.Visible;
-        PageTitleTextBlock.Text = key switch
-        {
+        CardSystemSelectorPanel.Visibility =
+        key == "cards" || key == "packages" || key == "network-users"
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+            PageTitleTextBlock.Text = key switch
+            {
             "dashboard" => "الرئيسية",
             "network-users" => "مستخدمو الشبكة",
             "cards" => "الكروت والدفعات",
@@ -329,9 +333,12 @@ public partial class MainWindow : Window
             "settings" => "الإعدادات والصيانة",
             _ => "Nexora"
         };
-        PageSubtitleTextBlock.Text = key == "dashboard"
-            ? "نظرة موحدة على الكروت والمبيعات ومصادر المصادقة"
-            : "كل وظيفة في مكانها، مع ربط واضح بين الإصدار والإدارة والتقارير";
+        PageSubtitleTextBlock.Text = key switch
+        {
+            "dashboard" => "نظرة موحدة على الكروت والمبيعات ومصادر المصادقة",
+            "cards" => "إصدار الكروت وإدارة الدفعات",
+            _ => "كل وظيفة في مكانها، مع ربط واضح بين الإصدار والإدارة والتقارير"
+        };
         UpdateSidebarSelection(key);
         if (key == "dashboard")
         {
@@ -347,11 +354,44 @@ public partial class MainWindow : Window
             {
                 Content = tab,
                 Tag = tab,
-                Style = (Style)FindResource("SecondaryButton"),
-                Margin = new Thickness(0, 0, 8, 0),
-                MinWidth = 110
+                Style = (Style)FindResource("SectionTabButtonStyle"),
+                Margin = new Thickness(3, 0, 3, 0),
+                MinWidth = 0,
+                Height = 38,
+                FontSize = 12.5
             };
             btn.Click += SectionTabButton_Click;
+            btn.MouseEnter += (_, _) =>
+{
+    var isSelected = string.Equals(
+        btn.Tag?.ToString(),
+        SectionContentTitleTextBlock.Text,
+        StringComparison.Ordinal);
+
+    if (isSelected)
+        return;
+
+    btn.Background = new SolidColorBrush(Color.FromRgb(239, 245, 252));
+    btn.BorderBrush = new SolidColorBrush(Color.FromRgb(199, 217, 239));
+};
+
+btn.MouseLeave += (_, _) =>
+{
+    var isSelected = string.Equals(
+        btn.Tag?.ToString(),
+        SectionContentTitleTextBlock.Text,
+        StringComparison.Ordinal);
+
+    btn.Background = (Brush)FindResource(
+        isSelected ? "PrimaryBrush" : "SurfaceBrush");
+
+    btn.Foreground = (Brush)FindResource(
+        isSelected ? "SurfaceBrush" : "TextBrush");
+
+    btn.BorderBrush = (Brush)FindResource(
+        isSelected ? "PrimaryBrush" : "BorderBrushSoft");
+};
+
             SectionTabsPanel.Children.Add(btn);
         }
         ActivateSectionTab(tabs[0]);
@@ -367,6 +407,37 @@ public partial class MainWindow : Window
         }
     }
 
+    private void CardSystemTab_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is not RadioButton tab || tab.Tag is not string systemKey)
+            return;
+
+        var targetSystem = systemKey == "hotspot" ? DemoAccountSystem.HotSpot : DemoAccountSystem.UserManager;
+        if (_selectedCardSystem == targetSystem)
+            return;
+
+        _selectedCardSystem = targetSystem;
+        if (_currentSection == "cards")
+        {
+            var tabName = SectionContentTitleTextBlock.Text;
+            if (!_sectionTabs["cards"].Any(name => string.Equals(name, tabName, StringComparison.Ordinal)))
+                tabName = _sectionTabs["cards"][0];
+            ActivateSectionTab(tabName);
+        }
+        else if (_currentSection == "network-users")
+        {
+            var tabName = SectionContentTitleTextBlock.Text;
+
+            if (!_sectionTabs["network-users"].Any(name =>
+                string.Equals(name, tabName, StringComparison.Ordinal)))
+            {
+                tabName = "كل الحسابات";
+            }
+
+            ActivateSectionTab(tabName);
+        }
+
+    }
     private void SectionTabButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button button || button.Tag is not string tab) return;
@@ -385,12 +456,9 @@ public partial class MainWindow : Window
         {
             if (_currentSection == "network-users")
             {
-                var systemKey = tab switch
-                {
-                    "مستخدمو HotSpot" => "hotspot",
-                    "مستخدمو User Manager" => "user-manager",
-                    _ => "all"
-                };
+                var systemKey = _selectedCardSystem == DemoAccountSystem.HotSpot
+                    ? "hotspot"
+                    : "user-manager";
                 cardsView.SetSystemFilter(systemKey);
                 cardsView.SetBatchFilter("all");
                 cardsView.SetStatusFilter("all");
@@ -399,7 +467,7 @@ public partial class MainWindow : Window
             }
             else if (_currentSection == "cards" && tab == "إدارة الكروت")
             {
-                cardsView.ShowAllSystems();
+                cardsView.SetSystemFilter(_selectedCardSystem == DemoAccountSystem.HotSpot ? "hotspot" : "user-manager");
                 cardsView.SetBatchFilter("all");
                 cardsView.SetStatusFilter("all");
                 cardsView.SetActivityFilter("all");
@@ -409,14 +477,30 @@ public partial class MainWindow : Window
         foreach (var child in SectionTabsPanel.Children.OfType<Button>())
         {
             var selected = string.Equals(child.Tag?.ToString(), tab, StringComparison.Ordinal);
-            child.Background = (Brush)FindResource(selected ? "PrimaryBrush" : "SurfaceBrush");
-            child.Foreground = (Brush)FindResource(selected ? "SurfaceBrush" : "TextBrush");
-            child.BorderBrush = (Brush)FindResource(selected ? "PrimaryBrush" : "BorderBrushSoft");
+            child.Background = (Brush)FindResource(
+                selected ? "PrimaryBrush" : "SurfaceBrush");
+
+            child.Foreground = (Brush)FindResource(
+                selected ? "SurfaceBrush" : "TextBrush");
+
+            child.BorderBrush = (Brush)FindResource(
+                selected ? "PrimaryBrush" : "BorderBrushSoft");
         }
 
         var featureOwnsWorkspace = SectionFeatureContentHost.Content is
-            CardIssuanceView or IssuanceWorkspaceView or GeneratedCardsView or CardBatchesView or
-            PackageManagementView or SalesReportView or SalesTransactionsView or SalesPointsView or PrintQueueView or ReportsCenterView or NetworkSourcesView;
+            CardIssuanceView or IssuanceWorkspaceView or GeneratedCardsView or CardBatchesView or CardBatchesView or PendingCardsView or ImportCardsView or
+            PackageManagementView or SalesReportView or SalesTransactionsView or SalesPointsView or PrintQueueView or TemplateDesignerView or ReportsCenterView or NetworkSourcesView;
+        var compactIssuanceWorkspace = SectionFeatureContentHost.Content is IssuanceWorkspaceView;
+        SectionContentBorder.Padding = compactIssuanceWorkspace ? new Thickness(6) : new Thickness(14);
+        SectionTabsScrollViewer.Margin = compactIssuanceWorkspace
+            ? new Thickness(0, 0, 0, 6)
+            : new Thickness(0, 0, 0, 12);
+        var isCardWorkspace = _currentSection == "cards";
+        SectionContentBorder.Background = isCardWorkspace ? (Brush)FindResource("AppBgBrush") : Brushes.White;
+        SectionContentBorder.BorderBrush = isCardWorkspace ? Brushes.Transparent : (Brush)FindResource("BorderBrushSoft");
+        SectionContentBorder.BorderThickness = isCardWorkspace ? new Thickness(0) : new Thickness(1);
+        SectionContentBorder.CornerRadius = isCardWorkspace ? new CornerRadius(0) : new CornerRadius(12);
+        SectionContentBorder.Padding = isCardWorkspace ? new Thickness(0) : new Thickness(14);
         SectionContentPanel.Visibility = featureOwnsWorkspace ? Visibility.Collapsed : Visibility.Visible;
         SectionBodyHost.Visibility = Visibility.Collapsed;
         SectionBodyHost.Content = null;
@@ -424,18 +508,20 @@ public partial class MainWindow : Window
 
     private void RenderFeatureContent(string tab)
     {
+        var cardSystemKey = _selectedCardSystem == DemoAccountSystem.HotSpot ? "hotspot" : "user-manager";
         var cacheKey = _currentSection switch
         {
-            "network-users" => "network-users|accounts",
-            "cards" when tab == "إصدار الكروت" => "cards|issuance",
-            "cards" when tab == "إدارة الكروت" => "cards|cards-list",
-            "cards" when tab == "إدارة الدفعات" => "cards|batches",
-            "packages" when tab == "كتالوج الباقات" => "packages|all",
-            "packages" when tab == "باقات HotSpot" => "packages|hotspot",
-            "packages" when tab == "باقات User Manager" => "packages|user-manager",
+            "network-users" => $"network-users|{cardSystemKey}|accounts",
+            "cards" when tab == "إصدار الكروت" => $"cards|{cardSystemKey}|issuance",
+            "cards" when tab == "إدارة الكروت" => $"cards|{cardSystemKey}|cards-list",
+            "cards" when tab == "إدارة الدفعات" => $"cards|{cardSystemKey}|batches",
+            "cards" when tab == "المعلقات" => $"cards|{cardSystemKey}|pending",
+            "cards" when tab == "استيراد الكروت" => $"cards|{cardSystemKey}|import",
+            "packages" when tab == "كتالوج الباقات" => $"packages|{cardSystemKey}",
             "sales" when tab == "ملخص المبيعات" => "sales|summary",
             "sales" when tab == "معاملات البيع" => "sales|transactions",
             "sales" when tab == "نقاط البيع" => "sales|points",
+            "printing" when tab == "تصميم القالب" => "printing|template-designer",
             "printing" => "printing|workspace",
             "networks" when tab == "مصادر المصادقة" => "networks|sources",
             "networks" when tab == "HotSpot" => "networks|hotspot",
@@ -446,9 +532,39 @@ public partial class MainWindow : Window
 
         if (!_featureViewCache.TryGetValue(cacheKey, out var featureView))
         {
-            featureView = CreateFeatureView(_currentSection, tab);
-            if (featureView is not null)
-                _featureViewCache[cacheKey] = featureView;
+            try
+            {
+                featureView = CreateFeatureView(_currentSection, tab);
+                if (featureView is not null)
+                    _featureViewCache[cacheKey] = featureView;
+            }
+            catch (Exception ex)
+            {
+                var logPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "NexoraProductDemo", "logs", "ui-runtime-errors.log");
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
+                    File.AppendAllText(
+                        logPath,
+                        $"{DateTimeOffset.Now:O} | Section={_currentSection} | Tab={tab}{Environment.NewLine}{ex}{Environment.NewLine}{new string('-', 80)}{Environment.NewLine}",
+                        new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+                }
+                catch
+                {
+                    // Keep a view-construction failure from closing the entire demo if logging is unavailable.
+                }
+
+                SectionFeatureContentHost.Content = null;
+                SectionFeatureContentHost.Visibility = Visibility.Collapsed;
+                SectionPlaceholderCard.Visibility = Visibility.Visible;
+                SectionPlaceholderTextBlock.Text = "تعذر تحميل هذه الشاشة. بقي النظام مفتوحًا، وسُجلت تفاصيل المشكلة للتشخيص.";
+                MessageBox.Show(
+                    $"تعذر فتح شاشة «{tab}». لم يتم إغلاق النظام.\nتفاصيل الخطأ محفوظة في:\n{logPath}",
+                    "Nexora", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
         }
 
         if (featureView is null)
@@ -463,42 +579,72 @@ public partial class MainWindow : Window
         SectionFeatureContentHost.Visibility = Visibility.Visible;
         SectionFeatureContentHost.Content = featureView;
     }
-
     private UserControl? CreateFeatureView(string section, string tab)
     {
         if (section == "network-users")
         {
-            var view = new GeneratedCardsView(_demoCardIssuanceService, DemoAccountSystem.UserManager);
+            var view = new GeneratedCardsView(
+                _demoCardIssuanceService,
+                _selectedCardSystem);
+
             view.NavigationRequested += FeatureView_NavigationRequested;
-            view.ShowAllSystems();
+
+            view.SetSystemFilter(
+                _selectedCardSystem == DemoAccountSystem.HotSpot
+                    ? "hotspot"
+                    : "user-manager");
+
+            view.SetSystemFilterControlVisible(false);
+
             return view;
         }
 
         if (section == "cards" && tab == "إصدار الكروت")
         {
-            var view = new IssuanceWorkspaceView(_demoCardIssuanceService);
+            var view = new IssuanceWorkspaceView(_demoCardIssuanceService, _selectedCardSystem);
             view.NavigationRequested += FeatureView_NavigationRequested;
             return view;
         }
 
         if (section == "cards" && tab == "إدارة الكروت")
         {
-            var view = new GeneratedCardsView(_demoCardIssuanceService, DemoAccountSystem.UserManager);
+            var view = new GeneratedCardsView(_demoCardIssuanceService, _selectedCardSystem);
             view.NavigationRequested += FeatureView_NavigationRequested;
-            view.ShowAllSystems();
+            view.SetSystemFilter(_selectedCardSystem == DemoAccountSystem.HotSpot ? "hotspot" : "user-manager");
             return view;
         }
 
         if (section == "cards" && tab == "إدارة الدفعات")
         {
             var view = new CardBatchesView(_demoCardIssuanceService);
+            view.SetSystemFilter(_selectedCardSystem == DemoAccountSystem.HotSpot ? "hotspot" : "user-manager");
             view.NavigationRequested += FeatureView_NavigationRequested;
             return view;
         }
 
+        if (section == "cards" && tab == "المعلقات")
+{
+            var view = new PendingCardsView(
+                _demoCardIssuanceService,
+                _selectedCardSystem);
+
+            view.NavigationRequested += FeatureView_NavigationRequested;
+            return view;
+        }
+
+        if (section == "cards" && tab == "استيراد الكروت")
+            {
+                return new ImportCardsView(
+                    _demoCardIssuanceService,
+                    _selectedCardSystem);
+            }
+
         if (section == "packages")
         {
-            var provider = tab == "باقات HotSpot" ? "hotspot" : tab == "باقات User Manager" ? "user-manager" : "all";
+            var provider = _selectedCardSystem == DemoAccountSystem.HotSpot
+                ? "hotspot"
+                : "user-manager";
+
             return new PackageManagementView(provider);
         }
 
@@ -507,9 +653,7 @@ public partial class MainWindow : Window
 
         if (section == "sales" && tab == "معاملات البيع")
         {
-            var view = new SalesTransactionsView(_demoSalesService);
-            view.NavigationRequested += FeatureView_NavigationRequested;
-            return view;
+            return new SalesTransactionsView(_demoSalesService);
         }
 
         if (section == "sales" && tab == "نقاط البيع")
@@ -518,6 +662,9 @@ public partial class MainWindow : Window
             view.NavigationRequested += FeatureView_NavigationRequested;
             return view;
         }
+
+        if (section == "printing" && tab == "تصميم القالب")
+            return new TemplateDesignerView();
 
         if (section == "printing")
         {
@@ -563,8 +710,14 @@ public partial class MainWindow : Window
                 return;
             }
             NavigateTo("network-users");
-            ActivateSectionTab(e.SectionKey == "hotspot" ? "مستخدمو HotSpot" : "مستخدمو User Manager");
-        }
+
+            if (e.SectionKey == "hotspot")
+                HotSpotCardSystemTab.IsChecked = true;
+            else
+                UserManagerCardSystemTab.IsChecked = true;
+
+            ActivateSectionTab("كل الحسابات");
+            }
         else
         {
             NavigateTo(e.SectionKey);
@@ -687,7 +840,7 @@ public partial class MainWindow : Window
         "cards" => "إصدار الكروت ومتابعة الدفعات والمخزون في مساحة واحدة.",
         "packages" => "كتالوج تجاري موحّد وربط تقني مستقل لكل جهة إصدار.",
         "sales" => "معاملات البيع وتوزيع المبيعات وفق السجلات المتاحة.",
-        "printing" => "إدارة قائمة الكروت والتصاميم ومعاينة الطباعة وتنفيذها.",
+        "printing" => tab == "تصميم القالب" ? "تصميم قوالب الكروت وإدارة ظهور الحقول وحفظ إعدادات القالب محليًا." : "إدارة قائمة الكروت ومراجعة المعاينة وإرسال مهمة الطباعة.",
         "networks" => "إعداد مصادر المصادقة وربط وظائفها بوحدات Nexora.",
         "reports" => "التقارير التجارية والإدارية والتشغيلية مجمّعة حسب مصدرها.",
         _ => $"{tab} ضمن إدارة Nexora."

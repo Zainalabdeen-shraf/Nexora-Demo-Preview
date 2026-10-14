@@ -1,0 +1,146 @@
+<UserControl x:Class="Nexora.Demo.Desktop.Features.Cards.Views.PendingCardsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FlowDirection="RightToLeft"
+             Background="{StaticResource AppBgBrush}">
+
+    <Grid Margin="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Background="White"
+                BorderBrush="{StaticResource BorderBrushSoft}"
+                BorderThickness="1"
+                CornerRadius="9"
+                Padding="12"
+                Margin="0,0,0,8">
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <TextBlock Text="المعلّقات"
+                               FontSize="17"
+                               FontWeight="Bold"/>
+
+                    <TextBlock Text="الكروت التي لم تكتمل إجراءات الطباعة أو المزامنة"
+                               FontSize="11.5"
+                               Foreground="{StaticResource MutedBrush}"
+                               Margin="0,4,0,0"/>
+
+                    <TextBlock x:Name="TargetSystemTextBlock"
+                               FontSize="11.5"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource PrimaryBrush}"
+                               Margin="0,5,0,0"/>
+                </StackPanel>
+
+                <TextBlock x:Name="PendingCountTextBlock"
+                           Grid.Column="1"
+                           VerticalAlignment="Center"
+                           FontSize="15"
+                           FontWeight="Bold"
+                           Text="0 كرت"/>
+            </Grid>
+        </Border>
+
+        <WrapPanel Grid.Row="1" Margin="0,0,0,8">
+            <Button Content="تسجيل طلب المزامنة"
+                    Style="{StaticResource PrimaryButton}"
+                    Margin="0,0,6,4"
+                    Click="RetrySyncButton_Click"/>
+
+            <Button Content="إضافة إلى قائمة الطباعة"
+                    Style="{StaticResource SecondaryButton}"
+                    Margin="0,0,6,4"
+                    Click="QueuePrintButton_Click"/>
+
+            <Button Content="تحديث"
+                    Style="{StaticResource SecondaryButton}"
+                    Margin="0,0,6,4"
+                    Click="RefreshButton_Click"/>
+        </WrapPanel>
+
+        <Grid Grid.Row="2">
+            <DataGrid x:Name="PendingCardsGrid"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      SelectionMode="Extended"
+                      SelectionUnit="FullRow"
+                      HeadersVisibility="Column"
+                      FlowDirection="RightToLeft"
+                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="رقم الدفعة"
+                                        Binding="{Binding BatchId}"
+                                        Width="150"/>
+
+                    <DataGridTextColumn Header="رقم الكرت"
+                                        Binding="{Binding CardNumber}"
+                                        Width="140"/>
+
+                    <DataGridTextColumn Header="اسم المستخدم"
+                                        Binding="{Binding Username}"
+                                        Width="140"/>
+
+                    <DataGridTextColumn Header="الباقة"
+                                        Binding="{Binding PackageName}"
+                                        Width="160"/>
+
+                    <DataGridTextColumn Header="الإجراء المتبقي"
+                                        Binding="{Binding PendingStatus}"
+                                        Width="190"/>
+
+                    <DataGridTextColumn Header="آخر إجراء"
+                                        Binding="{Binding LastAction}"
+                                        Width="180"/>
+
+                    <DataGridTextColumn Header="تاريخ الإنشاء"
+                                        Binding="{Binding CreatedAtLabel}"
+                                        Width="150"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <Border x:Name="EmptyStateBorder"
+                    Background="White"
+                    Visibility="Collapsed"
+                    IsHitTestVisible="False">
+
+                <StackPanel HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Margin="20">
+                    <TextBlock Text="لا توجد كروت معلّقة"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Center"/>
+
+                    <TextBlock Text="ستظهر هنا الكروت التي تحتاج إلى استكمال إجراءاتها."
+                               FontSize="11.5"
+                               Foreground="{StaticResource MutedBrush}"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"
+                               Margin="0,6,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <TextBlock x:Name="PendingStatusTextBlock"
+                   Grid.Row="3"
+                   FontSize="11.5"
+                   Foreground="{StaticResource MutedBrush}"
+                   TextWrapping="Wrap"
+                   Margin="0,7,0,0"/>
+    </Grid>
+</UserControl>

@@ -12,12 +12,14 @@ namespace Nexora.Demo.Desktop.Features.Printing.Views;
 public partial class PrintQueueView : UserControl
 {
     private readonly DemoCardIssuanceService _issuanceService;
+    private bool _runtimeCrashFixReady;
     private bool _isSubscribed;
 
     public PrintQueueView(DemoCardIssuanceService issuanceService)
     {
         InitializeComponent();
         _issuanceService = issuanceService;
+        _runtimeCrashFixReady = true;
         PrintQueueGrid.ItemsSource = _issuanceService.Cards;
         Loaded += PrintQueueView_Loaded;
         Unloaded += PrintQueueView_Unloaded;
@@ -85,6 +87,9 @@ public partial class PrintQueueView : UserControl
 
     private void UpdatePreview()
     {
+        if (!IsInitialized) return;
+
+        if (!_runtimeCrashFixReady || _issuanceService is null) return;
         if (PrintQueueGrid is null || PreviewNumberTextBlock is null)
             return;
 

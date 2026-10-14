@@ -65,7 +65,18 @@ public partial class CardBatchesView : UserControl
     {
         var desired = SystemFilterComboBox.Items.OfType<ComboBoxItem>()
             .FirstOrDefault(item => item.Tag?.ToString() == systemKey);
-        if (desired is not null) SystemFilterComboBox.SelectedItem = desired;
+        if (desired is not null && !ReferenceEquals(SystemFilterComboBox.SelectedItem, desired))
+        {
+            _updatingFilters = true;
+            try
+            {
+                SystemFilterComboBox.SelectedItem = desired;
+            }
+            finally
+            {
+                _updatingFilters = false;
+            }
+        }
         _view.Refresh();
         RefreshSummary();
     }

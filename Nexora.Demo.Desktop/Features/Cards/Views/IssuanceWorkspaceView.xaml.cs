@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using Nexora.Demo.Desktop.Features.Cards.Models;
 using Nexora.Demo.Desktop.Features.Cards.Services;
@@ -11,12 +11,14 @@ public partial class IssuanceWorkspaceView : UserControl
 {
     private readonly DemoCardIssuanceService _issuanceService;
     private readonly Dictionary<DemoAccountSystem, CardIssuanceView> _views = new();
+    private bool _isSelectingTargetSystem;
 
-    public IssuanceWorkspaceView(DemoCardIssuanceService issuanceService)
+    public IssuanceWorkspaceView(DemoCardIssuanceService issuanceService, DemoAccountSystem initialTargetSystem = DemoAccountSystem.UserManager)
     {
         ArgumentNullException.ThrowIfNull(issuanceService);
         InitializeComponent();
         _issuanceService = issuanceService;
+        SelectTargetSystem(initialTargetSystem == DemoAccountSystem.HotSpot ? "hotspot" : "user-manager");
     }
 
     public event EventHandler<FeatureNavigationRequestedEventArgs>? NavigationRequested;
@@ -24,8 +26,28 @@ public partial class IssuanceWorkspaceView : UserControl
     public void SelectTargetSystem(string systemKey)
     {
         var item = TargetSystemComboBox.Items.OfType<ComboBoxItem>()
-            .FirstOrDefault(option => option.Tag?.ToString() == systemKey);
-        if (item is not null) TargetSystemComboBox.SelectedItem = item;
+            .FirstOrDefault(option => string.Equals(option.Tag?.ToString(), systemKey, StringComparison.OrdinalIgnoreCase));
+        if (item is null) return;
+
+        _isSelectingTargetSystem = true;
+        try
+        {
+            HotSpotTargetTabButton.IsChecked = string.Equals(systemKey, "hotspot", StringComparison.OrdinalIgnoreCase);
+            UserManagerTargetTabButton.IsChecked = string.Equals(systemKey, "user-manager", StringComparison.OrdinalIgnoreCase);
+            if (!ReferenceEquals(TargetSystemComboBox.SelectedItem, item))
+                TargetSystemComboBox.SelectedItem = item;
+        }
+        finally
+        {
+            _isSelectingTargetSystem = false;
+        }
+    }
+
+    private void TargetSystemTab_Checked(object sender, RoutedEventArgs e)
+    {
+        if (_isSelectingTargetSystem || sender is not RadioButton tab || tab.Tag is not string systemKey)
+            return;
+        SelectTargetSystem(systemKey);
     }
 
     private void TargetSystemComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

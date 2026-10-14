@@ -1,4 +1,4 @@
-// TabCardWorkflowStoreV1: local JSON state for demo actions and per-system issuance preferences.
+﻿// TabCardWorkflowStoreV1: local JSON state for demo actions and per-system issuance preferences.
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -158,8 +158,8 @@ public sealed class DemoCardWorkflowStore
             {
                 var item = FindOrCreateCard(state, card, now);
                 item.PrintPrepared = true;
+                item.PrintSubmitted = false;
                 item.LastAction = "أضيف إلى قائمة الطباعة";
-                item.UpdatedAt = now;
             }
             foreach (var group in newlyQueued.GroupBy(card => new { card.BatchId, SystemKey = NormalizeSystemKey(card.TargetSystem) }))
                 AddAction(state, group.Key.BatchId, group.Key.SystemKey, "PrintQueued", "إضافة إلى قائمة الطباعة",
@@ -218,7 +218,9 @@ public sealed class DemoCardWorkflowStore
                 {
                     var workflowCard = FindOrCreateCard(state, card, now);
                     workflowCard.PrintPrepared = false;
+                    workflowCard.PrintSubmitted = true;
                     workflowCard.LastAction = "أُرسل إلى الطابعة";
+
                     workflowCard.UpdatedAt = now;
                 }
 
@@ -232,6 +234,33 @@ public sealed class DemoCardWorkflowStore
                 string.Equals(pending.TargetSystem, NormalizeSystemKey(card.TargetSystem), StringComparison.OrdinalIgnoreCase)));
         });
     }
+
+    public IReadOnlyList<DemoCardWorkflowStatus> GetCardWorkflowStatuses()
+{
+    lock (Gate)
+    {
+        return _state.Cards.Select(item =>
+        {
+            var systemKey = NormalizeSystemKey(item.TargetSystem);
+
+            var printQueued = _state.PendingPrintCards.Any(pending =>
+                string.Equals(pending.BatchId, item.BatchId, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(pending.CardNumber, item.CardNumber, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(NormalizeSystemKey(pending.TargetSystem), systemKey, StringComparison.OrdinalIgnoreCase));
+
+            return new DemoCardWorkflowStatus(
+                item.BatchId,
+                item.CardNumber,
+                systemKey,
+                item.RouterUploadSimulated,
+                item.PrintSubmitted,
+                item.PrintPrepared,
+                printQueued,
+                item.LastAction,
+                item.UpdatedAt);
+        }).ToArray();
+    }
+}
 
     public string GetCardStatusLabel(string batchId, string cardNumber)
     {
@@ -420,7 +449,7 @@ public sealed class DemoCardWorkflowStore
         try
         {
             var json = File.ReadAllText(StorePath);
-            return JsonSerializer.Deserialize<WorkflowSnapshot>(json, JsonOptions) ?? new WorkflowSnapshot();
+            return NormalizeSnapshot(JsonSerializer.Deserialize<WorkflowSnapshot>(json, JsonOptions));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or NotSupportedException)
         {
@@ -438,6 +467,36 @@ public sealed class DemoCardWorkflowStore
                 return new WorkflowSnapshot();
             }
         }
+    }
+
+    private static WorkflowSnapshot NormalizeSnapshot(WorkflowSnapshot? snapshot)
+    {
+        snapshot ??= new WorkflowSnapshot();
+
+        // A syntactically valid older JSON file can still contain explicit null collections.
+        // Normalize them before any card screen reads from the workflow store.
+        snapshot.Batches ??= [];
+        snapshot.Cards ??= [];
+        snapshot.Actions ??= [];
+        snapshot.PendingPrintCards ??= [];
+        snapshot.PreferredBatchBySystem ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        snapshot.TemplatesBySystem ??= new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        snapshot.PointsOfSaleBySystem ??= new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        snapshot.IssuancePreferencesBySystem ??= new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+
+        snapshot.Batches = snapshot.Batches.Where(item => item is not null).ToList();
+        snapshot.Cards = snapshot.Cards.Where(item => item is not null).ToList();
+        snapshot.Actions = snapshot.Actions.Where(item => item is not null).ToList();
+        snapshot.PendingPrintCards = snapshot.PendingPrintCards.Where(item => item is not null).ToList();
+
+        foreach (var key in snapshot.TemplatesBySystem.Where(item => item.Value is null).Select(item => item.Key).ToArray())
+            snapshot.TemplatesBySystem[key] = [];
+        foreach (var key in snapshot.PointsOfSaleBySystem.Where(item => item.Value is null).Select(item => item.Key).ToArray())
+            snapshot.PointsOfSaleBySystem[key] = [];
+        foreach (var key in snapshot.IssuancePreferencesBySystem.Where(item => item.Value is null).Select(item => item.Key).ToArray())
+            snapshot.IssuancePreferencesBySystem[key] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        return snapshot;
     }
 
     private static void SaveSnapshot(WorkflowSnapshot state)
@@ -481,6 +540,7 @@ public sealed class DemoCardWorkflowStore
         public bool RouterUploadSimulated { get; set; }
         public bool OnlineSalePrepared { get; set; }
         public bool PrintPrepared { get; set; }
+        public bool PrintSubmitted { get; set; }
         public string LastAction { get; set; } = "تم الإنشاء";
         public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.Now;
     }
@@ -505,6 +565,18 @@ public sealed class DemoCardWorkflowStore
         public DateTimeOffset QueuedAt { get; set; } = DateTimeOffset.Now;
     }
 }
+
+
+public sealed record DemoCardWorkflowStatus(
+    string BatchId,
+    string CardNumber,
+    string TargetSystem,
+    bool RouterUploadSimulated,
+    bool PrintSubmitted,
+    bool PrintPrepared,
+    bool PrintQueued,
+    string LastAction,
+    DateTimeOffset UpdatedAt);
 
 public sealed record DemoWorkflowActionRecord(
     string Id,

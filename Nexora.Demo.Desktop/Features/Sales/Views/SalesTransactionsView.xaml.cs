@@ -7,7 +7,6 @@ using System.Windows.Input;
 using Microsoft.Win32;
 using Nexora.Demo.Desktop.Features.Sales.Models;
 using Nexora.Demo.Desktop.Features.Sales.Services;
-using Nexora.Demo.Desktop.Features.Shared;
 
 namespace Nexora.Demo.Desktop.Features.Sales.Views;
 
@@ -25,8 +24,6 @@ public partial class SalesTransactionsView : UserControl
         _refreshing = false;
         RefreshRows();
     }
-
-    public event EventHandler<FeatureNavigationRequestedEventArgs>? NavigationRequested;
 
     public void FocusTransaction(string transactionNumber, bool showDetails = false)
     {

@@ -71,6 +71,13 @@ public partial class GeneratedCardsView : UserControl
         RefreshFilteredCards();
     }
 
+    public void SetSystemFilterControlVisible(bool isVisible)
+        {
+            CardSystemFilterComboBox.Visibility = isVisible
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
     public void ShowAllSystems() => SetSystemFilter("all");
 
     public void SetActivityFilter(string activityKey)

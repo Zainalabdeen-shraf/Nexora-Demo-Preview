@@ -66,17 +66,24 @@ public partial class CardIssuanceView : UserControl
     {
 
         InitializeComponent();
+        AdvancedSettingsPage.Visibility = Visibility.Collapsed;
 
         _issuanceService = issuanceService;
 
         _targetSystem = targetSystem;
-        IssuanceSettingsHeadingTextBlock.Text = targetSystem == DemoAccountSystem.UserManager
-            ? "إعدادات إصدار كروت User Manager"
-            : "إعدادات إصدار كروت HotSpot";
-        CardNumberPatternLabelTextBlock.Text = "طول / نمط الرقم";
+        IssuanceSettingsHeadingTextBlock.Text = "بيانات الإصدار";
+        IssuanceModeSubtitleTextBlock.Visibility = Visibility.Collapsed;
+        CardNumberPatternLabelTextBlock.Text = targetSystem == DemoAccountSystem.UserManager
+            ? "طول / نمط اسم المستخدم"
+            : "طول / نمط رقم الكرت";
+        PreviewSourceTypeTextBlock.Text = targetSystem == DemoAccountSystem.UserManager
+            ? "يوزر منجر"
+            : "هوتسبوت";
+        HotSpotSourceInfoBorder.Visibility = Visibility.Collapsed;
+        UserManagerSourceInfoBorder.Visibility = Visibility.Collapsed;
         CardNumberLengthTextBox.ToolTip = targetSystem == DemoAccountSystem.UserManager
-            ? "في User Manager رقم الكرت هو اسم المستخدم؛ هذا الطول يحدد الاثنين."
-            : "هذا الطول يحدد طول رقم الكرت في HotSpot.";
+            ? "في يوزر منجر رقم الكرت هو اسم المستخدم؛ هذا الطول يحدد الاثنين."
+            : "هذا الطول يحدد طول رقم الكرت في الهوتسبوت.";
 
         _recentBatchesView = new ListCollectionView(_issuanceService.Batches) { Filter = MatchRecentBatch };
 
@@ -86,9 +93,9 @@ public partial class CardIssuanceView : UserControl
 
         TargetSystemBadgeTextBlock.Text = targetSystem == DemoAccountSystem.HotSpot
 
-            ? "HotSpot"
+            ? "هوتسبوت"
 
-            : "User Manager";
+            : "يوزر منجر";
 
         IssuanceModeSubtitleTextBlock.Text = targetSystem == DemoAccountSystem.HotSpot
 
@@ -269,6 +276,8 @@ public partial class CardIssuanceView : UserControl
         GenerationMode_Changed(this, new RoutedEventArgs());
 
         UpdatePasswordControls();
+        if (ReadTag(PasswordModeComboBox) == "Generated")
+            ShowAdvancedSettingsPage();
 
         BatchMode_Changed(this, new RoutedEventArgs());
 
@@ -866,6 +875,23 @@ public partial class CardIssuanceView : UserControl
 
 
 
+    private void AdvancedSettingsButton_Click(object sender, RoutedEventArgs e) =>
+        SetAdvancedSettingsPageOpen(AdvancedSettingsPage.Visibility != Visibility.Visible);
+
+    private void AdvancedSettingsBackButton_Click(object sender, RoutedEventArgs e) =>
+        SetAdvancedSettingsPageOpen(false);
+
+    private void ShowAdvancedSettingsPage() => SetAdvancedSettingsPageOpen(true);
+
+    private void SetAdvancedSettingsPageOpen(bool isOpen)
+    {
+        AdvancedSettingsPage.Visibility = isOpen ? Visibility.Visible : Visibility.Collapsed;
+        IssuanceMainPage.Visibility = isOpen ? Visibility.Collapsed : Visibility.Visible;
+        if (isOpen)
+            AdvancedSettingsPage.Focus();
+        else
+            AdvancedSettingsButton.Focus();
+    }
     private void GenerationMode_Changed(object sender, RoutedEventArgs e)
 
     {
@@ -879,6 +905,9 @@ public partial class CardIssuanceView : UserControl
 
 
         var sequential = SequentialGenerationRadioButton.IsChecked == true;
+
+        if (sequential)
+            ShowAdvancedSettingsPage();
 
         SequenceStartPanel.Visibility = sequential ? Visibility.Visible : Visibility.Collapsed;
 
@@ -921,6 +950,9 @@ public partial class CardIssuanceView : UserControl
         _previewCard = null;
 
         UpdatePasswordControls();
+
+        if (ReadTag(PasswordModeComboBox) == "Generated")
+            ShowAdvancedSettingsPage();
 
         UpdatePreview();
 

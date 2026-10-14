@@ -202,6 +202,159 @@ public sealed class DemoCardIssuanceService
         return batch;
     }
 
+    public GeneratedCardBatch ImportCards(
+    DemoAccountSystem targetSystem,
+    IReadOnlyCollection<string> importedCardNumbers,
+    DemoCardPackage package,
+    string batchId,
+    string routerProfile,
+    string pointOfSale,
+    string comment,
+    string managerAccount = "admin",
+    int sharedUsers = 1)
+{
+    ArgumentNullException.ThrowIfNull(importedCardNumbers);
+    ArgumentNullException.ThrowIfNull(package);
+
+    if (_storeReadFailed)
+        throw new InvalidOperationException(
+            StorageWarning ?? "تعذر قراءة سجل الكروت.");
+
+    if (targetSystem is not (DemoAccountSystem.HotSpot or DemoAccountSystem.UserManager))
+        throw new ArgumentOutOfRangeException(nameof(targetSystem));
+
+    batchId = batchId?.Trim() ?? string.Empty;
+
+    if (string.IsNullOrWhiteSpace(batchId))
+        throw new ArgumentException("أدخل اسم الدفعة أو رقمها.", nameof(batchId));
+
+    if (Batches.Any(batch =>
+        string.Equals(batch.BatchId, batchId, StringComparison.OrdinalIgnoreCase)))
+    {
+        throw new InvalidOperationException(
+            "اسم الدفعة أو رقمها مستخدم بالفعل. اختر اسمًا آخر.");
+    }
+
+    var targetName = targetSystem == DemoAccountSystem.HotSpot
+        ? "مستخدمو الهوتسبوت"
+        : "مدير المستخدمين";
+
+    var numbers = importedCardNumbers
+        .Select(number => number.Trim())
+        .Where(number => number.Length > 0)
+        .ToList();
+
+    if (numbers.Count is < 1 or > MaxCardsPerOperation)
+    {
+        throw new ArgumentOutOfRangeException(
+            nameof(importedCardNumbers),
+            $"عدد الكروت يجب أن يكون بين 1 و{MaxCardsPerOperation:N0} كرت.");
+    }
+
+    if (numbers.Any(number => number.Length > 128 || number.Any(char.IsControl)))
+    {
+        throw new ArgumentException(
+            "يوجد رقم كرت فارغ أو أطول من الحد المسموح أو يحتوي على محارف تحكم.");
+    }
+
+    var duplicateNumbers = numbers
+        .GroupBy(number => number, StringComparer.OrdinalIgnoreCase)
+        .Where(group => group.Count() > 1)
+        .Select(group => group.Key)
+        .Take(5)
+        .ToList();
+
+    if (duplicateNumbers.Count > 0)
+    {
+        throw new InvalidOperationException(
+            "الملف يحتوي على أرقام كروت مكررة: " +
+            string.Join("، ", duplicateNumbers));
+    }
+
+    var knownNumbers = new HashSet<string>(
+        Cards
+            .Where(card => string.Equals(
+                card.TargetSystem, targetName, StringComparison.Ordinal))
+            .Select(card => card.CardNumber),
+        StringComparer.OrdinalIgnoreCase);
+
+    if (targetSystem == DemoAccountSystem.UserManager)
+    {
+        knownNumbers.UnionWith(
+            Cards
+                .Where(card => string.Equals(
+                    card.TargetSystem, targetName, StringComparison.Ordinal))
+                .Select(card => card.Username));
+    }
+
+    var existingNumbers = numbers
+        .Where(number => knownNumbers.Contains(number))
+        .Take(5)
+        .ToList();
+
+    if (existingNumbers.Count > 0)
+    {
+        throw new InvalidOperationException(
+            "توجد أرقام مستخدمة مسبقًا في النظام المحدد: " +
+            string.Join("، ", existingNumbers));
+    }
+
+    var now = DateTimeOffset.Now;
+
+    var batch = new GeneratedCardBatch(
+        batchId,
+        targetName,
+        package.DisplayName,
+        numbers.Count,
+        package.Price,
+        now,
+        "بانتظار المزامنة",
+        routerProfile,
+        pointOfSale,
+        managerAccount,
+        sharedUsers);
+
+    var newCards = numbers.Select((number, index) =>
+        new GeneratedDemoCard(
+            batchId,
+            number,
+            number,
+            string.Empty,
+            targetName,
+            package.DisplayName,
+            package.Price,
+            routerProfile,
+            package.TimeLimit,
+            package.DataLimit,
+            package.RateLimit,
+            now.AddMilliseconds(index),
+            "بانتظار المزامنة",
+            pointOfSale,
+            comment,
+            managerAccount,
+            sharedUsers,
+            package.Validity,
+            "متاحة"))
+        .ToList();
+
+    // Save the complete state before publishing imported cards.
+    var nextCards = Cards.Concat(newCards).ToList();
+    var nextBatches = Batches.ToList();
+    nextBatches.Insert(0, batch);
+
+    SaveSnapshot(nextCards, nextBatches);
+
+    Batches.Insert(0, batch);
+
+    foreach (var card in newCards)
+        Cards.Add(card);
+
+    StorageWarning = null;
+    ScenarioChanged?.Invoke(this, EventArgs.Empty);
+
+    return batch;
+}
+
     public void ArchiveCards(IEnumerable<GeneratedDemoCard> cards, string reason = "أرشفة محلية من إدارة الكروت")
         => UpdateArchiveState(cards, archived: true, reason);
 

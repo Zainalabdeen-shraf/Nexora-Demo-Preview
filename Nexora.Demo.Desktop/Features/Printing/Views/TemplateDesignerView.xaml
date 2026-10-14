@@ -1,0 +1,298 @@
+﻿<UserControl x:Class="Nexora.Demo.Desktop.Features.Printing.Views.TemplateDesignerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FlowDirection="RightToLeft"
+             Background="{StaticResource AppBgBrush}"
+             FontFamily="Segoe UI"
+             Loaded="TemplateDesignerView_Loaded">
+    <Grid Margin="2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="42" />
+            <RowDefinition Height="80" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Fixed heading: this screen intentionally has no page-level vertical ScrollViewer. -->
+        <Grid Grid.Row="0" Margin="2,0,2,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Text="مصمم قوالب الكروت" FontSize="19" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                <TextBlock Text="حرّك العناصر مباشرة على الكرت، واضبط المقاس والدوران من خصائص العنصر." FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0" />
+            </StackPanel>
+            <Border Grid.Column="1" Background="#F9EDED" BorderBrush="#EBC9CC" BorderThickness="1" CornerRadius="8" Padding="10,5" VerticalAlignment="Center">
+                <TextBlock Text="مساحة تصميم ثابتة · بدون تمرير الصفحة" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" />
+            </Border>
+        </Grid>
+
+        <!-- Compact two-row toolbar; all common actions remain visible. -->
+        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="7,4" Margin="0,0,0,5">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="32" />
+                    <RowDefinition Height="30" />
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="155" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="TemplateNameTextBox" Grid.Column="0" Text="Default_Design" Height="30" VerticalContentAlignment="Center" FlowDirection="LeftToRight" ToolTip="اسم القالب" />
+                    <Button Grid.Column="2" Content="جديد" Style="{StaticResource SecondaryButton}" MinWidth="60" Height="30" Padding="8,0" Click="NewTemplateButton_Click" />
+                    <Button x:Name="ImportTemplateButton" Grid.Column="4" Content="استيراد قالب" Style="{StaticResource SecondaryButton}" MinWidth="94" Height="30" Padding="8,0" Click="ImportTemplateButton_Click" />
+                    <Button x:Name="ExportTemplateButton" Grid.Column="6" Content="تصدير" Style="{StaticResource SecondaryButton}" MinWidth="70" Height="30" Padding="8,0" Click="ExportTemplateButton_Click" />
+                    <Button Grid.Column="8" Content="حفظ القالب" Style="{StaticResource PrimaryButton}" MinWidth="90" Height="30" Padding="8,0" Click="SaveTemplateButton_Click" />
+                    <Button Grid.Column="10" Content="معاينة الطباعة" Style="{StaticResource SecondaryButton}" MinWidth="102" Height="30" Padding="8,0" Click="PreviewTemplateButton_Click" />
+                    <Button Grid.Column="12" Content="حذف المحفوظ" Style="{StaticResource SecondaryButton}" MinWidth="88" Height="30" Padding="8,0" Click="DeleteTemplateButton_Click" />
+                </Grid>
+                <Grid Grid.Row="1" Margin="0,5,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.1*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="0.8*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="1.2*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="1.2*" />
+                    </Grid.ColumnDefinitions>
+                    <ComboBox x:Name="TemplateStyleComboBox" Grid.Column="0" Height="29" VerticalContentAlignment="Center" SelectionChanged="TemplateStyleComboBox_SelectionChanged" ToolTip="قالب التصميم">
+                        <ComboBoxItem Content="Default_Design · أحمر كلاسيكي" Tag="classic" IsSelected="True" />
+                        <ComboBoxItem Content="TabCard · أبيض وأحمر" Tag="light" />
+                        <ComboBoxItem Content="Premium · أحمر داكن" Tag="dark" />
+                    </ComboBox>
+                    <ComboBox x:Name="ColorThemeComboBox" Grid.Column="2" Height="29" SelectedIndex="0" VerticalContentAlignment="Center" SelectionChanged="ColorThemeComboBox_SelectionChanged" ToolTip="ألوان القالب">
+                        <ComboBoxItem Content="أحمر TabCard" Tag="red" />
+                        <ComboBoxItem Content="أحمر داكن" Tag="dark" />
+                        <ComboBoxItem Content="أبيض وأحمر" Tag="white" />
+                    </ComboBox>
+                    <ComboBox x:Name="FontFamilyComboBox" Grid.Column="4" Height="29" SelectedIndex="0" VerticalContentAlignment="Center" SelectionChanged="FontFamilyComboBox_SelectionChanged" ToolTip="الخط العام">
+                        <ComboBoxItem Content="Segoe UI" Tag="Segoe UI" />
+                        <ComboBoxItem Content="Arial" Tag="Arial" />
+                        <ComboBoxItem Content="Tahoma" Tag="Tahoma" />
+                    </ComboBox>
+                    <ComboBox x:Name="HotspotPackageComboBox" Grid.Column="6" Height="29" SelectedIndex="0" VerticalContentAlignment="Center" SelectionChanged="PackageComboBox_SelectionChanged" ToolTip="باقة HotSpot">
+                        <ComboBoxItem Content="HotSpot · 500 ميجابايت · 100 ريال" Tag="hotspot-basic" />
+                        <ComboBoxItem Content="HotSpot · 1 جيجابايت · 200 ريال" Tag="hotspot-plus" />
+                        <ComboBoxItem Content="HotSpot · 2 جيجابايت · 350 ريال" Tag="hotspot-max" />
+                    </ComboBox>
+                    <ComboBox x:Name="UserManagerPackageComboBox" Grid.Column="8" Height="29" SelectedIndex="0" VerticalContentAlignment="Center" SelectionChanged="PackageComboBox_SelectionChanged" ToolTip="باقة User Manager">
+                        <ComboBoxItem Content="User Manager · 4 ساعات · 100 ريال" Tag="um-4-hours" />
+                        <ComboBoxItem Content="User Manager · يوم كامل · 250 ريال" Tag="um-day" />
+                        <ComboBoxItem Content="User Manager · أسبوع · 900 ريال" Tag="um-week" />
+                    </ComboBox>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- Main three-column workspace, no vertical scroll bar. -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="190" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="*" MinWidth="270" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="230" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Element/layer visibility -->
+            <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="7">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" Margin="0,0,0,5">
+                        <TextBlock Text="عناصر الكرت" FontSize="14" FontWeight="Bold" />
+                        <Border DockPanel.Dock="Left" Background="#F9EDED" CornerRadius="5" Padding="5,2">
+                            <TextBlock x:Name="ElementCountTextBlock" Text="6 عناصر" Foreground="{StaticResource PrimaryBrush}" FontSize="9.5" />
+                        </Border>
+                    </DockPanel>
+                    <TextBlock Grid.Row="1" Text="إظهار وإخفاء الطبقات" FontSize="10" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,5" />
+                    <UniformGrid Grid.Row="2" Columns="2" VerticalAlignment="Top">
+                        <CheckBox x:Name="ShowLoginCodeCheckBox" Tag="رمز الدخول" Content="رمز الدخول" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowUsernameCheckBox" Tag="اسم المستخدم" Content="اسم المستخدم" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowPasswordCheckBox" Tag="كلمة المرور" Content="كلمة المرور" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowValidityCheckBox" Tag="الصلاحية" Content="الصلاحية" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowTimeCheckBox" Tag="الوقت" Content="الوقت" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowPriceCheckBox" Tag="السعر" Content="السعر" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowDownloadCheckBox" Tag="التحميل" Content="التحميل" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowPackageCheckBox" Tag="الباقة" Content="الباقة" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowSerialCheckBox" Tag="الرقم التسلسلي" Content="التسلسلي" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowPrintDateCheckBox" Tag="تاريخ الطباعة" Content="تاريخ الطباعة" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowBatchCheckBox" Tag="رقم الدفعة" Content="رقم الدفعة" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowPointOfSaleCheckBox" Tag="نقطة البيع" Content="نقطة البيع" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowExtraCheckBox" Tag="معلومات إضافية" Content="معلومات إضافية" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowRewardCheckBox" Tag="كود المكافأة" Content="كود المكافأة" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowQrCheckBox" Tag="رمز QR" Content="رمز QR" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowBarcodeCheckBox" Tag="الباركود" Content="الباركود" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowNetworkLogoCheckBox" Tag="شعار الشبكة" Content="شعار الشبكة" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowHeaderCheckBox" Tag="الشريط العلوي" Content="الشريط العلوي" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowDividerCheckBox" Tag="الفاصل" Content="الفاصل" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                    </UniformGrid>
+                    <StackPanel Grid.Row="3" Margin="0,4,0,0">
+                        <Button Content="تعديل قائمة العناصر…" Style="{StaticResource SecondaryButton}" Height="32" Click="OpenElementsButton_Click" />
+                        <TextBlock x:Name="TemplateStatusTextBlock" Text="قالب تجريبي — احفظ للاحتفاظ بالتغييرات." FontSize="9.2" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Center canvas / zoom viewport -->
+            <Border Grid.Column="2" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="4">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="25" />
+                        <RowDefinition Height="29" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="21" />
+                    </Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" Margin="1,0,1,3">
+                        <TextBlock Text="مساحة التصميم" FontSize="14" FontWeight="Bold" />
+                        <TextBlock DockPanel.Dock="Left" Text="اختر عنصرًا واسحبه بالماوس لتغيير موضعه" FontSize="9.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
+                    </DockPanel>
+                    <Grid Grid.Row="1" Margin="0,0,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="−" Width="28" Height="26" Style="{StaticResource SecondaryButton}" Click="ZoomOutButton_Click" ToolTip="تصغير المعاينة" />
+                        <Button Grid.Column="1" Content="+" Width="28" Height="26" Style="{StaticResource SecondaryButton}" Margin="4,0,0,0" Click="ZoomInButton_Click" ToolTip="تكبير المعاينة" />
+                        <Slider x:Name="ZoomSlider" Grid.Column="2" Minimum="0.1" Maximum="2.0" Value="1" SmallChange="0.05" LargeChange="0.15" VerticalAlignment="Center" Margin="8,0" FlowDirection="LeftToRight" ValueChanged="ZoomSlider_ValueChanged" />
+                        <TextBlock x:Name="ZoomPercentageTextBlock" Grid.Column="3" Text="100%" FontSize="10" VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <Button Grid.Column="4" Content="ملاءمة" Height="26" MinWidth="54" Padding="6,0" Style="{StaticResource SecondaryButton}" Click="ZoomFitButton_Click" ToolTip="ملاءمة القالب للمساحة" />
+                        <Button Grid.Column="5" Content="استيراد صورة" Height="26" MinWidth="86" Padding="6,0" Margin="5,0,0,0" Style="{StaticResource SecondaryButton}" Click="ImportBackgroundImageButton_Click" ToolTip="استيراد صورة كخلفية للقالب" />
+                    </Grid>
+                    <Border Grid.Row="2" Background="#F1F3F6" BorderBrush="#E0E4E9" BorderThickness="1" CornerRadius="7" ClipToBounds="True">
+                        <Grid x:Name="DesignPreviewHost" ClipToBounds="True" Background="#F1F3F6" SizeChanged="DesignPreviewHost_SizeChanged">
+                            <Viewbox x:Name="CardDesignViewbox" Width="420" Height="245" Stretch="Fill" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Canvas x:Name="DesignViewportCanvas" Width="420" Height="245" Background="Transparent">
+                                    <Canvas x:Name="CardDesignCanvas" Width="420" Height="245" Background="Transparent" ClipToBounds="True" PreviewMouseLeftButtonDown="CardDesignCanvas_PreviewMouseLeftButtonDown" PreviewMouseMove="CardDesignCanvas_PreviewMouseMove" PreviewMouseLeftButtonUp="CardDesignCanvas_PreviewMouseLeftButtonUp">
+                                        <Border x:Name="CardSurfaceBorder" Canvas.Left="0" Canvas.Top="0" Width="420" Height="245" Background="White" BorderBrush="#94151A" BorderThickness="1.3" CornerRadius="9" />
+                                        <Image x:Name="TemplateBackgroundImage" Canvas.Left="0" Canvas.Top="0" Width="420" Height="245" Stretch="Fill" Visibility="Collapsed" IsHitTestVisible="False" />
+                                        <Border x:Name="CardHeaderBorder" Canvas.Left="0" Canvas.Top="0" Width="420" Height="54" Background="{StaticResource PrimaryBrush}" CornerRadius="9,9,0,0" />
+                                        <Ellipse x:Name="PreviewLogoBadgeEllipse" Canvas.Left="14" Canvas.Top="12" Width="30" Height="30" Fill="White" />
+                                        <TextBlock x:Name="PreviewLogoMarkTextBlock" Canvas.Left="16" Canvas.Top="16" Width="26" Height="20" Text="TC" FontSize="12" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" TextAlignment="Center" />
+                                        <TextBlock x:Name="PreviewBrandTextBlock" Canvas.Left="54" Canvas.Top="10" Width="150" Height="20" Text="TAB CARD" FontSize="15" FontWeight="Bold" Foreground="White" />
+                                        <TextBlock x:Name="PreviewNetworkTextBlock" Canvas.Left="54" Canvas.Top="30" Width="150" Height="18" Text="شبكات الإنترنت" FontSize="9.5" Foreground="#FFFFE9E9" />
+                                        <Border x:Name="CardDividerBorder" Canvas.Left="15" Canvas.Top="64" Width="390" Height="1" Background="#E7DADD" />
+                                        <TextBlock x:Name="PreviewLoginCodeTextBlock" Canvas.Left="20" Canvas.Top="73" Width="180" Height="34" Text="50723015" FontSize="23" FontWeight="Bold" Foreground="#22252A" />
+                                        <TextBlock x:Name="PreviewUsernameTextBlock" Canvas.Left="20" Canvas.Top="116" Width="180" Height="20" Text="اسم المستخدم: 50723015" FontSize="11.5" Foreground="#343941" />
+                                        <TextBlock x:Name="PreviewPasswordTextBlock" Canvas.Left="20" Canvas.Top="141" Width="180" Height="20" Text="كلمة المرور: 1432" FontSize="11.5" Foreground="#343941" />
+                                        <TextBlock x:Name="PreviewValidityTextBlock" Canvas.Left="20" Canvas.Top="175" Width="145" Height="18" Text="الصلاحية: 4 ساعات" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" />
+                                        <TextBlock x:Name="PreviewPriceTextBlock" Canvas.Left="188" Canvas.Top="175" Width="120" Height="18" Text="السعر: 100 ريال" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" />
+                                        <TextBlock x:Name="PreviewPackageTextBlock" Canvas.Left="188" Canvas.Top="141" Width="180" Height="18" Text="الباقة: 500 ميجابايت" FontSize="10.5" Foreground="#343941" />
+                                        <TextBlock x:Name="PreviewDownloadTextBlock" Canvas.Left="188" Canvas.Top="158" Width="180" Height="18" Text="التحميل: 500 ميجابايت" FontSize="9.5" Foreground="#343941" Visibility="Collapsed" />
+                                        <TextBlock x:Name="PreviewPointOfSaleTextBlock" Canvas.Left="20" Canvas.Top="198" Width="160" Height="16" Text="نقطة البيع: الرئيسية" FontSize="8.5" Foreground="#777D86" Visibility="Collapsed" />
+                                        <TextBlock x:Name="PreviewBatchTextBlock" Canvas.Left="188" Canvas.Top="198" Width="140" Height="16" Text="رقم الدفعة: B-0001" FontSize="8.5" Foreground="#777D86" Visibility="Collapsed" />
+                                        <TextBlock x:Name="PreviewPrintDateTextBlock" Canvas.Left="20" Canvas.Top="220" Width="160" Height="15" Text="تاريخ الطباعة: 14/10/2026" FontSize="8" Foreground="#777D86" Visibility="Collapsed" />
+                                        <TextBlock x:Name="PreviewRewardTextBlock" Canvas.Left="188" Canvas.Top="220" Width="140" Height="15" Text="كود المكافأة: —" FontSize="8" Foreground="#777D86" Visibility="Collapsed" />
+                                        <Border x:Name="PreviewQrBorder" Canvas.Left="340" Canvas.Top="156" Width="62" Height="62" Background="White" BorderBrush="#D5D9DF" BorderThickness="1" CornerRadius="3">
+                                            <Grid>
+                                                <TextBlock Text="▦" FontSize="37" Foreground="#20242A" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Grid>
+                                        </Border>
+                                        <Border x:Name="PreviewBarcodeBorder" Canvas.Left="188" Canvas.Top="202" Width="130" Height="22" Background="White" BorderBrush="#D5D9DF" BorderThickness="1" CornerRadius="2" Visibility="Collapsed">
+                                            <TextBlock Text="▏▌▏▎▌▏▏▌▎▏▌▏" FontFamily="Consolas" FontSize="11" Foreground="#20242A" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock x:Name="PreviewSerialTextBlock" Canvas.Left="20" Canvas.Top="204" Width="160" Height="16" Text="الرقم التسلسلي: 0001" FontSize="8.5" Foreground="#777D86" Visibility="Collapsed" />
+                                        <TextBlock x:Name="PreviewExtraTextBlock" Canvas.Left="20" Canvas.Top="225" Width="200" Height="15" Text="للدعم: تواصل مع مسؤول الشبكة" FontSize="8.5" Foreground="#777D86" Visibility="Collapsed" />
+                                        <Border x:Name="SelectionFrameBorder" Canvas.Left="20" Canvas.Top="73" Width="180" Height="34" BorderBrush="{StaticResource PrimaryBrush}" BorderThickness="1.2" Background="Transparent" IsHitTestVisible="False" Visibility="Collapsed" Panel.ZIndex="9999" />
+                                    </Canvas>
+                                </Canvas>
+                            </Viewbox>
+                        </Grid>
+                    </Border>
+                    <DockPanel Grid.Row="3" Margin="2,4,2,0" LastChildFill="True">
+                        <TextBlock x:Name="CanvasSizeTextBlock" DockPanel.Dock="Right" Text="60 × 35 مم · دوران 0°" FontSize="9.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
+                        <TextBlock Text="اسحب العنصر لتغيير X وY؛ التغييرات البصرية لا تعني اتصالًا فعليًا بـ MikroTik." FontSize="9" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </DockPanel>
+                </Grid>
+            </Border>
+
+            <!-- Compact property inspector -->
+            <Border Grid.Column="4" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="7">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="6" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="خصائص التصميم" FontSize="14" FontWeight="Bold" Margin="0,0,0,3" />
+                    <Grid Grid.Row="1" Margin="0,0,0,2">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="5"/><ColumnDefinition/><ColumnDefinition Width="5"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="العرض مم" FontSize="9" Foreground="{StaticResource MutedBrush}"/>
+                            <TextBox x:Name="CardWidthTextBox" Text="60" Height="27" FlowDirection="LeftToRight" ToolTip="عرض القالب بالملليمتر" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="الارتفاع مم" FontSize="9" Foreground="{StaticResource MutedBrush}"/>
+                            <TextBox x:Name="CardHeightTextBox" Text="35" Height="27" FlowDirection="LeftToRight" ToolTip="ارتفاع القالب بالملليمتر" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Text="زاوية القالب °" FontSize="9" Foreground="{StaticResource MutedBrush}"/>
+                            <TextBox x:Name="CardRotationTextBox" Text="0" Height="27" FlowDirection="LeftToRight" ToolTip="من -180 إلى 180 درجة" />
+                        </StackPanel>
+                    </Grid>
+                    <Separator Grid.Row="2" Margin="0" Background="{StaticResource BorderBrushSoft}" />
+                    <Grid Grid.Row="3" Margin="0,0,0,2">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="5"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="العنصر" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,3,0" />
+                        <ComboBox x:Name="SelectedElementComboBox" Grid.Column="2" Height="30" SelectedIndex="0" VerticalContentAlignment="Center" SelectionChanged="SelectedElementComboBox_SelectionChanged" />
+                    </Grid>
+                    <Grid Grid.Row="4" Margin="0,0,0,2">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="6"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0"><TextBlock Text="X" Style="{StaticResource FieldLabel}"/><TextBox x:Name="ElementXTextBox" Text="20" Height="28" FlowDirection="LeftToRight"/></StackPanel>
+                        <StackPanel Grid.Column="2"><TextBlock Text="Y" Style="{StaticResource FieldLabel}"/><TextBox x:Name="ElementYTextBox" Text="73" Height="28" FlowDirection="LeftToRight"/></StackPanel>
+                    </Grid>
+                    <Grid Grid.Row="5" Margin="0,0,0,2">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="6"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0"><TextBlock Text="العرض" Style="{StaticResource FieldLabel}"/><TextBox x:Name="ElementWidthTextBox" Text="180" Height="28" FlowDirection="LeftToRight"/></StackPanel>
+                        <StackPanel Grid.Column="2"><TextBlock Text="الارتفاع" Style="{StaticResource FieldLabel}"/><TextBox x:Name="ElementHeightTextBox" Text="34" Height="28" FlowDirection="LeftToRight"/></StackPanel>
+                    </Grid>
+                    <Grid Grid.Row="6" Margin="0,0,0,2">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="6"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0"><TextBlock Text="دوران العنصر °" Style="{StaticResource FieldLabel}"/><TextBox x:Name="ElementAngleTextBox" Text="0" Height="28" FlowDirection="LeftToRight"/></StackPanel>
+                        <StackPanel Grid.Column="2"><TextBlock Text="حجم الخط" Style="{StaticResource FieldLabel}"/><TextBox x:Name="ElementFontSizeTextBox" Text="11" Height="28" FlowDirection="LeftToRight"/></StackPanel>
+                    </Grid>
+                    <StackPanel Grid.Row="7" Margin="0,0,0,2">
+                        <TextBlock Text="نص العنصر" Style="{StaticResource FieldLabel}" />
+                        <TextBox x:Name="SelectedElementTextBox" Text="50723015" Height="29" VerticalContentAlignment="Center" />
+                    </StackPanel>
+                    <Grid Grid.Row="8" VerticalAlignment="Top" Margin="0,0,0,1">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="6"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <CheckBox x:Name="BoldElementCheckBox" Grid.Column="0" Content="خط عريض" IsChecked="True" VerticalAlignment="Center" Margin="0,2,0,0" />
+                        <Button Grid.Column="2" Content="تطبيق الخصائص" Style="{StaticResource PrimaryButton}" Height="32" Click="ApplyPropertiesButton_Click" />
+                    </Grid>
+                </Grid>
+
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>
