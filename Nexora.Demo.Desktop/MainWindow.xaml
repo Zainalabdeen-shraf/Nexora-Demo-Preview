@@ -74,13 +74,15 @@
         </Setter.Value>
     </Setter>
 </Style>
-<Style x:Key="SectionTabButtonStyle"
-       TargetType="Button"
-       BasedOn="{StaticResource SecondaryButton}">
-
-    <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+<Style x:Key="SectionTabButtonStyle" TargetType="Button">
+    <Setter Property="Background" Value="Transparent"/>
     <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-    <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Padding" Value="16,0"/>
+    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+    <Setter Property="VerticalContentAlignment" Value="Center"/>
+    <Setter Property="Cursor" Value="Hand"/>
 
     <Setter Property="Template">
         <Setter.Value>
@@ -89,9 +91,8 @@
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="8"
+                        CornerRadius="7"
                         Padding="{TemplateBinding Padding}">
-
                     <ContentPresenter
                         HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
@@ -349,11 +350,20 @@
     Grid.Row="1"
     HorizontalScrollBarVisibility="Disabled"
     VerticalScrollBarVisibility="Disabled"
+    FlowDirection="RightToLeft"
     Margin="0,0,0,12">
 
-    <UniformGrid
-        x:Name="SectionTabsPanel"
-        Rows="1"/>
+    <Border Background="{StaticResource AppBgBrush}"
+            BorderBrush="{StaticResource BorderBrushSoft}"
+            BorderThickness="1"
+            CornerRadius="10"
+            Padding="3">
+
+        <UniformGrid
+            x:Name="SectionTabsPanel"
+            Rows="1"
+            FlowDirection="RightToLeft"/>
+    </Border>
 </ScrollViewer>
 
       <Border x:Name="SectionContentBorder" Grid.Row="2" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="12" Padding="14">

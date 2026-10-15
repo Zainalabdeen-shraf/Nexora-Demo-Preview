@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Documents;
@@ -212,23 +212,62 @@ public partial class PrintQueueView : UserControl
             var pageHeight = dialog.PrintableAreaHeight > 100 ? dialog.PrintableAreaHeight : 1122.5;
             var document = new FixedDocument();
             document.DocumentPaginator.PageSize = new Size(pageWidth, pageHeight);
-            var template = (TemplateComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "standard";
 
-            foreach (var card in selected)
+            // Use the exact saved template from the designer. Card width/height are in mm;
+            // the printer paginator uses WPF DIPs (96 per inch).
+            var designer = new TemplateDesignerView();
+            var cardSizeMm = designer.GetPhysicalCardSizeMillimeters();
+            var mmToDip = 96d / 25.4d;
+            var cardWidth = cardSizeMm.Width * mmToDip;
+            var cardHeight = cardSizeMm.Height * mmToDip;
+            const double horizontalMarginDip = 7.6d; // about 2 mm inside the printer's printable area
+            const double verticalMarginDip = 19d;    // about 5 mm at the top/bottom
+            const double gapDip = 3.8d;             // about 1 mm between physical cards
+            if (cardWidth > pageWidth - horizontalMarginDip * 2d || cardHeight > pageHeight - verticalMarginDip * 2d)
+                throw new InvalidOperationException($"مقاس القالب {cardSizeMm.Width:0.#} × {cardSizeMm.Height:0.#} مم أكبر من المساحة المتاحة للطباعة. قلّل المقاس أو اختر اتجاه ورق مناسبًا.");
+            var maxColumns = Math.Max(1, (int)Math.Floor((pageWidth - horizontalMarginDip * 2d + gapDip) / (cardWidth + gapDip)));
+            var maxRows = Math.Max(1, (int)Math.Floor((pageHeight - verticalMarginDip * 2d + gapDip) / (cardHeight + gapDip)));
+            var columns = Math.Clamp(maxColumns, 1, 8);
+            var rows = maxRows;
+            var perPage = Math.Max(1, columns * rows);
+            var totalPages = (int)Math.Ceiling(selected.Count / (double)perPage);
+
+            for (var pageIndex = 0; pageIndex < totalPages; pageIndex++)
             {
-                var (requestedWidth, requestedHeight) = template switch
-                {
-                    "compact" => (320d, 178d),
-                    "wide" => (520d, 230d),
-                    _ => (420d, 225d)
-                };
-                var cardWidth = Math.Min(requestedWidth, pageWidth - 60);
-                var cardHeight = Math.Min(requestedHeight, pageHeight - 80);
-                var printedCard = BuildPrintedCard(card, cardWidth, cardHeight);
                 var page = new FixedPage { Width = pageWidth, Height = pageHeight, FlowDirection = FlowDirection.RightToLeft };
-                FixedPage.SetLeft(printedCard, (pageWidth - cardWidth) / 2d);
-                FixedPage.SetTop(printedCard, (pageHeight - cardHeight) / 2d);
-                page.Children.Add(printedCard);
+                var firstCardIndex = pageIndex * perPage;
+                var cardsOnThisPage = Math.Min(perPage, selected.Count - firstCardIndex);
+                var gridWidth = columns * cardWidth + Math.Max(0, columns - 1) * gapDip;
+                var horizontalStart = Math.Max(horizontalMarginDip, (pageWidth - gridWidth) / 2d);
+                for (var localIndex = 0; localIndex < cardsOnThisPage; localIndex++)
+                {
+                    var globalIndex = firstCardIndex + localIndex;
+                    var card = selected[globalIndex];
+                    var printableVisual = designer.CreatePrintableCard(
+                        card,
+                        globalIndex,
+                        ShowNumberCheckBox.IsChecked == true,
+                        ShowUsernameCheckBox.IsChecked == true,
+                        ShowPasswordCheckBox.IsChecked == true,
+                        ShowPackageCheckBox.IsChecked == true,
+                        ShowPriceCheckBox.IsChecked == true);
+                    var printedCard = new Viewbox
+                    {
+                        Width = cardWidth,
+                        Height = cardHeight,
+                        Stretch = Stretch.Uniform,
+                        StretchDirection = StretchDirection.DownOnly,
+                        Child = printableVisual
+                    };
+                    var rowIndex = localIndex / columns;
+                    var columnFromRight = localIndex % columns;
+                    var left = pageWidth - horizontalStart - cardWidth - columnFromRight * (cardWidth + gapDip);
+                    var top = verticalMarginDip + rowIndex * (cardHeight + gapDip);
+                    FixedPage.SetLeft(printedCard, left);
+                    FixedPage.SetTop(printedCard, top);
+                    page.Children.Add(printedCard);
+                }
+
                 var pageContent = new PageContent();
                 ((IAddChild)pageContent).AddChild(page);
                 document.Pages.Add(pageContent);

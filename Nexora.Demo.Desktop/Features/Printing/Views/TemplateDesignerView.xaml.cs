@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Microsoft.Win32;
 using System.IO;
 using System.Text.Json;
@@ -10,24 +10,39 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using Nexora.Demo.Desktop.Features.Cards.Models;
 
 namespace Nexora.Demo.Desktop.Features.Printing.Views;
 
 public partial class TemplateDesignerView : UserControl
 {
+    // These controls have x:Name declarations in TemplateDesignerView.xaml.
+    // Use the WPF-generated fields directly; runtime visual-tree lookup can fail
+    // while this UserControl is still being constructed and is not yet connected.
+    private TextBlock PreviewTimeBlock => PreviewTimeTextBlock;
+    private TextBlock PreviewContactBlock => PreviewContactTextBlock;
+    private CheckBox ShowContactOption => ShowContactCheckBox;
     private const string DefaultTemplateName = "Default_Design";
     private const string DefaultLoginUrl = "https://login";
-    private const string TemplateFormatId = "TabCard.TemplateDesigner.v2";
-    private const double DesignBaseWidth = 420d;
-    private const double DesignBaseHeight = 245d;
+    private const string TemplateFormatId = "TabCard.TemplateDesigner.v3";
+    // Legacy designer coordinates used seven canvas units per millimeter. The new
+    // coordinate system uses WPF DIPs (96 per inch), so font sizes now retain their
+    // real physical size when the card is printed instead of shrinking with the canvas.
+    private const double LegacyDesignBaseWidth = 420d;
+    private const double LegacyDesignBaseHeight = 245d;
     private const double BaseWidthMm = 60d;
     private const double BaseHeightMm = 35d;
+    private const double DipPerMillimeter = 96d / 25.4d;
+    private const double LegacyToDipScale = DipPerMillimeter / 7d;
+    private const double DesignBaseWidth = LegacyDesignBaseWidth * LegacyToDipScale;
+    private const double DesignBaseHeight = LegacyDesignBaseHeight * LegacyToDipScale;
     private const long MaxImportedImageBytes = 15L * 1024 * 1024;
     private readonly Dictionary<string, bool> _visibleElements = CreateDefaultVisibility();
     private bool _isReady;
     private string _loginPageUrl = DefaultLoginUrl;
     private string _barcodeText = "50723015";
     private string _activePackageSource = "hotspot";
+    private string? _packageCatalogLoadError;
     private string? _importedTemplateImagePath;
     private FrameworkElement? _draggingElement;
     private Point _dragStartPoint;
@@ -44,7 +59,7 @@ public partial class TemplateDesignerView : UserControl
 
     private static readonly string[] EditableElementTags =
     [
-        "login", "username", "password", "validity", "price", "package", "download", "serial",
+        "login", "username", "password", "validity", "time", "price", "package", "download", "contact", "serial",
         "printDate", "batch", "pointOfSale", "extra", "reward", "qr", "barcode", "brand", "networkName",
         "logoBadge", "logoMark", "header", "divider"
     ];
@@ -53,21 +68,31 @@ public partial class TemplateDesignerView : UserControl
     [
         "رمز الدخول", "اسم المستخدم", "كلمة المرور", "الصلاحية", "الوقت", "السعر",
         "التحميل", "الباقة", "الرقم التسلسلي", "تاريخ الطباعة", "رقم الدفعة", "نقطة البيع",
-        "معلومات إضافية", "كود المكافأة", "رمز QR", "الباركود", "شعار الشبكة", "الشريط العلوي", "الفاصل"
+        "معلومات إضافية", "أرقام التواصل", "كود المكافأة", "رمز QR", "الباركود", "شعار الشبكة", "الشريط العلوي", "الفاصل"
     ];
 
     public TemplateDesignerView()
     {
         InitializeComponent();
+        InitializeElementOptions();
+        LoadPackageOptions();
         _isReady = true;
         LoadSavedTemplate();
         if (!File.Exists(StoragePath))
+        {
+            _lastCanvasWidth = DesignBaseWidth * ParseDouble(CardWidthTextBox.Text, 66, 10, 200) / BaseWidthMm;
+            _lastCanvasHeight = DesignBaseHeight * ParseDouble(CardHeightTextBox.Text, 15.5, 10, 200) / BaseHeightMm;
             ApplyElementProperties(CreateDefaultElementProperties());
+        }
         UpdateSamplePackageFields();
         SyncMainElementChecks();
         UpdatePreview();
         SyncSelectedElementEditor();
-        SetStatus(File.Exists(StoragePath) ? "تم تحميل القالب المحفوظ." : "قالب افتراضي جاهز للتصميم.", isSuccess: true);
+        SetStatus(
+            !string.IsNullOrWhiteSpace(_packageCatalogLoadError)
+                ? _packageCatalogLoadError
+                : (File.Exists(StoragePath) ? "تم تحميل القالب المحفوظ وربط الباقات الفعلية." : "قالب افتراضي جاهز للتصميم ومربوط بكتالوج الباقات."),
+            isSuccess: string.IsNullOrWhiteSpace(_packageCatalogLoadError));
     }
 
     private static Dictionary<string, bool> CreateDefaultVisibility() => new(StringComparer.Ordinal)
@@ -76,16 +101,17 @@ public partial class TemplateDesignerView : UserControl
         ["اسم المستخدم"] = true,
         ["كلمة المرور"] = true,
         ["الصلاحية"] = true,
-        ["الوقت"] = false,
+        ["الوقت"] = true,
         ["السعر"] = true,
-        ["التحميل"] = false,
+        ["التحميل"] = true,
         ["الرقم التسلسلي"] = false,
         ["تاريخ الطباعة"] = false,
         ["رقم الدفعة"] = false,
         ["نقطة البيع"] = false,
         ["معلومات إضافية"] = false,
+        ["أرقام التواصل"] = true,
         ["كود المكافأة"] = false,
-        ["رمز QR"] = true,
+        ["رمز QR"] = false,
         ["الباركود"] = false,
         ["شعار الشبكة"] = true,
         ["الباقة"] = true,
@@ -93,34 +119,70 @@ public partial class TemplateDesignerView : UserControl
         ["الفاصل"] = true
     };
 
-    private static Dictionary<string, ElementDesignProperties> CreateDefaultElementProperties() => new(StringComparer.Ordinal)
+    private static Dictionary<string, ElementDesignProperties> CreateDefaultElementProperties()
     {
-        ["login"] = new() { X = 20, Y = 73, Width = 180, Height = 34, Text = "50723015", IsBold = true, FontSize = 23, FontFamily = "Segoe UI" },
-        ["username"] = new() { X = 20, Y = 116, Width = 180, Height = 20, Text = "اسم المستخدم: 50723015", FontSize = 11.5, FontFamily = "Segoe UI" },
-        ["password"] = new() { X = 20, Y = 141, Width = 180, Height = 20, Text = "كلمة المرور: 1432", FontSize = 11.5, FontFamily = "Segoe UI" },
-        ["validity"] = new() { X = 20, Y = 175, Width = 145, Height = 18, Text = "الصلاحية: 4 أيام", IsBold = true, FontSize = 10.5, FontFamily = "Segoe UI" },
-        ["price"] = new() { X = 188, Y = 175, Width = 120, Height = 18, Text = "السعر: 100 ريال", IsBold = true, FontSize = 10.5, FontFamily = "Segoe UI" },
-        ["package"] = new() { X = 188, Y = 141, Width = 180, Height = 18, Text = "الباقة: 500 ميجابايت", FontSize = 10.5, FontFamily = "Segoe UI" },
-        ["download"] = new() { X = 188, Y = 158, Width = 180, Height = 18, Text = "التحميل: 500 ميجابايت", FontSize = 9.5, FontFamily = "Segoe UI" },
-        ["serial"] = new() { X = 20, Y = 204, Width = 160, Height = 16, Text = "الرقم التسلسلي: 0001", FontSize = 8.5, FontFamily = "Segoe UI" },
-        ["printDate"] = new() { X = 20, Y = 220, Width = 160, Height = 15, Text = "تاريخ الطباعة: 14/10/2026", FontSize = 8, FontFamily = "Segoe UI" },
-        ["batch"] = new() { X = 188, Y = 198, Width = 140, Height = 16, Text = "رقم الدفعة: B-0001", FontSize = 8.5, FontFamily = "Segoe UI" },
-        ["pointOfSale"] = new() { X = 20, Y = 198, Width = 160, Height = 16, Text = "نقطة البيع: الرئيسية", FontSize = 8.5, FontFamily = "Segoe UI" },
-        ["extra"] = new() { X = 20, Y = 225, Width = 200, Height = 15, Text = "للدعم: تواصل مع مسؤول الشبكة", FontSize = 8.5, FontFamily = "Segoe UI" },
-        ["reward"] = new() { X = 188, Y = 220, Width = 140, Height = 15, Text = "كود المكافأة: —", FontSize = 8, FontFamily = "Segoe UI" },
-        ["qr"] = new() { X = 340, Y = 156, Width = 62, Height = 62 },
-        ["barcode"] = new() { X = 188, Y = 202, Width = 130, Height = 22 },
-        ["brand"] = new() { X = 54, Y = 10, Width = 150, Height = 20, Text = "TAB CARD", IsBold = true, FontSize = 15, FontFamily = "Segoe UI" },
-        ["networkName"] = new() { X = 54, Y = 30, Width = 150, Height = 18, Text = "شبكات الإنترنت", FontSize = 9.5, FontFamily = "Segoe UI" },
-        ["logoBadge"] = new() { X = 14, Y = 12, Width = 30, Height = 30 },
-        ["logoMark"] = new() { X = 16, Y = 16, Width = 26, Height = 20, Text = "TC", IsBold = true, FontSize = 12, FontFamily = "Segoe UI" },
-        ["header"] = new() { X = 0, Y = 0, Width = 420, Height = 54 },
-        ["divider"] = new() { X = 15, Y = 64, Width = 390, Height = 1 }
-    };
+        // Keep authored positions/sizes proportional to the old canvas, but convert all
+        // geometry to physical WPF DIPs. FontSize intentionally is NOT scaled.
+        var properties = new Dictionary<string, ElementDesignProperties>(StringComparer.Ordinal)
+        {
+            ["login"] = new() { X = 98, Y = 5, Width = 245, Height = 28, Text = "50723015", IsBold = true, FontSize = 11.5, FontFamily = "Segoe UI" },
+            ["username"] = new() { X = 98, Y = 39, Width = 174, Height = 18, Text = "اسم المستخدم: 50723015", FontSize = 7.7, FontFamily = "Segoe UI" },
+            ["password"] = new() { X = 277, Y = 39, Width = 174, Height = 18, Text = "كلمة المرور: 1432", FontSize = 7.7, FontFamily = "Segoe UI" },
+            ["validity"] = new() { X = 98, Y = 58, Width = 118, Height = 18, Text = "الصلاحية: 7 أيام", IsBold = true, FontSize = 7.4, FontFamily = "Segoe UI" },
+            ["time"] = new() { X = 221, Y = 58, Width = 96, Height = 18, Text = "الوقت: 1 س 0 د", FontSize = 7.4, FontFamily = "Segoe UI" },
+            ["price"] = new() { X = 320, Y = 58, Width = 124, Height = 18, Text = "السعر: 100 ريال", IsBold = true, FontSize = 7.4, FontFamily = "Segoe UI" },
+            ["package"] = new() { X = 98, Y = 77, Width = 170, Height = 18, Text = "الباقة: —", FontSize = 7.7, FontFamily = "Segoe UI" },
+            ["download"] = new() { X = 276, Y = 77, Width = 174, Height = 18, Text = "التحميل: —", FontSize = 7.7, FontFamily = "Segoe UI" },
+            ["contact"] = new() { X = 98, Y = 94, Width = 350, Height = 14, Text = "", FontSize = 6, FontFamily = "Segoe UI" },
+            ["serial"] = new() { X = 98, Y = 95, Width = 145, Height = 12, Text = "الرقم التسلسلي: 0001", FontSize = 9, FontFamily = "Segoe UI" },
+            ["printDate"] = new() { X = 98, Y = 95, Width = 145, Height = 12, Text = "تاريخ الطباعة", FontSize = 9, FontFamily = "Segoe UI" },
+            ["batch"] = new() { X = 277, Y = 95, Width = 174, Height = 12, Text = "رقم الدفعة: B-0001", FontSize = 9, FontFamily = "Segoe UI" },
+            ["pointOfSale"] = new() { X = 98, Y = 95, Width = 145, Height = 12, Text = "نقطة البيع", FontSize = 9, FontFamily = "Segoe UI" },
+            ["extra"] = new() { X = 98, Y = 95, Width = 350, Height = 13, Text = "", FontSize = 9, FontFamily = "Segoe UI" },
+            ["reward"] = new() { X = 277, Y = 95, Width = 174, Height = 12, Text = "كود المكافأة", FontSize = 9, FontFamily = "Segoe UI" },
+            ["qr"] = new() { X = 373, Y = 3, Width = 32, Height = 32 },
+            ["barcode"] = new() { X = 98, Y = 94, Width = 145, Height = 13 },
+            ["brand"] = new() { X = 7, Y = 48, Width = 72, Height = 17, Text = "TAB CARD", IsBold = true, FontSize = 7.4, FontFamily = "Segoe UI" },
+            ["networkName"] = new() { X = 7, Y = 68, Width = 72, Height = 30, Text = "اسم الشبكة", FontSize = 6.5, FontFamily = "Segoe UI" },
+            ["logoBadge"] = new() { X = 25, Y = 7, Width = 36, Height = 36 },
+            ["logoMark"] = new() { X = 30, Y = 14, Width = 26, Height = 20, Text = "TC", IsBold = true, FontSize = 8.5, FontFamily = "Segoe UI" },
+            ["header"] = new() { X = 0, Y = 0, Width = 86, Height = 112 },
+            ["divider"] = new() { X = 94, Y = 34, Width = 310, Height = 1 }
+        };
+
+        foreach (var item in properties.Values)
+        {
+            item.X *= LegacyToDipScale;
+            item.Y *= LegacyToDipScale;
+            item.Width *= LegacyToDipScale;
+            item.Height *= LegacyToDipScale;
+        }
+        return properties;
+    }
 
     private static string StoragePath => System.IO.Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "NexoraProductDemo", "templates", "tabcard-template-design.json");
+
+    private void InitializeElementOptions()
+    {
+        var options = new (string Tag, string Label)[]
+        {
+            ("login", "رمز الدخول"), ("username", "اسم المستخدم"), ("password", "كلمة المرور"),
+            ("validity", "الصلاحية"), ("time", "الوقت"), ("price", "السعر"),
+            ("package", "الباقة"), ("download", "التحميل"), ("contact", "أرقام التواصل"),
+            ("serial", "الرقم التسلسلي"), ("printDate", "تاريخ الطباعة"), ("batch", "رقم الدفعة"),
+            ("pointOfSale", "نقطة البيع"), ("extra", "معلومات إضافية"), ("reward", "كود المكافأة"),
+            ("qr", "رمز QR"), ("barcode", "الباركود"), ("brand", "اسم العلامة"),
+            ("networkName", "اسم الشبكة"), ("logoBadge", "خلفية الشعار"), ("logoMark", "رمز الشعار"),
+            ("header", "الشريط الجانبي"), ("divider", "الفاصل")
+        };
+
+        SelectedElementComboBox.Items.Clear();
+        foreach (var option in options)
+            SelectedElementComboBox.Items.Add(new ComboBoxItem { Content = option.Label, Tag = option.Tag });
+        SelectedElementComboBox.SelectedIndex = 0;
+    }
 
     private void TemplateStyleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -149,6 +211,7 @@ public partial class TemplateDesignerView : UserControl
         PreviewUsernameTextBlock.FontFamily = family;
         PreviewPasswordTextBlock.FontFamily = family;
         PreviewValidityTextBlock.FontFamily = family;
+        PreviewTimeBlock.FontFamily = family;
         PreviewPriceTextBlock.FontFamily = family;
         PreviewPackageTextBlock.FontFamily = family;
         PreviewDownloadTextBlock.FontFamily = family;
@@ -157,7 +220,70 @@ public partial class TemplateDesignerView : UserControl
         PreviewBatchTextBlock.FontFamily = family;
         PreviewPrintDateTextBlock.FontFamily = family;
         PreviewExtraTextBlock.FontFamily = family;
+        PreviewContactBlock.FontFamily = family;
         PreviewRewardTextBlock.FontFamily = family;
+    }
+
+    private static void ResetPackageComboForItemsSource(ComboBox combo)
+    {
+        // WPF cannot mix declarative ComboBoxItem children with ItemsSource.
+        // Older/saved XAML variants may still contain explicit items, so remove
+        // any binding and clear explicit items before binding the package catalog.
+        if (combo.ItemsSource is not null)
+            combo.ItemsSource = null;
+
+        if (combo.Items.Count > 0)
+            combo.Items.Clear();
+    }
+
+    private void LoadPackageOptions()
+    {
+        try
+        {
+            var hotSpotPackages = DemoCardPackageCatalog.Load(DemoAccountSystem.HotSpot);
+            var userManagerPackages = DemoCardPackageCatalog.Load(DemoAccountSystem.UserManager);
+
+            ResetPackageComboForItemsSource(HotspotPackageComboBox);
+            ResetPackageComboForItemsSource(UserManagerPackageComboBox);
+
+            HotspotPackageComboBox.DisplayMemberPath = nameof(DemoCardPackage.DisplayName);
+            HotspotPackageComboBox.ItemsSource = hotSpotPackages;
+            HotspotPackageComboBox.SelectedItem = hotSpotPackages.FirstOrDefault();
+
+            UserManagerPackageComboBox.DisplayMemberPath = nameof(DemoCardPackage.DisplayName);
+            UserManagerPackageComboBox.ItemsSource = userManagerPackages;
+            UserManagerPackageComboBox.SelectedItem = userManagerPackages.FirstOrDefault();
+
+            if (hotSpotPackages.Count == 0 && userManagerPackages.Count == 0)
+                _packageCatalogLoadError = "لا توجد باقات نشطة مرتبطة بمصدري HotSpot أو User Manager. راجع كتالوج الباقات.";
+            else if (hotSpotPackages.Count == 0 || userManagerPackages.Count == 0)
+                _packageCatalogLoadError = hotSpotPackages.Count == 0
+                    ? "لا توجد باقات نشطة مرتبطة بـ HotSpot؛ تحقق من إعدادات مصدر الشبكة."
+                    : "لا توجد باقات نشطة مرتبطة بـ User Manager؛ تحقق من إعدادات مصدر الشبكة.";
+        }
+        catch (Exception ex)
+        {
+            _packageCatalogLoadError = "تعذر تحميل الباقات من كتالوج الديمو: " + ex.Message;
+
+            // Make the fallback path safe too: clearing ItemsSource without
+            // clearing declarative Items can throw the same WPF exception again.
+            ResetPackageComboForItemsSource(HotspotPackageComboBox);
+            ResetPackageComboForItemsSource(UserManagerPackageComboBox);
+            HotspotPackageComboBox.ItemsSource = Array.Empty<DemoCardPackage>();
+            UserManagerPackageComboBox.ItemsSource = Array.Empty<DemoCardPackage>();
+        }
+    }
+
+    private DemoCardPackage? GetActivePackage()
+    {
+        var combo = _activePackageSource == "user-manager" ? UserManagerPackageComboBox : HotspotPackageComboBox;
+        return combo.SelectedItem as DemoCardPackage;
+    }
+
+    private static string GetPackageName(DemoCardPackage package)
+    {
+        var separator = package.DisplayName.LastIndexOf(" — ", StringComparison.Ordinal);
+        return separator > 0 ? package.DisplayName[..separator].Trim() : package.DisplayName.Trim();
     }
 
     private void PackageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -590,10 +716,14 @@ public partial class TemplateDesignerView : UserControl
     {
         const double pageWidthUnits = 210d;
         const double pageHeightUnits = 297d; // A4 portrait dimensions, represented in millimetre-like page units
-        var dialog = CreateDialog("معاينة صفحة الطباعة", 1280, 900);
-        dialog.MinWidth = 1000;
-        dialog.MinHeight = 700;
-        dialog.WindowState = WindowState.Maximized;
+        var dialog = CreateDialog("معاينة صفحة الطباعة", 1180, 820);
+        dialog.MinWidth = 900;
+        dialog.MinHeight = 650;
+        dialog.WindowState = WindowState.Normal;
+        dialog.ResizeMode = ResizeMode.CanResize;
+        dialog.Owner = Window.GetWindow(this);
+        dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+        dialog.Topmost = false;
         var root = new Grid { Margin = new Thickness(12) };
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -620,21 +750,40 @@ public partial class TemplateDesignerView : UserControl
             Padding = new Thickness(8),
             Margin = new Thickness(0, 0, 0, 8)
         };
-        var settingsPanel = new UniformGrid { Columns = 5 };
-        var hours = AddTextField(settingsPanel, "الساعات", "4");
-        var validity = AddTextField(settingsPanel, "الصلاحية", "4 أيام");
-        var price = AddTextField(settingsPanel, "السعر", "100");
-        var upload = AddTextField(settingsPanel, "حجم التحميل", "500");
-        var unit = AddTextField(settingsPanel, "الوحدة", "ميجابايت");
-        var cardCount = AddTextField(settingsPanel, "إجمالي الكروت", "17");
+        var settingsPanel = new UniformGrid { Columns = 7 };
+        var selectedPackage = GetActivePackage();
+        var hours = AddTextField(settingsPanel, "الوقت / مدة الاستخدام", selectedPackage?.TimeLimit ?? "—");
+        var validity = AddTextField(settingsPanel, "الصلاحية بالأيام", selectedPackage?.Validity ?? "—");
+        var price = AddTextField(settingsPanel, "السعر على الكرت", selectedPackage is null ? "—" : selectedPackage.PrintPrice.ToString("0.##", CultureInfo.InvariantCulture));
+        var upload = AddTextField(settingsPanel, "حد التحميل", selectedPackage?.DataLimit ?? "—");
+        var cardCount = AddTextField(settingsPanel, "إجمالي الكروت", "51");
         var columns = AddTextField(settingsPanel, "عدد الأعمدة", "3");
-        var rows = AddTextField(settingsPanel, "عدد الصفوف", "6");
-        var format = AddTextField(settingsPanel, "صيغة الكرت", "كلمة سر عشوائية");
+        var rows = AddTextField(settingsPanel, "حد الصفوف/صفحة", "17");
         var numberPrefix = AddTextField(settingsPanel, "بداية الرقم", "50723001");
         var usernamePrefix = AddTextField(settingsPanel, "بادئة اسم المستخدم", "");
         var passwordPrefix = AddTextField(settingsPanel, "بادئة كلمة المرور", "");
-        var networkName = AddTextField(settingsPanel, "اسم الشبكة", "شبكات الإنترنت");
+        var packageName = AddTextField(settingsPanel, "اسم الباقة", selectedPackage is not null ? GetPackageName(selectedPackage) : "—");
+        var networkName = AddTextField(settingsPanel, "اسم الشبكة", PreviewNetworkTextBlock.Text);
+        var contact = AddTextField(settingsPanel, "أرقام التواصل", PreviewContactBlock.Text);
+        networkName.ToolTip = "اكتب اسم الشبكة الحقيقي؛ سيتم تحديث المصمم. احفظ القالب لتثبيت التغيير للطباعة.";
+        contact.ToolTip = "أدخل أرقام التواصل الصحيحة؛ لا توجد أرقام مثبتة في كتالوج الباقات. احفظ القالب بعد التعديل.";
+        networkName.TextChanged += (_, _) =>
+        {
+            if (PreviewNetworkTextBlock.Text == networkName.Text) return;
+            PreviewNetworkTextBlock.Text = networkName.Text;
+            UpdatePreview();
+            SetStatus("تم تحديث اسم الشبكة في المصمم؛ احفظ القالب لتثبيته للطباعة.", isSuccess: true);
+        };
+        contact.TextChanged += (_, _) =>
+        {
+            if (PreviewContactBlock.Text == contact.Text) return;
+            PreviewContactBlock.Text = contact.Text;
+            UpdatePreview();
+            SetStatus("تم تحديث أرقام التواصل في المصمم؛ احفظ القالب لتثبيته للطباعة.", isSuccess: true);
+        };
         var previewPage = AddTextField(settingsPanel, "رقم الصفحة", "1");
+        hours.IsReadOnly = validity.IsReadOnly = price.IsReadOnly = upload.IsReadOnly = packageName.IsReadOnly = true;
+        hours.ToolTip = validity.ToolTip = price.ToolTip = upload.ToolTip = packageName.ToolTip = "تُقرأ هذه البيانات من الباقة المختارة؛ اختر الباقة من شريط المصمم لتغييرها.";
         settingsBorder.Child = settingsPanel;
         Grid.SetRow(settingsBorder, 1);
         root.Children.Add(settingsBorder);
@@ -652,7 +801,7 @@ public partial class TemplateDesignerView : UserControl
         previewRoot.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         var previewSummary = new TextBlock
         {
-            Text = "ورقة A4 عمودية (210 × 297 مم) — افتراضيًا 3 أعمدة و17 كرتًا.",
+            Text = "ورقة A4 عمودية (210 × 297 مم) — افتراضيًا 3 أعمدة × 17 صفًا = 51 كرتًا.",
             Foreground = (Brush)FindResource("MutedBrush"),
             FontSize = 10.5,
             Margin = new Thickness(3, 0, 3, 4)
@@ -661,21 +810,20 @@ public partial class TemplateDesignerView : UserControl
         previewRoot.Children.Add(previewSummary);
 
         var pageHost = new Grid { ClipToBounds = true, Background = (Brush)FindResource("AppBgBrush") };
+        var pageCards = new Canvas { Width = pageWidthUnits, Height = pageHeightUnits, ClipToBounds = true };
         var pageSurface = new Border
         {
             Width = pageWidthUnits,
             Height = pageHeightUnits,
             Background = Brushes.White,
             BorderBrush = new SolidColorBrush(Color.FromRgb(0xCF, 0xD4, 0xDB)),
-            BorderThickness = new Thickness(1),
-            Padding = new Thickness(7),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
+            BorderThickness = new Thickness(0.5),
+            Padding = new Thickness(0),
+            Child = pageCards,
             Effect = new System.Windows.Media.Effects.DropShadowEffect { BlurRadius = 9, ShadowDepth = 2, Opacity = 0.16 }
         };
-        var pageCards = new UniformGrid { Rows = 6, Columns = 3, Margin = new Thickness(2) };
-        pageSurface.Child = pageCards;
-        pageHost.Children.Add(pageSurface);
+        var pageViewbox = new Viewbox { Stretch = Stretch.Uniform, Child = pageSurface, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+        pageHost.Children.Add(pageViewbox);
         pageHost.SizeChanged += (_, _) => FitPrintPage();
         Grid.SetRow(pageHost, 1);
         previewRoot.Children.Add(pageHost);
@@ -703,48 +851,42 @@ public partial class TemplateDesignerView : UserControl
             var availableWidth = Math.Max(1, pageHost.ActualWidth - 14);
             var availableHeight = Math.Max(1, pageHost.ActualHeight - 10);
             var scale = Math.Min(availableWidth / pageWidthUnits, availableHeight / pageHeightUnits);
-            pageSurface.Width = pageWidthUnits * scale;
-            pageSurface.Height = pageHeightUnits * scale;
-            // All page measurements are expressed in physical millimetre-like units.
-            // Scale the page padding, grid margin, and each physical card by the same factor.
-            pageSurface.Padding = new Thickness(7 * scale);
-            pageCards.Margin = new Thickness(2 * scale);
-            foreach (var cellElement in pageCards.Children)
-            {
-                if (cellElement is not Border cell || cell.Child is not Grid cellHost) continue;
-                foreach (var child in cellHost.Children)
-                {
-                    if (child is Viewbox cardViewbox && cardViewbox.Tag is Size physicalSize)
-                    {
-                        cardViewbox.Width = physicalSize.Width * scale;
-                        cardViewbox.Height = physicalSize.Height * scale;
-                    }
-                }
-            }
+            pageViewbox.Width = pageWidthUnits * scale;
+            pageViewbox.Height = pageHeightUnits * scale;
         }
 
         void RenderSampleCards()
         {
-            var total = ParseInt(cardCount.Text, 17, 1, 10000);
-            var colCount = ParseInt(columns.Text, 3, 1, 8);
-            var rowCount = ParseInt(rows.Text, 6, 1, 12);
-            var perPage = rowCount * colCount;
+            const double pageMarginMm = 5d;
+            const double cardGapMm = 1d;
+            var total = ParseInt(cardCount.Text, 51, 1, 10000);
+            var requestedColumns = ParseInt(columns.Text, 3, 1, 8);
+            var cardWidthMm = ParseDouble(CardWidthTextBox.Text, 66, 10, 200);
+            var cardHeightMm = ParseDouble(CardHeightTextBox.Text, 15.5, 10, 200);
+            var usableWidthMm = pageWidthUnits - pageMarginMm * 2d;
+            var usableHeightMm = pageHeightUnits - pageMarginMm * 2d;
+            var maxColumns = Math.Max(1, (int)Math.Floor((usableWidthMm + cardGapMm) / (cardWidthMm + cardGapMm)));
+            var maxRows = Math.Max(1, (int)Math.Floor((usableHeightMm + cardGapMm) / (cardHeightMm + cardGapMm)));
+            var colCount = Math.Min(requestedColumns, maxColumns);
+            var requestedRows = ParseInt(rows.Text, maxRows, 1, 100);
+            var rowCapacity = Math.Min(requestedRows, maxRows);
+            var perPage = Math.Max(1, rowCapacity * colCount);
             var totalPages = Math.Max(1, (int)Math.Ceiling(total / (double)perPage));
             var pageNumber = ParseInt(previewPage.Text, 1, 1, totalPages);
             previewPage.Text = pageNumber.ToString(CultureInfo.InvariantCulture);
             columns.Text = colCount.ToString(CultureInfo.InvariantCulture);
-            rows.Text = rowCount.ToString(CultureInfo.InvariantCulture);
+            rows.Text = rowCapacity.ToString(CultureInfo.InvariantCulture);
             cardCount.Text = total.ToString(CultureInfo.InvariantCulture);
-            pageCards.Rows = rowCount;
-            pageCards.Columns = colCount;
-            pageCards.Children.Clear();
+            if (colCount != requestedColumns || rowCapacity != requestedRows)
+                SetStatus($"تم ضبط التخطيط حسب مقاس الكرت الفعلي: {colCount} أعمدة × {rowCapacity} صفوف كحد أقصى؛ لم يتم تصغير الخطوط أو الكروت.", isSuccess: false);
 
+            pageCards.Children.Clear();
             var firstIndex = (pageNumber - 1) * perPage;
             var cardsOnPage = Math.Min(perPage, Math.Max(0, total - firstIndex));
             var first = ParseLong(numberPrefix.Text, 50723001);
-            var priceText = string.IsNullOrWhiteSpace(price.Text) ? "100" : price.Text.Trim();
-            var uploadText = $"{upload.Text.Trim()} {unit.Text.Trim()}".Trim();
-            previewSummary.Text = $"A4 عمودي · الصفحة {pageNumber} من {totalPages} · {rowCount} صفوف × {colCount} أعمدة · {cardsOnPage} كرت في الصفحة · إجمالي {total:N0} كرت · الصيغة: {format.Text.Trim()}";
+            var priceText = string.IsNullOrWhiteSpace(price.Text) ? "—" : price.Text.Trim();
+            var uploadText = string.IsNullOrWhiteSpace(upload.Text) ? "—" : upload.Text.Trim();
+            previewSummary.Text = $"A4 عمودي · الصفحة {pageNumber} من {totalPages} · {colCount} أعمدة · السعة {perPage} كرت/صفحة · {cardsOnPage} كرت في هذه الصفحة · إجمالي {total:N0} كرت · المقاس {cardWidthMm:0.#} × {cardHeightMm:0.#} مم";
 
             for (var i = 0; i < cardsOnPage; i++)
             {
@@ -756,43 +898,31 @@ public partial class TemplateDesignerView : UserControl
                 var samplePassword = string.IsNullOrWhiteSpace(passwordPrefix.Text)
                     ? "143" + (globalIndex % 10).ToString(CultureInfo.InvariantCulture)
                     : passwordPrefix.Text.Trim() + (globalIndex + 1).ToString(CultureInfo.InvariantCulture);
-                var sampleCard = BuildDesignedPrintCard(
+                var sampleCard = BuildDesignedPrintPreviewCard(
                     cardNumber, sampleUsername, samplePassword, hours.Text.Trim(), validity.Text.Trim(),
-                    priceText, uploadText, networkName.Text.Trim(), globalIndex);
-                // Page units represent millimetres. Keep the card at its physical size when it
-                // fits the selected grid; only scale it down when the chosen rows/columns require it.
-                var cardWidthMm = ParseDouble(CardWidthTextBox.Text, 60, 10, 200);
-                var cardHeightMm = ParseDouble(CardHeightTextBox.Text, 35, 10, 200);
-                var aspect = cardWidthMm / Math.Max(1d, cardHeightMm);
-                var cellWidth = Math.Max(1d, (pageWidthUnits - 14d) / colCount - 3d);
-                var cellHeight = Math.Max(1d, (pageHeightUnits - 14d) / rowCount - 3d);
-                var previewCardWidth = Math.Min(cardWidthMm, Math.Min(cellWidth, cellHeight * aspect));
-                var previewCardHeight = previewCardWidth / aspect;
-                var cellHost = new Grid { ClipToBounds = true };
+                    priceText, uploadText, networkName.Text.Trim(), packageName.Text.Trim(), contact.Text.Trim(), globalIndex);
+
                 var cardViewbox = new Viewbox
                 {
-                    Width = previewCardWidth,
-                    Height = previewCardHeight,
-                    Tag = new Size(previewCardWidth, previewCardHeight),
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center,
+                    Width = cardWidthMm,
+                    Height = cardHeightMm,
                     Stretch = Stretch.Uniform,
                     StretchDirection = StretchDirection.DownOnly,
                     ClipToBounds = true,
                     Child = sampleCard
                 };
-                cellHost.Children.Add(cardViewbox);
-                var cell = new Border
-                {
-                    Margin = new Thickness(1),
-                    Padding = new Thickness(0),
-                    Background = Brushes.White,
-                    BorderBrush = new SolidColorBrush(Color.FromRgb(0xD8, 0xDC, 0xE2)),
-                    BorderThickness = new Thickness(0.45),
-                    ClipToBounds = true,
-                    Child = cellHost
-                };
-                pageCards.Children.Add(cell);
+                var rowIndex = i / colCount;
+                var columnIndexFromRight = i % colCount;
+                var x = pageWidthUnits - pageMarginMm - cardWidthMm - columnIndexFromRight * (cardWidthMm + cardGapMm);
+                var y = pageMarginMm + rowIndex * (cardHeightMm + cardGapMm);
+                Canvas.SetLeft(cardViewbox, x);
+                Canvas.SetTop(cardViewbox, y);
+                cardViewbox.Cursor = Cursors.Hand;
+                cardViewbox.ToolTip = "انقر لمعاينة البطاقة بحجم مكبّر";
+                cardViewbox.MouseLeftButtonUp += (_, _) => ShowSampleCardDetailDialog(
+                    cardNumber, sampleUsername, samplePassword, hours.Text.Trim(), validity.Text.Trim(),
+                    priceText, uploadText, networkName.Text.Trim(), packageName.Text.Trim(), contact.Text.Trim(), globalIndex);
+                pageCards.Children.Add(cardViewbox);
             }
             FitPrintPage();
         }
@@ -802,10 +932,61 @@ public partial class TemplateDesignerView : UserControl
         dialog.ShowDialog();
     }
 
-    private Canvas BuildDesignedPrintCard(string number, string username, string password, string hours, string validity, string price, string upload, string network, int cardIndex)
+    private void ShowSampleCardDetailDialog(string number, string username, string password, string hours, string validity, string price, string upload, string network, string packageName, string contact, int cardIndex)
     {
-        // Clone the live designer surface so print preview reflects element visibility,
-        // positions, rotation, theme, imported background, and edited text layout.
+        var dialog = CreateDialog("معاينة بطاقة مكبّرة", 940, 360);
+        dialog.MinWidth = 720;
+        dialog.MinHeight = 300;
+
+        var root = new Grid { Margin = new Thickness(18) };
+        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        var title = new TextBlock
+        {
+            Text = "معاينة مكبّرة — انقر إغلاق للعودة إلى ورقة A4",
+            FontSize = 17,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = (Brush)FindResource("PrimaryBrush"),
+            Margin = new Thickness(0, 0, 0, 14)
+        };
+        root.Children.Add(title);
+
+        var cardSurface = new Border
+        {
+            Background = Brushes.White,
+            BorderBrush = (Brush)FindResource("BorderBrushSoft"),
+            BorderThickness = new Thickness(1),
+            Padding = new Thickness(12),
+            VerticalAlignment = VerticalAlignment.Center,
+            Child = new Viewbox
+            {
+                Stretch = Stretch.Uniform,
+                StretchDirection = StretchDirection.UpOnly,
+                Width = 820,
+                Height = 195,
+                Child = BuildDesignedPrintPreviewCard(number, username, password, hours, validity, price, upload, network, packageName, contact, cardIndex)
+            }
+        };
+        Grid.SetRow(cardSurface, 1);
+        root.Children.Add(cardSurface);
+
+        var close = MakeButton("إغلاق", primary: false);
+        close.MinWidth = 100;
+        close.Margin = new Thickness(0, 14, 0, 0);
+        close.HorizontalAlignment = HorizontalAlignment.Left;
+        close.Click += (_, _) => dialog.Close();
+        Grid.SetRow(close, 2);
+        root.Children.Add(close);
+
+        dialog.Content = root;
+        dialog.ShowDialog();
+    }
+
+    private Canvas BuildDesignedPrintCard(string number, string username, string password, string hours, string validity, string price, string upload, string network, string packageName, string contact, int cardIndex)
+    {
+        // Preserve the original print-path surface and coordinates. Page-preview layout
+        // has its own builder below so preview-only scaling never alters actual printing.
         var viewport = new Canvas
         {
             Width = Math.Max(1, DesignViewportCanvas.Width),
@@ -829,7 +1010,7 @@ public partial class TemplateDesignerView : UserControl
         foreach (UIElement child in CardDesignCanvas.Children)
         {
             if (ReferenceEquals(child, SelectionFrameBorder) || child is not FrameworkElement source) continue;
-            var clone = CloneTemplateVisual(source, number, username, password, hours, validity, price, upload, network, cardIndex);
+            var clone = CloneTemplateVisual(source, number, username, password, hours, validity, price, upload, network, packageName, contact, cardIndex);
             if (clone is null) continue;
             var left = Canvas.GetLeft(source);
             var top = Canvas.GetTop(source);
@@ -841,13 +1022,123 @@ public partial class TemplateDesignerView : UserControl
         return viewport;
     }
 
-    private FrameworkElement? CloneTemplateVisual(FrameworkElement source, string number, string username, string password, string hours, string validity, string price, string upload, string network, int cardIndex)
+    private Canvas BuildDesignedPrintPreviewCard(string number, string username, string password, string hours, string validity, string price, string upload, string network, string packageName, string contact, int cardIndex)
+    {
+        // This builder is intentionally preview-only. The editor surface is 420 × 245,
+        // but the physical card defaults to 66 × 15.5 mm. Most visible template content
+        // occupies only the upper part of the editor canvas; crop that unused workspace
+        // and compact Y coordinates so each preview slot uses the full physical card area.
+        var sourceWidth = Math.Max(1, CardDesignCanvas.Width);
+        var sourceHeight = Math.Max(1, CardDesignCanvas.Height);
+        var physicalWidth = ParseDouble(CardWidthTextBox.Text, 66, 10, 200);
+        var physicalHeight = ParseDouble(CardHeightTextBox.Text, 15.5, 10, 200);
+
+        // Some default fields deliberately extend slightly past the editor canvas's
+        // right edge (for example the password/contact labels). Include their bounds so
+        // they do not get clipped in the preview-only surface.
+        var contentRight = (double)sourceWidth;
+        var contentBottom = 1d;
+        foreach (UIElement child in CardDesignCanvas.Children)
+        {
+            if (child is not FrameworkElement source ||
+                ReferenceEquals(source, SelectionFrameBorder) ||
+                source.Visibility != Visibility.Visible ||
+                IsPreviewFullCanvasBackground(source, sourceHeight))
+                continue;
+
+            var left = Canvas.GetLeft(source);
+            var top = Canvas.GetTop(source);
+            var safeLeft = double.IsFinite(left) ? Math.Max(0, left) : 0;
+            var safeTop = double.IsFinite(top) ? Math.Max(0, top) : 0;
+            contentRight = Math.Max(contentRight, safeLeft + GetElementWidth(source));
+            contentBottom = Math.Max(contentBottom, safeTop + GetElementHeight(source));
+        }
+
+        var previewWidth = Math.Max(sourceWidth, contentRight);
+        var previewHeight = Math.Max(1, previewWidth * physicalHeight / physicalWidth);
+        var verticalScale = Math.Min(1d, previewHeight / contentBottom);
+        var previewCanvas = new Canvas
+        {
+            Width = previewWidth,
+            Height = previewHeight,
+            Background = Brushes.Transparent,
+            ClipToBounds = true
+        };
+
+        foreach (UIElement child in CardDesignCanvas.Children)
+        {
+            if (ReferenceEquals(child, SelectionFrameBorder) || child is not FrameworkElement source) continue;
+            var clone = CloneTemplateVisual(source, number, username, password, hours, validity, price, upload, network, packageName, contact, cardIndex);
+            if (clone is null) continue;
+
+            var left = Canvas.GetLeft(source);
+            var top = Canvas.GetTop(source);
+            Canvas.SetLeft(clone, double.IsFinite(left) ? left : 0);
+            Canvas.SetTop(clone, (double.IsFinite(top) ? top : 0) * verticalScale);
+            ApplyPreviewVerticalScale(clone, verticalScale, previewWidth, previewHeight, sourceHeight);
+            Panel.SetZIndex(clone, Panel.GetZIndex(source));
+            previewCanvas.Children.Add(clone);
+        }
+
+        return previewCanvas;
+    }
+
+    private static bool IsPreviewFullCanvasBackground(FrameworkElement element, double sourceCanvasHeight)
+    {
+        var elementName = element.Name.Length > 0 ? element.Name : element.Tag?.ToString();
+        return elementName is nameof(CardSurfaceBorder) or nameof(TemplateBackgroundImage) or nameof(CardHeaderBorder) ||
+               (element.Height >= 0.9 * sourceCanvasHeight && Canvas.GetTop(element) <= 1d);
+    }
+
+    private static void ApplyPreviewVerticalScale(FrameworkElement element, double scale, double previewWidth, double previewHeight, double sourceCanvasHeight)
+    {
+        // Background surfaces must span the preview card; ordinary elements are fitted
+        // to the occupied design area. Text is scaled by the same Y-layout factor as its
+        // line box, while all X positions, widths, and the original print builder remain intact.
+        if (IsPreviewFullCanvasBackground(element, sourceCanvasHeight))
+        {
+            element.Height = previewHeight;
+            var elementName = element.Name.Length > 0 ? element.Name : element.Tag?.ToString();
+            if (elementName is nameof(CardSurfaceBorder) or nameof(TemplateBackgroundImage))
+                element.Width = previewWidth;
+        }
+        else if (double.IsFinite(element.Height) && element.Height > 0)
+        {
+            element.Height *= scale;
+        }
+
+        element.Margin = new Thickness(element.Margin.Left, element.Margin.Top * scale, element.Margin.Right, element.Margin.Bottom * scale);
+
+        if (element is TextBlock text)
+            text.FontSize = Math.Max(1, text.FontSize * scale);
+
+        if (element is Grid grid)
+        {
+            foreach (var row in grid.RowDefinitions)
+            {
+                if (row.Height.IsAbsolute) row.Height = new GridLength(row.Height.Value * scale, GridUnitType.Pixel);
+                if (double.IsFinite(row.MinHeight) && row.MinHeight > 0) row.MinHeight *= scale;
+                if (double.IsFinite(row.MaxHeight) && row.MaxHeight > 0 && row.MaxHeight < double.MaxValue) row.MaxHeight *= scale;
+            }
+            foreach (UIElement child in grid.Children)
+            {
+                if (child is FrameworkElement nested)
+                    ApplyPreviewVerticalScale(nested, scale, previewWidth, previewHeight, sourceCanvasHeight);
+            }
+        }
+        else if (element is Border border && border.Child is FrameworkElement nestedChild)
+        {
+            ApplyPreviewVerticalScale(nestedChild, scale, previewWidth, previewHeight, sourceCanvasHeight);
+        }
+    }
+
+    private FrameworkElement? CloneTemplateVisual(FrameworkElement source, string number, string username, string password, string hours, string validity, string price, string upload, string network, string packageName, string contact, int cardIndex)
     {
         FrameworkElement? clone = source switch
         {
             TextBlock text => new TextBlock
             {
-                Text = GetPrintPreviewText(text, number, username, password, hours, validity, price, upload, network, cardIndex),
+                Text = GetPrintPreviewText(text, number, username, password, hours, validity, price, upload, network, packageName, contact, cardIndex),
                 FontFamily = text.FontFamily,
                 FontSize = text.FontSize,
                 FontWeight = text.FontWeight,
@@ -863,19 +1154,20 @@ public partial class TemplateDesignerView : UserControl
                 VerticalAlignment = text.VerticalAlignment,
                 HorizontalAlignment = text.HorizontalAlignment
             },
-            Border border => CloneBorder(border, number, username, password, hours, validity, price, upload, network, cardIndex),
+            Border border => CloneBorder(border, number, username, password, hours, validity, price, upload, network, packageName, contact, cardIndex),
             Ellipse ellipse => new Ellipse { Fill = ellipse.Fill, Stroke = ellipse.Stroke, StrokeThickness = ellipse.StrokeThickness },
             Image image => new Image { Source = image.Source, Stretch = image.Stretch, StretchDirection = image.StretchDirection },
-            Grid grid => CloneGrid(grid, number, username, password, hours, validity, price, upload, network, cardIndex),
+            Grid grid => CloneGrid(grid, number, username, password, hours, validity, price, upload, network, packageName, contact, cardIndex),
             _ => null
         };
 
         if (clone is null) return null;
         CopyCommonElementProperties(source, clone);
+        clone.Tag = source.Name;
         return clone;
     }
 
-    private Border CloneBorder(Border source, string number, string username, string password, string hours, string validity, string price, string upload, string network, int cardIndex)
+    private Border CloneBorder(Border source, string number, string username, string password, string hours, string validity, string price, string upload, string network, string packageName, string contact, int cardIndex)
     {
         var clone = new Border
         {
@@ -886,11 +1178,11 @@ public partial class TemplateDesignerView : UserControl
             Padding = source.Padding
         };
         if (source.Child is FrameworkElement child)
-            clone.Child = CloneTemplateVisual(child, number, username, password, hours, validity, price, upload, network, cardIndex);
+            clone.Child = CloneTemplateVisual(child, number, username, password, hours, validity, price, upload, network, packageName, contact, cardIndex);
         return clone;
     }
 
-    private Grid CloneGrid(Grid source, string number, string username, string password, string hours, string validity, string price, string upload, string network, int cardIndex)
+    private Grid CloneGrid(Grid source, string number, string username, string password, string hours, string validity, string price, string upload, string network, string packageName, string contact, int cardIndex)
     {
         var clone = new Grid { Background = source.Background };
         foreach (var row in source.RowDefinitions)
@@ -900,7 +1192,7 @@ public partial class TemplateDesignerView : UserControl
         foreach (UIElement child in source.Children)
         {
             if (child is not FrameworkElement childElement) continue;
-            var childClone = CloneTemplateVisual(childElement, number, username, password, hours, validity, price, upload, network, cardIndex);
+            var childClone = CloneTemplateVisual(childElement, number, username, password, hours, validity, price, upload, network, packageName, contact, cardIndex);
             if (childClone is null) continue;
             Grid.SetRow(childClone, Grid.GetRow(childElement));
             Grid.SetColumn(childClone, Grid.GetColumn(childElement));
@@ -927,22 +1219,145 @@ public partial class TemplateDesignerView : UserControl
         target.IsHitTestVisible = false;
     }
 
-    private string GetPrintPreviewText(TextBlock source, string number, string username, string password, string hours, string validity, string price, string upload, string network, int cardIndex)
+    private string GetPrintPreviewText(TextBlock source, string number, string username, string password, string hours, string validity, string price, string upload, string network, string packageName, string contact, int cardIndex)
     {
         return source.Name switch
         {
             nameof(PreviewLoginCodeTextBlock) => number,
             nameof(PreviewUsernameTextBlock) => "اسم المستخدم: " + username,
-            nameof(PreviewPasswordTextBlock) => "كلمة المرور: " + password,
-            nameof(PreviewValidityTextBlock) => _activePackageSource == "user-manager" ? "الوقت: " + hours + " ساعات" : "الصلاحية: " + validity,
-            nameof(PreviewPriceTextBlock) => "السعر: " + price + " ريال",
-            nameof(PreviewPackageTextBlock) => "الباقة: " + upload,
+            nameof(PreviewPasswordTextBlock) => string.IsNullOrWhiteSpace(password) ? string.Empty : "كلمة المرور: " + password,
+            nameof(PreviewValidityTextBlock) => "الصلاحية: " + validity,
+            "PreviewTimeTextBlock" => "الوقت: " + hours,
+            nameof(PreviewPriceTextBlock) => string.IsNullOrWhiteSpace(price) || price.Trim() == "—"
+                ? "السعر: —"
+                : "السعر: " + price + (price.Contains("ريال", StringComparison.Ordinal) ? string.Empty : " ريال"),
+            nameof(PreviewPackageTextBlock) => "الباقة: " + packageName,
             nameof(PreviewDownloadTextBlock) => "التحميل: " + upload,
+            "PreviewContactTextBlock" => string.IsNullOrWhiteSpace(contact) ? source.Text : contact,
+            nameof(PreviewPrintDateTextBlock) => "تاريخ الطباعة: " + DateTime.Now.ToString("yyyy/MM/dd", CultureInfo.InvariantCulture),
             nameof(PreviewSerialTextBlock) => "الرقم التسلسلي: " + number,
             nameof(PreviewBatchTextBlock) => "رقم الدفعة: B-" + (cardIndex + 1).ToString("D4", CultureInfo.InvariantCulture),
             nameof(PreviewNetworkTextBlock) => string.IsNullOrWhiteSpace(network) ? source.Text : network,
             _ => source.Text
         };
+    }
+
+    public Size GetPhysicalCardSizeMillimeters()
+    {
+        var width = ParseDouble(CardWidthTextBox.Text, 66, 10, 200);
+        var height = ParseDouble(CardHeightTextBox.Text, 15.5, 10, 200);
+        var radians = ParseDouble(CardRotationTextBox.Text, 0, -180, 180) * Math.PI / 180d;
+        return new Size(
+            Math.Abs(width * Math.Cos(radians)) + Math.Abs(height * Math.Sin(radians)),
+            Math.Abs(width * Math.Sin(radians)) + Math.Abs(height * Math.Cos(radians)));
+    }
+
+    public FrameworkElement CreatePrintableCard(
+        GeneratedDemoCard card,
+        int cardIndex,
+        bool showNumber = true,
+        bool showUsername = true,
+        bool showPassword = true,
+        bool showPackage = true,
+        bool showPrice = true)
+    {
+        ArgumentNullException.ThrowIfNull(card);
+        var originalVisibility = new Dictionary<FrameworkElement, Visibility>
+        {
+            [PreviewLoginCodeTextBlock] = PreviewLoginCodeTextBlock.Visibility,
+            [PreviewUsernameTextBlock] = PreviewUsernameTextBlock.Visibility,
+            [PreviewPasswordTextBlock] = PreviewPasswordTextBlock.Visibility,
+            [PreviewPackageTextBlock] = PreviewPackageTextBlock.Visibility,
+            [PreviewPriceTextBlock] = PreviewPriceTextBlock.Visibility
+        };
+
+        try
+        {
+            if (!showNumber) PreviewLoginCodeTextBlock.Visibility = Visibility.Collapsed;
+            if (!showUsername) PreviewUsernameTextBlock.Visibility = Visibility.Collapsed;
+            if (!showPassword || string.IsNullOrWhiteSpace(card.Password) ||
+                string.Equals(card.Password.Trim(), card.Username?.Trim(), StringComparison.Ordinal))
+                PreviewPasswordTextBlock.Visibility = Visibility.Collapsed;
+            if (!showPackage) PreviewPackageTextBlock.Visibility = Visibility.Collapsed;
+            if (!showPrice) PreviewPriceTextBlock.Visibility = Visibility.Collapsed;
+
+            var packageName = card.PackageName;
+            var separator = packageName.LastIndexOf(" — ", StringComparison.Ordinal);
+            if (separator > 0) packageName = packageName[..separator].Trim();
+            var network = string.IsNullOrWhiteSpace(PreviewNetworkTextBlock.Text) ? "" : PreviewNetworkTextBlock.Text;
+            var cardCanvas = BuildDesignedPrintCard(
+                card.CardNumber,
+                card.Username ?? string.Empty,
+                card.Password,
+                card.TimeLimit,
+                card.PackageValidity,
+                card.UnitPrice.ToString("0.##", CultureInfo.CurrentCulture),
+                card.DataLimit,
+                network,
+                packageName,
+                PreviewContactBlock.Text,
+                cardIndex);
+            return FlattenCardKeepingCredentialsSelectable(cardCanvas);
+        }
+        finally
+        {
+            foreach (var pair in originalVisibility) pair.Key.Visibility = pair.Value;
+        }
+    }
+
+    private Canvas FlattenCardKeepingCredentialsSelectable(Canvas viewport)
+    {
+        if (viewport.Children.OfType<Canvas>().FirstOrDefault() is not Canvas cardCanvas)
+            return viewport;
+
+        var username = cardCanvas.Children.OfType<FrameworkElement>()
+            .FirstOrDefault(item => string.Equals(item.Tag?.ToString(), nameof(PreviewUsernameTextBlock), StringComparison.Ordinal));
+        var password = cardCanvas.Children.OfType<FrameworkElement>()
+            .FirstOrDefault(item => string.Equals(item.Tag?.ToString(), nameof(PreviewPasswordTextBlock), StringComparison.Ordinal));
+        var usernameWasVisible = username?.Visibility == Visibility.Visible;
+        var passwordWasVisible = password?.Visibility == Visibility.Visible;
+        if (username is not null) username.Visibility = Visibility.Collapsed;
+        if (password is not null) password.Visibility = Visibility.Collapsed;
+
+        var width = Math.Max(1, viewport.Width);
+        var height = Math.Max(1, viewport.Height);
+        viewport.Measure(new Size(width, height));
+        viewport.Arrange(new Rect(0, 0, width, height));
+        viewport.UpdateLayout();
+        const int renderScale = 4;
+        var bitmap = new RenderTargetBitmap(
+            Math.Max(1, (int)Math.Ceiling(width * renderScale)),
+            Math.Max(1, (int)Math.Ceiling(height * renderScale)),
+            96d * renderScale, 96d * renderScale, PixelFormats.Pbgra32);
+        bitmap.Render(viewport);
+
+        var flattened = new Canvas { Width = width, Height = height, Background = Brushes.Transparent, ClipToBounds = true };
+        flattened.Children.Add(new Image { Source = bitmap, Width = width, Height = height, Stretch = Stretch.Fill, IsHitTestVisible = false });
+        var credentialLayer = new Canvas
+        {
+            Width = cardCanvas.Width,
+            Height = cardCanvas.Height,
+            Background = Brushes.Transparent,
+            ClipToBounds = cardCanvas.ClipToBounds,
+            RenderTransformOrigin = cardCanvas.RenderTransformOrigin,
+            RenderTransform = cardCanvas.RenderTransform?.CloneCurrentValue(),
+            IsHitTestVisible = false
+        };
+        Canvas.SetLeft(credentialLayer, double.IsFinite(Canvas.GetLeft(cardCanvas)) ? Canvas.GetLeft(cardCanvas) : 0);
+        Canvas.SetTop(credentialLayer, double.IsFinite(Canvas.GetTop(cardCanvas)) ? Canvas.GetTop(cardCanvas) : 0);
+
+        if (username is not null)
+        {
+            cardCanvas.Children.Remove(username);
+            if (usernameWasVisible) credentialLayer.Children.Add(username);
+        }
+        if (password is not null)
+        {
+            cardCanvas.Children.Remove(password);
+            if (passwordWasVisible) credentialLayer.Children.Add(password);
+        }
+        flattened.Children.Add(credentialLayer);
+        return flattened;
     }
 
     private void SaveTemplateButton_Click(object sender, RoutedEventArgs e)
@@ -998,7 +1413,7 @@ public partial class TemplateDesignerView : UserControl
             PreviewBrandTextBlock, PreviewNetworkTextBlock, PreviewLoginCodeTextBlock, PreviewUsernameTextBlock,
             PreviewPasswordTextBlock, PreviewValidityTextBlock, PreviewPriceTextBlock, PreviewPackageTextBlock,
             PreviewDownloadTextBlock, PreviewSerialTextBlock, PreviewPointOfSaleTextBlock, PreviewBatchTextBlock,
-            PreviewPrintDateTextBlock, PreviewExtraTextBlock, PreviewRewardTextBlock, PreviewLogoMarkTextBlock
+            PreviewPrintDateTextBlock, PreviewExtraTextBlock, PreviewContactBlock, PreviewRewardTextBlock, PreviewLogoMarkTextBlock
         }) textBlock.FontFamily = family;
 
         var selected = GetSelectedElement();
@@ -1031,8 +1446,8 @@ public partial class TemplateDesignerView : UserControl
             ElementAngleTextBox.Text = angle.ToString("0.#", CultureInfo.InvariantCulture);
         }
 
-        var cardWidth = ParseDouble(CardWidthTextBox.Text, 60, 10, 200);
-        var cardHeight = ParseDouble(CardHeightTextBox.Text, 35, 10, 200);
+        var cardWidth = ParseDouble(CardWidthTextBox.Text, 66, 10, 200);
+        var cardHeight = ParseDouble(CardHeightTextBox.Text, 15.5, 10, 200);
         var cardAngle = ParseDouble(CardRotationTextBox.Text, 0, -180, 180);
         CardWidthTextBox.Text = cardWidth.ToString("0.#", CultureInfo.InvariantCulture);
         CardHeightTextBox.Text = cardHeight.ToString("0.#", CultureInfo.InvariantCulture);
@@ -1077,9 +1492,11 @@ public partial class TemplateDesignerView : UserControl
                 PreviewUsernameTextBlock.Foreground = Brushes.White;
                 PreviewPasswordTextBlock.Foreground = Brushes.White;
                 PreviewValidityTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0xFF, 0xBF, 0xC3));
+                PreviewTimeBlock.Foreground = new SolidColorBrush(Color.FromRgb(0xFF, 0xBF, 0xC3));
                 PreviewPriceTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0xFF, 0xBF, 0xC3));
                 PreviewPackageTextBlock.Foreground = Brushes.White;
                 PreviewDownloadTextBlock.Foreground = Brushes.White;
+                PreviewContactBlock.Foreground = Brushes.White;
                 break;
             case "white":
                 CardSurfaceBorder.Background = new SolidColorBrush(Color.FromRgb(0xFF, 0xF9, 0xF8));
@@ -1091,9 +1508,11 @@ public partial class TemplateDesignerView : UserControl
                 PreviewUsernameTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0x39, 0x41));
                 PreviewPasswordTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0x39, 0x41));
                 PreviewValidityTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0xA0, 0x18, 0x18));
+                PreviewTimeBlock.Foreground = new SolidColorBrush(Color.FromRgb(0xA0, 0x18, 0x18));
                 PreviewPriceTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0xA0, 0x18, 0x18));
                 PreviewPackageTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0x39, 0x41));
                 PreviewDownloadTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0x39, 0x41));
+                PreviewContactBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0x39, 0x41));
                 break;
             default:
                 CardSurfaceBorder.Background = Brushes.White;
@@ -1105,9 +1524,11 @@ public partial class TemplateDesignerView : UserControl
                 PreviewUsernameTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0x39, 0x41));
                 PreviewPasswordTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0x39, 0x41));
                 PreviewValidityTextBlock.Foreground = (Brush)FindResource("PrimaryBrush");
+                PreviewTimeBlock.Foreground = (Brush)FindResource("PrimaryBrush");
                 PreviewPriceTextBlock.Foreground = (Brush)FindResource("PrimaryBrush");
                 PreviewPackageTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0x39, 0x41));
                 PreviewDownloadTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0x39, 0x41));
+                PreviewContactBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0x39, 0x41));
                 break;
         }
     }
@@ -1117,10 +1538,12 @@ public partial class TemplateDesignerView : UserControl
         PreviewLoginCodeTextBlock.Visibility = IsTemplateElementVisible("رمز الدخول") ? Visibility.Visible : Visibility.Collapsed;
         PreviewUsernameTextBlock.Visibility = IsTemplateElementVisible("اسم المستخدم") ? Visibility.Visible : Visibility.Collapsed;
         PreviewPasswordTextBlock.Visibility = IsTemplateElementVisible("كلمة المرور") ? Visibility.Visible : Visibility.Collapsed;
-        PreviewValidityTextBlock.Visibility = IsTemplateElementVisible("الصلاحية") || IsTemplateElementVisible("الوقت") ? Visibility.Visible : Visibility.Collapsed;
+        PreviewValidityTextBlock.Visibility = IsTemplateElementVisible("الصلاحية") ? Visibility.Visible : Visibility.Collapsed;
+        PreviewTimeBlock.Visibility = IsTemplateElementVisible("الوقت") ? Visibility.Visible : Visibility.Collapsed;
         PreviewPriceTextBlock.Visibility = IsTemplateElementVisible("السعر") ? Visibility.Visible : Visibility.Collapsed;
         PreviewPackageTextBlock.Visibility = IsTemplateElementVisible("الباقة") ? Visibility.Visible : Visibility.Collapsed;
         PreviewDownloadTextBlock.Visibility = IsTemplateElementVisible("التحميل") ? Visibility.Visible : Visibility.Collapsed;
+        PreviewContactBlock.Visibility = IsTemplateElementVisible("أرقام التواصل") ? Visibility.Visible : Visibility.Collapsed;
         PreviewSerialTextBlock.Visibility = IsTemplateElementVisible("الرقم التسلسلي") ? Visibility.Visible : Visibility.Collapsed;
         PreviewPrintDateTextBlock.Visibility = IsTemplateElementVisible("تاريخ الطباعة") ? Visibility.Visible : Visibility.Collapsed;
         PreviewBatchTextBlock.Visibility = IsTemplateElementVisible("رقم الدفعة") ? Visibility.Visible : Visibility.Collapsed;
@@ -1141,15 +1564,23 @@ public partial class TemplateDesignerView : UserControl
     private void UpdateSamplePackageFields()
     {
         if (!_isReady || PreviewPackageTextBlock is null) return;
-        var combo = _activePackageSource == "user-manager" ? UserManagerPackageComboBox : HotspotPackageComboBox;
-        var content = (combo.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "500 ميجابايت · 100 ريال";
-        var pieces = content.Split('·', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-        var description = pieces.Length > 0 ? pieces[0] : content;
-        var price = pieces.Length > 1 ? pieces[1] : "100 ريال";
-        PreviewPackageTextBlock.Text = "الباقة: " + description;
-        PreviewPriceTextBlock.Text = "السعر: " + price;
-        PreviewValidityTextBlock.Text = _activePackageSource == "user-manager" ? "الوقت: " + description : "الصلاحية: 4 أيام";
-        PreviewDownloadTextBlock.Text = _activePackageSource == "hotspot" ? "التحميل: " + description : "التحميل: حسب الباقة";
+
+        var package = GetActivePackage();
+        if (package is null)
+        {
+            PreviewPackageTextBlock.Text = "الباقة: لا توجد باقة فعالة";
+            PreviewPriceTextBlock.Text = "السعر: —";
+            PreviewValidityTextBlock.Text = "الصلاحية: —";
+            PreviewTimeBlock.Text = "الوقت: —";
+            PreviewDownloadTextBlock.Text = "التحميل: —";
+            return;
+        }
+
+        PreviewPackageTextBlock.Text = "الباقة: " + GetPackageName(package);
+        PreviewPriceTextBlock.Text = "السعر: " + package.PrintPriceLabel;
+        PreviewValidityTextBlock.Text = "الصلاحية: " + package.Validity;
+        PreviewTimeBlock.Text = "الوقت: " + package.TimeLimit;
+        PreviewDownloadTextBlock.Text = "التحميل: " + package.DataLimit;
     }
 
     private void SyncMainElementChecks()
@@ -1167,6 +1598,7 @@ public partial class TemplateDesignerView : UserControl
         ShowBatchCheckBox.IsChecked = IsTemplateElementVisible("رقم الدفعة");
         ShowPointOfSaleCheckBox.IsChecked = IsTemplateElementVisible("نقطة البيع");
         ShowExtraCheckBox.IsChecked = IsTemplateElementVisible("معلومات إضافية");
+        ShowContactOption.IsChecked = IsTemplateElementVisible("أرقام التواصل");
         ShowRewardCheckBox.IsChecked = IsTemplateElementVisible("كود المكافأة");
         ShowQrCheckBox.IsChecked = IsTemplateElementVisible("رمز QR");
         ShowBarcodeCheckBox.IsChecked = IsTemplateElementVisible("الباركود");
@@ -1183,9 +1615,11 @@ public partial class TemplateDesignerView : UserControl
         "username" => PreviewUsernameTextBlock,
         "password" => PreviewPasswordTextBlock,
         "validity" => PreviewValidityTextBlock,
+        "time" => PreviewTimeBlock,
         "price" => PreviewPriceTextBlock,
         "package" => PreviewPackageTextBlock,
         "download" => PreviewDownloadTextBlock,
+        "contact" => PreviewContactBlock,
         "serial" => PreviewSerialTextBlock,
         "printDate" => PreviewPrintDateTextBlock,
         "batch" => PreviewBatchTextBlock,
@@ -1209,8 +1643,8 @@ public partial class TemplateDesignerView : UserControl
     {
         if (CardDesignCanvas is null || DesignViewportCanvas is null || CardDesignViewbox is null) return;
 
-        var widthMm = ParseDouble(CardWidthTextBox.Text, 60, 10, 200);
-        var heightMm = ParseDouble(CardHeightTextBox.Text, 35, 10, 200);
+        var widthMm = ParseDouble(CardWidthTextBox.Text, 66, 10, 200);
+        var heightMm = ParseDouble(CardHeightTextBox.Text, 15.5, 10, 200);
         var angle = ParseDouble(CardRotationTextBox.Text, 0, -180, 180);
         var canvasWidth = Math.Max(1, DesignBaseWidth * widthMm / BaseWidthMm);
         var canvasHeight = Math.Max(1, DesignBaseHeight * heightMm / BaseHeightMm);
@@ -1243,17 +1677,24 @@ public partial class TemplateDesignerView : UserControl
         CardSurfaceBorder.Height = canvasHeight;
         TemplateBackgroundImage.Width = canvasWidth;
         TemplateBackgroundImage.Height = canvasHeight;
-        CardHeaderBorder.Width = canvasWidth;
-        CardHeaderBorder.Height = Math.Min(canvasHeight, Math.Max(12, 54d * canvasHeight / DesignBaseHeight));
-        CardDividerBorder.Width = Math.Max(1, canvasWidth * 390d / DesignBaseWidth);
-        Canvas.SetLeft(CardDividerBorder, canvasWidth * 15d / DesignBaseWidth);
-        Canvas.SetTop(CardDividerBorder, canvasHeight * 64d / DesignBaseHeight);
+        // The default card is a long horizontal voucher: a narrow brand panel on the left,
+        // with the credentials and package facts arranged in readable rows on the right.
+        CardHeaderBorder.Width = Math.Min(canvasWidth, canvasWidth * 86d / LegacyDesignBaseWidth);
+        CardHeaderBorder.Height = canvasHeight;
+        Canvas.SetLeft(CardHeaderBorder, 0);
+        Canvas.SetTop(CardHeaderBorder, 0);
+        CardDividerBorder.Width = Math.Max(1, canvasWidth * 310d / LegacyDesignBaseWidth);
+        Canvas.SetLeft(CardDividerBorder, canvasWidth * 94d / LegacyDesignBaseWidth);
+        var legacyLogicalHeight = LegacyDesignBaseHeight * ParseDouble(CardHeightTextBox.Text, 15.5, 10, 200) / BaseHeightMm;
+        Canvas.SetTop(CardDividerBorder, Math.Min(canvasHeight - 2d, canvasHeight * 34d / legacyLogicalHeight));
 
         var radians = angle * Math.PI / 180d;
         var boundsWidth = Math.Abs(canvasWidth * Math.Cos(radians)) + Math.Abs(canvasHeight * Math.Sin(radians));
         var boundsHeight = Math.Abs(canvasWidth * Math.Sin(radians)) + Math.Abs(canvasHeight * Math.Cos(radians));
-        boundsWidth = Math.Max(20, Math.Ceiling(boundsWidth) + 4);
-        boundsHeight = Math.Max(20, Math.Ceiling(boundsHeight) + 4);
+        // Keep the preview viewport at the exact physical bounds. The old +4 canvas-unit
+        // safety padding made a 66 × 15.5 mm card shrink inside its measured print size.
+        boundsWidth = Math.Max(1, boundsWidth);
+        boundsHeight = Math.Max(1, boundsHeight);
 
         // Only rotate the canvas. There is intentionally no ScaleTransform on content.
         CardDesignCanvas.RenderTransformOrigin = new Point(0.5, 0.5);
@@ -1331,7 +1772,7 @@ public partial class TemplateDesignerView : UserControl
             {
                 if (design.Text is not null) textBlock.Text = design.Text;
                 textBlock.FontWeight = design.IsBold ? FontWeights.Bold : FontWeights.Normal;
-                if (design.FontSize is >= 6 and <= 60) textBlock.FontSize = design.FontSize;
+                if (design.FontSize is >= 4 and <= 60) textBlock.FontSize = design.FontSize;
                 if (!string.IsNullOrWhiteSpace(design.FontFamily)) textBlock.FontFamily = new FontFamily(design.FontFamily);
             }
         }
@@ -1345,14 +1786,16 @@ public partial class TemplateDesignerView : UserControl
         ColorTheme = GetSelectedTag(ColorThemeComboBox) ?? "red",
         FontFamily = GetSelectedTag(FontFamilyComboBox) ?? "Segoe UI",
         FontSize = ParseDouble(ElementFontSizeTextBox.Text, 11, 8, 28),
-        CardWidthMm = ParseDouble(CardWidthTextBox.Text, 60, 10, 200),
-        CardHeightMm = ParseDouble(CardHeightTextBox.Text, 35, 10, 200),
+        CardWidthMm = ParseDouble(CardWidthTextBox.Text, 66, 10, 200),
+        CardHeightMm = ParseDouble(CardHeightTextBox.Text, 15.5, 10, 200),
         CardRotationDegrees = ParseDouble(CardRotationTextBox.Text, 0, -180, 180),
         ImportedBackgroundImagePath = _importedTemplateImagePath,
         ImportedBackgroundImageBase64 = GetImportedImageBase64(),
         ImportedBackgroundImageExtension = string.IsNullOrWhiteSpace(_importedTemplateImagePath) ? ".png" : System.IO.Path.GetExtension(_importedTemplateImagePath),
         HotspotPackageIndex = HotspotPackageComboBox.SelectedIndex,
         UserManagerPackageIndex = UserManagerPackageComboBox.SelectedIndex,
+        HotspotPackageKey = (HotspotPackageComboBox.SelectedItem as DemoCardPackage)?.Key ?? string.Empty,
+        UserManagerPackageKey = (UserManagerPackageComboBox.SelectedItem as DemoCardPackage)?.Key ?? string.Empty,
         ActivePackageSource = _activePackageSource,
         LoginPageUrl = _loginPageUrl,
         BarcodeText = _barcodeText,
@@ -1381,6 +1824,62 @@ public partial class TemplateDesignerView : UserControl
 
     private void ApplyTemplateState(TemplateDesignState state)
     {
+        // Migrate only the old built-in 60x35 mm Default_Design to the new voucher geometry.
+        // Custom named templates keep their dimensions; the existing JSON is not rewritten
+        // until the user deliberately saves the updated default template.
+        var isOldBuiltInDefault = string.Equals(state.TemplateName, DefaultTemplateName, StringComparison.OrdinalIgnoreCase)
+            && Math.Abs(state.CardWidthMm - 60d) < 0.1d
+            && Math.Abs(state.CardHeightMm - 35d) < 0.1d;
+        var requiresDipCoordinateMigration = !string.Equals(state.Format, TemplateFormatId, StringComparison.Ordinal);
+        if (isOldBuiltInDefault)
+        {
+            var newProperties = CreateDefaultElementProperties();
+            if (state.ElementProperties is not null)
+            {
+                foreach (var pair in newProperties)
+                {
+                    if (!state.ElementProperties.TryGetValue(pair.Key, out var oldProperty) || oldProperty is null)
+                        continue;
+                    // Preserve user-authored text/font family/bold preference while replacing
+                    // the old card geometry and small legacy placements with the readable voucher layout.
+                    if (oldProperty.Text is not null) pair.Value.Text = oldProperty.Text;
+                    if (!string.IsNullOrWhiteSpace(oldProperty.FontFamily)) pair.Value.FontFamily = oldProperty.FontFamily;
+                    if (pair.Key is "login" or "price" or "validity") pair.Value.IsBold = oldProperty.IsBold || pair.Value.IsBold;
+                }
+            }
+            state.ElementProperties = newProperties;
+            if (state.VisibleElements is not null)
+                state.VisibleElements["رمز QR"] = false;
+            state.CardWidthMm = 66d;
+            state.CardHeightMm = 15.5d;
+            state.SelectedElementX *= LegacyToDipScale;
+            state.SelectedElementY *= LegacyToDipScale;
+            state.Format = TemplateFormatId;
+        }
+        else if (requiresDipCoordinateMigration)
+        {
+            // V1 stored base-canvas positions; V2 stored positions after sizing the canvas.
+            // Convert the legacy geometry and font sizes to DIPs exactly once, keeping the
+            // old card-size position ratios for V1 while preventing the whole card shrinking text.
+            var isV2PhysicalCanvas = string.Equals(state.Format, "TabCard.TemplateDesigner.v2", StringComparison.Ordinal);
+            var legacyPositionScaleX = LegacyToDipScale * (isV2PhysicalCanvas ? 1d : state.CardWidthMm / BaseWidthMm);
+            var legacyPositionScaleY = LegacyToDipScale * (isV2PhysicalCanvas ? 1d : state.CardHeightMm / BaseHeightMm);
+            if (state.ElementProperties is not null)
+            {
+                foreach (var element in state.ElementProperties.Values.Where(value => value is not null))
+                {
+                    element.X *= legacyPositionScaleX;
+                    element.Y *= legacyPositionScaleY;
+                    element.Width *= LegacyToDipScale;
+                    element.Height *= LegacyToDipScale;
+                    element.FontSize *= LegacyToDipScale;
+                }
+            }
+            state.SelectedElementX *= legacyPositionScaleX;
+            state.SelectedElementY *= legacyPositionScaleY;
+            state.Format = TemplateFormatId;
+        }
+
         var isLegacyCoordinateState = !string.Equals(state.Format, TemplateFormatId, StringComparison.Ordinal);
         TemplateNameTextBox.Text = string.IsNullOrWhiteSpace(state.TemplateName) ? DefaultTemplateName : state.TemplateName;
         SelectComboTag(TemplateStyleComboBox, state.TemplateStyle);
@@ -1390,9 +1889,18 @@ public partial class TemplateDesignerView : UserControl
         CardWidthTextBox.Text = state.CardWidthMm.ToString("0.#", CultureInfo.InvariantCulture);
         CardHeightTextBox.Text = state.CardHeightMm.ToString("0.#", CultureInfo.InvariantCulture);
         CardRotationTextBox.Text = state.CardRotationDegrees.ToString("0.#", CultureInfo.InvariantCulture);
-        if (state.HotspotPackageIndex >= 0 && state.HotspotPackageIndex < HotspotPackageComboBox.Items.Count)
+        var savedHotSpotPackage = HotspotPackageComboBox.Items.OfType<DemoCardPackage>()
+            .FirstOrDefault(item => string.Equals(item.Key, state.HotspotPackageKey, StringComparison.OrdinalIgnoreCase));
+        if (savedHotSpotPackage is not null)
+            HotspotPackageComboBox.SelectedItem = savedHotSpotPackage;
+        else if (state.HotspotPackageIndex >= 0 && state.HotspotPackageIndex < HotspotPackageComboBox.Items.Count)
             HotspotPackageComboBox.SelectedIndex = state.HotspotPackageIndex;
-        if (state.UserManagerPackageIndex >= 0 && state.UserManagerPackageIndex < UserManagerPackageComboBox.Items.Count)
+
+        var savedUserManagerPackage = UserManagerPackageComboBox.Items.OfType<DemoCardPackage>()
+            .FirstOrDefault(item => string.Equals(item.Key, state.UserManagerPackageKey, StringComparison.OrdinalIgnoreCase));
+        if (savedUserManagerPackage is not null)
+            UserManagerPackageComboBox.SelectedItem = savedUserManagerPackage;
+        else if (state.UserManagerPackageIndex >= 0 && state.UserManagerPackageIndex < UserManagerPackageComboBox.Items.Count)
             UserManagerPackageComboBox.SelectedIndex = state.UserManagerPackageIndex;
         _activePackageSource = state.ActivePackageSource == "user-manager" ? "user-manager" : "hotspot";
         _loginPageUrl = string.IsNullOrWhiteSpace(state.LoginPageUrl) ? DefaultLoginUrl : state.LoginPageUrl;
@@ -1432,8 +1940,8 @@ public partial class TemplateDesignerView : UserControl
         }
         UpdateSamplePackageFields();
         SyncMainElementChecks();
-        var targetCanvasWidth = DesignBaseWidth * ParseDouble(CardWidthTextBox.Text, 60, 10, 200) / BaseWidthMm;
-        var targetCanvasHeight = DesignBaseHeight * ParseDouble(CardHeightTextBox.Text, 35, 10, 200) / BaseHeightMm;
+        var targetCanvasWidth = DesignBaseWidth * ParseDouble(CardWidthTextBox.Text, 66, 10, 200) / BaseWidthMm;
+        var targetCanvasHeight = DesignBaseHeight * ParseDouble(CardHeightTextBox.Text, 15.5, 10, 200) / BaseHeightMm;
         // V2 state stores coordinates in the actual canvas. Legacy V1 state stores base-canvas
         // coordinates, so let ApplyCardDimensionTransform map those positions once on migration.
         if (!isLegacyCoordinateState)
@@ -1458,11 +1966,12 @@ public partial class TemplateDesignerView : UserControl
         SelectComboTag(ColorThemeComboBox, "red");
         SelectComboTag(FontFamilyComboBox, "Segoe UI");
         ElementFontSizeTextBox.Text = "11";
-        CardWidthTextBox.Text = "60";
-        CardHeightTextBox.Text = "35";
+        CardWidthTextBox.Text = "66";
+        CardHeightTextBox.Text = "15.5";
         CardRotationTextBox.Text = "0";
-        _lastCanvasWidth = DesignBaseWidth;
-        _lastCanvasHeight = DesignBaseHeight;
+        _lastCanvasWidth = DesignBaseWidth * 66d / BaseWidthMm;
+        _lastCanvasHeight = DesignBaseHeight * 15.5d / BaseHeightMm;
+        ApplyElementProperties(CreateDefaultElementProperties());
         ApplyCardDimensionTransform();
         _zoom = 1d;
         ZoomSlider.Value = 1d;
@@ -1605,10 +2114,12 @@ public partial class TemplateDesignerView : UserControl
         public string ColorTheme { get; set; } = "red";
         public string FontFamily { get; set; } = "Segoe UI";
         public double FontSize { get; set; } = 11;
-        public double CardWidthMm { get; set; } = 60;
-        public double CardHeightMm { get; set; } = 35;
+        public double CardWidthMm { get; set; } = 66;
+        public double CardHeightMm { get; set; } = 15.5;
         public int HotspotPackageIndex { get; set; } = 0;
         public int UserManagerPackageIndex { get; set; } = 0;
+        public string HotspotPackageKey { get; set; } = string.Empty;
+        public string UserManagerPackageKey { get; set; } = string.Empty;
         public string ActivePackageSource { get; set; } = "hotspot";
         public string LoginPageUrl { get; set; } = DefaultLoginUrl;
         public string BarcodeText { get; set; } = "50723015";

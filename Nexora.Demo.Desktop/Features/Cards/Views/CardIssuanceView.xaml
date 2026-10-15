@@ -251,7 +251,7 @@
         </Style>
 
             <local:OneBasedAlternationIndexConverter x:Key="OneBasedAlternationIndexConverter" />
-
+    
         <Style x:Key="TabCardInlineLabelRuntimeRepair" TargetType="{x:Type TextBlock}">
             <Setter Property="FontSize" Value="11.5" />
             <Setter Property="FontWeight" Value="SemiBold" />
@@ -262,7 +262,7 @@
             <Setter Property="TextWrapping" Value="NoWrap" />
             <Setter Property="FlowDirection" Value="RightToLeft" />
         </Style>
-
+    
         <Style x:Key="TabCardInlineLabel" TargetType="TextBlock" BasedOn="{StaticResource TabCardLabel}">
             <Setter Property="Margin" Value="0" />
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -546,7 +546,7 @@
 
                     <!-- Advanced generation details are collapsed by default and expand when a chosen mode needs them. -->
                                         <Button x:Name="AdvancedSettingsButton" Grid.Row="4" Content="الإعدادات المتقدمة  ⚙" Height="35" HorizontalAlignment="Stretch" Style="{StaticResource TabCardSecondaryButton}" FontSize="12.5" Click="AdvancedSettingsButton_Click" />
-
+                    
                 </Grid>
             </Border>
 
@@ -638,10 +638,10 @@
             <Button x:Name="UploadRouterButton" Click="UploadRouterButton_Click" />
             <Button x:Name="UploadAndPrintButton" Click="GenerateAndPrintButton_Click" />
             <Button x:Name="OnlineSaleButton" Click="OnlineSaleButton_Click" />
-
-
-
-
+            
+            
+            
+            
         </StackPanel>
     </Grid>
     <Grid x:Name="AdvancedSettingsPage" Visibility="Collapsed" Margin="3" Background="#F7F8FA" FlowDirection="RightToLeft">

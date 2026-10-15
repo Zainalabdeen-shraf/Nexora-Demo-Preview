@@ -46,10 +46,10 @@ public partial class MainWindow : Window
     private readonly Dictionary<string, string[]> _sectionTabs = new(StringComparer.Ordinal)
     {
         ["network-users"] = ["كل الحسابات", "النشطون الآن", "غير النشطين"],        ["cards"] = ["إصدار الكروت", "إدارة الكروت", "إدارة الدفعات", "المعلقات", "استيراد الكروت"],
-        ["packages"] = ["كتالوج الباقات"],
+        ["packages"] = ["كتالوج الباقات"],      
         ["sales"] = ["ملخص المبيعات", "معاملات البيع", "نقاط البيع"],
         ["printing"] = ["تصميم القالب", "قائمة الطباعة"],
-        ["networks"] = ["مصادر المصادقة", "HotSpot", "User Manager"],
+        ["networks"] = ["مدير المستخدمين", "الهوتسبوت", ],
         ["reports"] = ["مركز التقارير"],
         ["settings"] = ["إعدادات النظام", "الموقع والهوية", "النسخ الاحتياطي", "الصيانة"]
     };
@@ -355,12 +355,17 @@ public partial class MainWindow : Window
                 Content = tab,
                 Tag = tab,
                 Style = (Style)FindResource("SectionTabButtonStyle"),
-                Margin = new Thickness(3, 0, 3, 0),
+                Margin = new Thickness(0),
+                Padding = new Thickness(16, 0, 16, 0),
                 MinWidth = 0,
                 Height = 38,
-                FontSize = 12.5
+                FontSize = 12.5,
+                BorderThickness = new Thickness(0),
+                BorderBrush = Brushes.Transparent,
+                Background = Brushes.Transparent,
+                FlowDirection = FlowDirection.RightToLeft
             };
-            btn.Click += SectionTabButton_Click;
+                        btn.Click += SectionTabButton_Click;
             btn.MouseEnter += (_, _) =>
 {
     var isSelected = string.Equals(
@@ -368,11 +373,8 @@ public partial class MainWindow : Window
         SectionContentTitleTextBlock.Text,
         StringComparison.Ordinal);
 
-    if (isSelected)
-        return;
-
-    btn.Background = new SolidColorBrush(Color.FromRgb(239, 245, 252));
-    btn.BorderBrush = new SolidColorBrush(Color.FromRgb(199, 217, 239));
+    if (!isSelected)
+        btn.Background = new SolidColorBrush(Color.FromRgb(232, 234, 238));
 };
 
 btn.MouseLeave += (_, _) =>
@@ -382,20 +384,21 @@ btn.MouseLeave += (_, _) =>
         SectionContentTitleTextBlock.Text,
         StringComparison.Ordinal);
 
-    btn.Background = (Brush)FindResource(
-        isSelected ? "PrimaryBrush" : "SurfaceBrush");
+    btn.Background = isSelected
+        ? (Brush)FindResource("PrimaryBrush")
+        : Brushes.Transparent;
 
-    btn.Foreground = (Brush)FindResource(
-        isSelected ? "SurfaceBrush" : "TextBrush");
+    btn.Foreground = isSelected
+        ? (Brush)FindResource("SurfaceBrush")
+        : (Brush)FindResource("TextBrush");
 
-    btn.BorderBrush = (Brush)FindResource(
-        isSelected ? "PrimaryBrush" : "BorderBrushSoft");
+    btn.BorderBrush = Brushes.Transparent;
+    btn.BorderThickness = new Thickness(0);
 };
-
-            SectionTabsPanel.Children.Add(btn);
+SectionTabsPanel.Children.Add(btn);
+            }
+            ActivateSectionTab(tabs[0]);
         }
-        ActivateSectionTab(tabs[0]);
-    }
 
     private void UpdateSidebarSelection(string sectionKey)
     {
@@ -474,18 +477,24 @@ btn.MouseLeave += (_, _) =>
             }
         }
 
-        foreach (var child in SectionTabsPanel.Children.OfType<Button>())
-        {
-            var selected = string.Equals(child.Tag?.ToString(), tab, StringComparison.Ordinal);
-            child.Background = (Brush)FindResource(
-                selected ? "PrimaryBrush" : "SurfaceBrush");
+foreach (var child in SectionTabsPanel.Children.OfType<Button>())
+    {
+        var selected = string.Equals(
+            child.Tag?.ToString(),
+            tab,
+            StringComparison.Ordinal);
 
-            child.Foreground = (Brush)FindResource(
-                selected ? "SurfaceBrush" : "TextBrush");
+        child.Background = selected
+            ? (Brush)FindResource("PrimaryBrush")
+            : Brushes.Transparent;
 
-            child.BorderBrush = (Brush)FindResource(
-                selected ? "PrimaryBrush" : "BorderBrushSoft");
-        }
+        child.Foreground = selected
+            ? (Brush)FindResource("SurfaceBrush")
+            : (Brush)FindResource("TextBrush");
+
+        child.BorderBrush = Brushes.Transparent;
+        child.BorderThickness = new Thickness(0);
+    }
 
         var featureOwnsWorkspace = SectionFeatureContentHost.Content is
             CardIssuanceView or IssuanceWorkspaceView or GeneratedCardsView or CardBatchesView or CardBatchesView or PendingCardsView or ImportCardsView or
@@ -523,9 +532,8 @@ btn.MouseLeave += (_, _) =>
             "sales" when tab == "نقاط البيع" => "sales|points",
             "printing" when tab == "تصميم القالب" => "printing|template-designer",
             "printing" => "printing|workspace",
-            "networks" when tab == "مصادر المصادقة" => "networks|sources",
-            "networks" when tab == "HotSpot" => "networks|hotspot",
-            "networks" when tab == "User Manager" => "networks|user-manager",
+            "networks" when tab == "مدير المستخدمين" => "networks|user-manager",
+            "networks" when tab == "الهوتسبوت" => "networks|hotspot",
             "reports" => "reports|center",
             _ => $"{_currentSection}|{tab}"
         };
@@ -675,7 +683,11 @@ btn.MouseLeave += (_, _) =>
 
         if (section == "networks")
         {
-            var area = tab == "HotSpot" ? "hotspot" : tab == "User Manager" ? "user-manager" : "sources";
+            var area = tab == "مدير المستخدمين"
+        ? "user-manager"
+    : tab == "الهوتسبوت"
+    ? "hotspot"
+        : "sources";
             var view = new NetworkSourcesView(area, _demoCardIssuanceService);
             view.NavigationRequested += FeatureView_NavigationRequested;
             return view;
@@ -961,3 +973,5 @@ btn.MouseLeave += (_, _) =>
     }
 
 }
+
+
