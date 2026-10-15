@@ -1,4 +1,4 @@
-<UserControl x:Class="Nexora.Demo.Desktop.Features.Networks.Views.NetworkSourcesView"
+﻿<UserControl x:Class="Nexora.Demo.Desktop.Features.Networks.Views.NetworkSourcesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              FlowDirection="RightToLeft"
@@ -39,7 +39,1143 @@
                 <StackPanel>
                     <TextBlock x:Name="ProviderDetailTitleTextBlock" FontSize="18" FontWeight="Bold"/>
                     <TextBlock x:Name="ProviderDetailDescriptionTextBlock" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
-                    <WrapPanel><Button Content="إدارة مستخدمي الشبكة" Style="{StaticResource SecondaryButton}" Click="OpenUsersButton_Click" Margin="0,0,8,0"/><Button Content="إصدار دفعة" Style="{StaticResource PrimaryButton}" Click="OpenIssuanceButton_Click"/></WrapPanel>
+                    <WrapPanel>
+                        <Button Content="إدارة مستخدمي الشبكة" Style="{StaticResource SecondaryButton}" Click="OpenUsersButton_Click" Margin="0,0,8,0"/>
+                        <Button Content="إصدار دفعة" Style="{StaticResource PrimaryButton}" Click="OpenIssuanceButton_Click"/>
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+            <Border x:Name="UserManagerSettingsPanel"
+        Background="White"
+        BorderBrush="{StaticResource BorderBrushSoft}"
+        BorderThickness="1"
+        CornerRadius="12"
+        Padding="16"
+        Margin="0,10,0,0"
+        Visibility="Collapsed">
+    <StackPanel>
+        <TextBlock Text="مدير المستخدمين"
+                   FontSize="21"
+                   FontWeight="Bold"
+                   Foreground="{StaticResource TextBrush}"/>
+
+        <TextBlock Text="إدارة الخدمة والاتصال والبروفايلات وأجهزة RADIUS وربط الباقات."
+                   FontSize="11.5"
+                   Foreground="{StaticResource MutedBrush}"
+                   TextWrapping="Wrap"
+                   Margin="0,4,0,14"/>
+
+        <Grid Margin="0,0,0,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0"
+                    Background="{StaticResource AppBgBrush}"
+                    CornerRadius="8"
+                    Padding="10">
+                <StackPanel>
+                    <TextBlock Text="الخدمة"
+                               Foreground="{StaticResource MutedBrush}"
+                               FontSize="10.5"/>
+                    <TextBlock x:Name="UserManagerStatusSummaryTextBlock"
+                               Text="غير مفعّلة"
+                               FontWeight="Bold"
+                               Margin="0,5,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2"
+                    Background="{StaticResource AppBgBrush}"
+                    CornerRadius="8"
+                    Padding="10">
+                <StackPanel>
+                    <TextBlock Text="البروفايلات"
+                               Foreground="{StaticResource MutedBrush}"
+                               FontSize="10.5"/>
+                    <TextBlock x:Name="UserManagerProfileCountTextBlock"
+                               Text="0"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Margin="0,3,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="4"
+                    Background="{StaticResource AppBgBrush}"
+                    CornerRadius="8"
+                    Padding="10">
+                <StackPanel>
+                    <TextBlock Text="أجهزة RADIUS"
+                               Foreground="{StaticResource MutedBrush}"
+                               FontSize="10.5"/>
+                    <TextBlock x:Name="UserManagerRadiusClientCountTextBlock"
+                               Text="0"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Margin="0,3,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <TabControl MinHeight="430">
+
+            <TabItem Header="الخدمة والاتصال">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12">
+                        <CheckBox x:Name="UserManagerEnabledCheckBox"
+                                  Content="تفعيل الخدمة في إعدادات الديمو"
+                                  Margin="0,0,0,12"/>
+
+                        <TextBlock Text="اتصال الراوتر المرتبط"
+                                   Margin="0,0,0,5"/>
+
+                        <ComboBox x:Name="UserManagerRouterComboBox"
+                                  Padding="8"
+                                  DisplayMemberPath="Name"
+                                  SelectedValuePath="Id"/>
+
+                        <Button Content="إدارة اتصالات الراوتر"
+                                Style="{StaticResource SecondaryButton}"
+                                Click="ManageRouterConnectionsButton_Click"
+                                HorizontalAlignment="Right"
+                                Margin="0,8,0,16"/>
+
+                        <Separator/>
+
+                        <TextBlock Text="منافذ RADIUS"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Margin="0,12,0,10"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel>
+                                <TextBlock Text="منفذ المصادقة"
+                                           Margin="0,0,0,5"/>
+                                <TextBox x:Name="UserManagerAuthenticationPortTextBox"
+                                         Text="1812"
+                                         Padding="8"
+                                         FlowDirection="LeftToRight"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="منفذ المحاسبة"
+                                           Margin="0,0,0,5"/>
+                                <TextBox x:Name="UserManagerAccountingPortTextBox"
+                                         Text="1813"
+                                         Padding="8"
+                                         FlowDirection="LeftToRight"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <CheckBox x:Name="UserManagerAccountingEnabledCheckBox"
+                                  Content="تسجيل المحاسبة"
+                                  Margin="0,12,0,8"/>
+
+                        <TextBlock Text="فترة تحديث المحاسبة بالثواني"
+                                   Margin="0,0,0,5"/>
+                        <TextBox x:Name="UserManagerInterimUpdateTextBox"
+                                 Text="300"
+                                 Padding="8"
+                                 FlowDirection="LeftToRight"/>
+
+                        <CheckBox x:Name="UserManagerUseProfilesCheckBox"
+                                  Content="استخدام بروفايلات User Manager"
+                                  Margin="0,12,0,10"/>
+
+                        <TextBlock Text="ملاحظات الإعداد"
+                                   Margin="0,0,0,5"/>
+                        <TextBox x:Name="UserManagerCommentTextBox"
+                                 Padding="8"
+                                 MinHeight="55"
+                                 MaxLength="300"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"/>
+
+                        <WrapPanel Margin="0,12,0,0">
+                            <Button Content="حفظ إعدادات الخدمة"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Click="SaveUserManagerSettingsButton_Click"
+                                    Margin="0,0,8,8"/>
+                            <Button Content="إعادة تحميل"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Click="ReloadUserManagerSettingsButton_Click"
+                                    Margin="0,0,8,8"/>
+                            <Button Content="إدارة الباقات"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Click="UserManagerPackagesButton_Click"
+                                    Margin="0,0,8,8"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="البروفايلات">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid Margin="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="170"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <ListBox x:Name="UserManagerProfilesListBox"
+                                     Height="250"
+                                     DisplayMemberPath="Name"
+                                     SelectionChanged="UserManagerProfilesListBox_SelectionChanged"/>
+
+                            <Button Content="بروفايل جديد"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Click="NewUserManagerProfileButton_Click"
+                                    Margin="0,8,0,5"/>
+
+                            <Button Content="حذف المحدد"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Click="DeleteUserManagerProfileButton_Click"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="اسم البروفايل"
+                                       Margin="0,0,0,5"/>
+                            <TextBox x:Name="UserManagerProfileNameTextBox"
+                                     Padding="8"
+                                     Margin="0,0,0,10"/>
+
+                            <CheckBox x:Name="UserManagerProfileEnabledCheckBox"
+                                      Content="البروفايل مفعّل"
+                                      Margin="0,0,0,10"/>
+
+                            <TextBlock Text="حد التنزيل (Kbps)"
+                                       Margin="0,0,0,5"/>
+                            <TextBox x:Name="UserManagerProfileDownloadLimitTextBox"
+                                     Text="0"
+                                     Padding="8"
+                                     FlowDirection="LeftToRight"
+                                     Margin="0,0,0,10"/>
+
+                            <TextBlock Text="حد الرفع (Kbps)"
+                                       Margin="0,0,0,5"/>
+                            <TextBox x:Name="UserManagerProfileUploadLimitTextBox"
+                                     Text="0"
+                                     Padding="8"
+                                     FlowDirection="LeftToRight"
+                                     Margin="0,0,0,10"/>
+
+                            <TextBlock Text="المستخدمون المتزامنون"
+                                       Margin="0,0,0,5"/>
+                            <TextBox x:Name="UserManagerProfileSharedUsersTextBox"
+                                     Text="1"
+                                     Padding="8"
+                                     FlowDirection="LeftToRight"
+                                     Margin="0,0,0,10"/>
+
+                            <TextBlock Text="ملاحظات"
+                                       Margin="0,0,0,5"/>
+                            <TextBox x:Name="UserManagerProfileCommentTextBox"
+                                     Padding="8"
+                                     MinHeight="45"
+                                     AcceptsReturn="True"
+                                     TextWrapping="Wrap"/>
+
+                            <Button Content="حفظ البروفايل"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Click="SaveUserManagerProfileButton_Click"
+                                    Margin="0,12,0,0"/>
+
+                            <TextBlock x:Name="UserManagerProfileStatusTextBlock"
+                                       Text="اختر بروفايلًا أو أنشئ واحدًا."
+                                       Foreground="{StaticResource MutedBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="أجهزة RADIUS">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid Margin="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="170"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <ListBox x:Name="UserManagerClientsListBox"
+                                     Height="250"
+                                     DisplayMemberPath="Name"
+                                     SelectionChanged="UserManagerClientsListBox_SelectionChanged"/>
+
+                            <Button Content="جهاز جديد"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Click="NewUserManagerClientButton_Click"
+                                    Margin="0,8,0,5"/>
+
+                            <Button Content="حذف المحدد"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Click="DeleteUserManagerClientButton_Click"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="اسم الجهاز"
+                                       Margin="0,0,0,5"/>
+                            <TextBox x:Name="UserManagerClientNameTextBox"
+                                     Padding="8"
+                                     Margin="0,0,0,10"/>
+
+                            <TextBlock Text="العنوان"
+                                       Margin="0,0,0,5"/>
+                            <TextBox x:Name="UserManagerClientAddressTextBox"
+                                     Padding="8"
+                                     FlowDirection="LeftToRight"
+                                     Margin="0,0,0,10"/>
+
+                            <TextBlock Text="بروتوكول النقل"
+                                       Margin="0,0,0,5"/>
+                            <ComboBox x:Name="UserManagerClientProtocolComboBox"
+                                      Padding="8"
+                                      Margin="0,0,0,10"/>
+
+                            <TextBlock Text="منفذ CoA"
+                                       Margin="0,0,0,5"/>
+                            <TextBox x:Name="UserManagerClientCoaPortTextBox"
+                                     Text="3799"
+                                     Padding="8"
+                                     FlowDirection="LeftToRight"
+                                     Margin="0,0,0,10"/>
+
+                            <CheckBox x:Name="UserManagerClientEnabledCheckBox"
+                                      Content="الجهاز مفعّل"
+                                      Margin="0,0,0,8"/>
+
+                            <CheckBox x:Name="UserManagerClientSecretConfiguredCheckBox"
+                                      Content="تم إعداد السر المشترك في البيئة المستهدفة"
+                                      Margin="0,0,0,10"/>
+
+                            <TextBlock Text="ملاحظات"
+                                       Margin="0,0,0,5"/>
+                            <TextBox x:Name="UserManagerClientCommentTextBox"
+                                     Padding="8"
+                                     MinHeight="45"
+                                     AcceptsReturn="True"
+                                     TextWrapping="Wrap"/>
+
+                            <Button Content="حفظ عميل RADIUS"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Click="SaveUserManagerClientButton_Click"
+                                    Margin="0,12,0,0"/>
+
+                            <TextBlock x:Name="UserManagerClientStatusTextBlock"
+                                       Text="الإعدادات محلية في الديمو."
+                                       Foreground="{StaticResource MutedBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="ربط الباقات">
+                <StackPanel Margin="14">
+                    <TextBlock Text="ربط الباقات التجارية بالموارد التقنية"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,8"/>
+
+                    <TextBlock Text="تعريف الباقة وسعرها وحدودها التجارية يبقى في كتالوج Nexora. تُعرض هنا ملخصات الروابط المسجلة لذلك المصدر."
+                               Foreground="{StaticResource MutedBrush}"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,12"/>
+
+                    <TextBlock x:Name="UserManagerPackageBindingSummaryTextBlock"
+                               Text="0"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource PrimaryBrush}"/>
+
+                    <Button Content="فتح كتالوج الباقات"
+                            Style="{StaticResource PrimaryButton}"
+                            Click="UserManagerPackagesButton_Click"
+                            HorizontalAlignment="Right"
+                            Margin="0,12,0,0"/>
+                </StackPanel>
+            </TabItem>
+
+            <TabItem Header="الجلسات والتشخيص">
+                <StackPanel Margin="14">
+                    <TextBlock Text="معاينة جلسات تجريبية"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,8"/>
+
+                    <ListBox x:Name="UserManagerDemoSessionsListBox"
+                             MinHeight="120"
+                             MaxHeight="190"
+                             IsHitTestVisible="False">
+                        <ListBoxItem Content="demo-user-014 | 00:18:24 | 240 MB"/>
+                        <ListBoxItem Content="demo-user-027 | 00:42:10 | 680 MB"/>
+                        <ListBoxItem Content="demo-user-031 | 00:05:52 | 75 MB"/>
+                    </ListBox>
+
+                    <TextBlock Text="هذه بيانات عرض ثابتة؛ لا تمثل جلسات حقيقية أو نتائج من الراوتر."
+                               Foreground="{StaticResource MutedBrush}"
+                               TextWrapping="Wrap"
+                               Margin="0,10,0,12"/>
+
+                    <Button Content="تحديث التشخيص التجريبي"
+                            Style="{StaticResource SecondaryButton}"
+                            Click="RefreshUserManagerDiagnosticsButton_Click"
+                            HorizontalAlignment="Right"/>
+
+                    <TextBlock x:Name="UserManagerDiagnosticsStatusTextBlock"
+                               Text="لم يتم اختبار اتصال فعلي."
+                               Foreground="{StaticResource MutedBrush}"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0"/>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+
+        <TextBlock x:Name="UserManagerSettingsStatusTextBlock"
+                   Text="الإعدادات محلية في الديمو."
+                   Foreground="{StaticResource MutedBrush}"
+                   TextWrapping="Wrap"
+                   Margin="0,10,0,0"/>
+    </StackPanel>
+</Border>
+<Border x:Name="HotSpotSettingsPanel"
+        Background="White"
+        BorderBrush="{StaticResource BorderBrushSoft}"
+        BorderThickness="1"
+        CornerRadius="12"
+        Padding="16"
+        Margin="0,10,0,0"
+        Visibility="Collapsed">
+    <StackPanel>
+        <DockPanel Margin="0,0,0,14">
+            <Border DockPanel.Dock="Left"
+                    Background="{StaticResource PrimaryLightBrush}"
+                    CornerRadius="8"
+                    Padding="10,6">
+                <TextBlock Text="بوابة الشبكة"
+                           Foreground="{StaticResource PrimaryBrush}"
+                           FontWeight="SemiBold"/>
+            </Border>
+            <StackPanel>
+                <TextBlock Text="إعدادات HotSpot"
+                           FontSize="21"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource TextBrush}"/>
+                <TextBlock Text="الخوادم، وطرق الدخول، والبروفايلات، وربط الباقات، وصفحة العميل."
+                           FontSize="11.5"
+                           Foreground="{StaticResource MutedBrush}"
+                           TextWrapping="Wrap"
+                           Margin="0,4,0,0"/>
+            </StackPanel>
+        </DockPanel>
+
+        <Grid Margin="0,0,0,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0"
+                    Background="{StaticResource AppBgBrush}"
+                    CornerRadius="8" Padding="10">
+                <StackPanel>
+                    <TextBlock Text="الخدمة"
+                               Foreground="{StaticResource MutedBrush}"
+                               FontSize="10.5"/>
+                    <TextBlock x:Name="HotSpotStatusSummaryTextBlock"
+                               Text="مفعّلة في النموذج"
+                               FontWeight="Bold"
+                               Margin="0,5,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2"
+                    Background="{StaticResource AppBgBrush}"
+                    CornerRadius="8" Padding="10">
+                <StackPanel>
+                    <TextBlock Text="البروفايلات"
+                               Foreground="{StaticResource MutedBrush}"
+                               FontSize="10.5"/>
+                    <TextBlock x:Name="HotSpotProfileCountTextBlock"
+                               Text="0"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Margin="0,3,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="4"
+                    Background="{StaticResource AppBgBrush}"
+                    CornerRadius="8" Padding="10">
+                <StackPanel>
+                    <TextBlock Text="روابط الباقات"
+                               Foreground="{StaticResource MutedBrush}"
+                               FontSize="10.5"/>
+                    <TextBlock x:Name="HotSpotBindingCountTextBlock"
+                               Text="0"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Margin="0,3,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <TabControl MinHeight="440">
+
+            <!-- Server and authentication -->
+            <TabItem Header="الخادم والدخول">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12">
+                        <TextBlock Text="الخادم والواجهة"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,12"/>
+
+                        <CheckBox x:Name="HotSpotEnabledCheckBox"
+                                  Content="تفعيل HotSpot في نموذج الإعدادات"
+                                  Margin="0,0,0,12"/>
+
+                        <TextBlock Text="اتصال الراوتر"
+                                   Margin="0,0,0,5"/>
+                        <ComboBox x:Name="HotSpotRouterComboBox"
+                                  Padding="8"
+                                  DisplayMemberPath="Name"
+                                  SelectedValuePath="Id"
+                                  Margin="0,0,0,10"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Column="0"
+                                        Margin="0,0,0,10">
+                                <TextBlock Text="اسم الخادم"
+                                           Margin="0,0,0,5"/>
+                                <TextBox x:Name="HotSpotServerNameTextBox"
+                                         Padding="8"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2"
+                                        Margin="0,0,0,10">
+                                <TextBlock Text="اسم بروفايل الخادم"
+                                           Margin="0,0,0,5"/>
+                                <TextBox x:Name="HotSpotServerProfileNameTextBox"
+                                         Padding="8"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1"
+                                        Grid.Column="0"
+                                        Margin="0,0,0,10">
+                                <TextBlock Text="واجهة الشبكة"
+                                           Margin="0,0,0,5"/>
+                                <TextBox x:Name="HotSpotInterfaceNameTextBox"
+                                         Padding="8"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1"
+                                        Grid.Column="2"
+                                        Margin="0,0,0,10">
+                                <TextBlock Text="مجموعة عناوين العملاء"
+                                           Margin="0,0,0,5"/>
+                                <TextBox x:Name="HotSpotAddressPoolNameTextBox"
+                                         Padding="8"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="اسم DNS لبوابة الدخول"
+                                   Margin="0,0,0,5"/>
+                        <TextBox x:Name="HotSpotDnsNameTextBox"
+                                 Padding="8"
+                                 FlowDirection="LeftToRight"
+                                 Margin="0,0,0,16"/>
+
+                        <Separator/>
+
+                        <TextBlock Text="المصادقة"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Margin="0,12,0,10"/>
+
+                        <TextBlock Text="مصدر المصادقة"
+                                   Margin="0,0,0,5"/>
+                        <ComboBox x:Name="HotSpotAuthenticationModeComboBox"
+                                  Padding="8"
+                                  Margin="0,0,0,12"/>
+
+                        <TextBlock Text="طرق تسجيل الدخول"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,5"/>
+
+                        <TextBlock Text="يمكن تحديد أكثر من طريقة. القائمة تمثل خيارات النموذج التجريبي."
+                                   FontSize="11"
+                                   Foreground="{StaticResource MutedBrush}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,8"/>
+
+                        <ListBox x:Name="HotSpotLoginMethodsListBox"
+                                 SelectionMode="Multiple"
+                                 MinHeight="125"
+                                 MaxHeight="170"
+                                 Margin="0,0,0,12"/>
+
+                        <CheckBox x:Name="HotSpotRadiusAccountingCheckBox"
+                                  Content="استخدام محاسبة RADIUS"
+                                  Margin="0,0,0,10"/>
+
+                        <TextBlock Text="فترة تحديث المحاسبة بالثواني"
+                                   Margin="0,0,0,5"/>
+                        <TextBox x:Name="HotSpotRadiusInterimUpdateTextBox"
+                                 Padding="8"
+                                 Text="300"
+                                 FlowDirection="LeftToRight"
+                                 Margin="0,0,0,14"/>
+
+                        <Separator/>
+
+                        <TextBlock Text="سياسة جلسة العميل"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Margin="0,12,0,10"/>
+
+                        <CheckBox x:Name="HotSpotUseCookieCheckBox"
+                                  Content="السماح باستخدام Cookie"
+                                  Margin="0,0,0,10"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="مدة Cookie بالدقائق"
+                                           FontSize="11"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,5"/>
+                                <TextBox x:Name="HotSpotCookieTimeoutTextBox"
+                                         Padding="8"
+                                         FlowDirection="LeftToRight"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="خمول العميل بالثواني"
+                                           FontSize="11"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,5"/>
+                                <TextBox x:Name="HotSpotClientIdleTimeoutTextBox"
+                                         Padding="8"
+                                         FlowDirection="LeftToRight"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="Keepalive بالثواني"
+                                           FontSize="11"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,5"/>
+                                <TextBox x:Name="HotSpotKeepaliveTimeoutTextBox"
+                                         Padding="8"
+                                         FlowDirection="LeftToRight"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="ملاحظات"
+                                   Margin="0,14,0,5"/>
+                        <TextBox x:Name="HotSpotCommentTextBox"
+                                 Padding="8"
+                                 MinHeight="50"
+                                 MaxLength="300"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"/>
+
+                        <WrapPanel Margin="0,12,0,0">
+                            <Button Content="حفظ إعدادات HotSpot"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Click="SaveHotSpotSettingsButton_Click"
+                                    Margin="0,0,8,8"/>
+                            <Button Content="إعادة تحميل"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Click="ReloadHotSpotSettingsButton_Click"
+                                    Margin="0,0,8,8"/>
+                            <Button Content="اتصالات الراوتر"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Click="ManageRouterConnectionsButton_Click"
+                                    Margin="0,0,8,8"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- HotSpot profiles -->
+            <TabItem Header="البروفايلات">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid Margin="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="170"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <ListBox x:Name="HotSpotProfilesListBox"
+                                     Height="260"
+                                     DisplayMemberPath="Name"
+                                     SelectionChanged="HotSpotProfilesListBox_SelectionChanged"/>
+
+                            <Button Content="بروفايل جديد"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Click="NewHotSpotProfileButton_Click"
+                                    Margin="0,8,0,5"/>
+
+                            <Button Content="حذف المحدد"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Click="DeleteHotSpotProfileButton_Click"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="اسم البروفايل"
+                                       Margin="0,0,0,5"/>
+                            <TextBox x:Name="HotSpotProfileNameTextBox"
+                                     Padding="8"
+                                     Margin="0,0,0,10"/>
+
+                            <CheckBox x:Name="HotSpotProfileEnabledCheckBox"
+                                      Content="البروفايل مفعّل"
+                                      Margin="0,0,0,10"/>
+
+                            <CheckBox x:Name="HotSpotProfileUseRadiusCheckBox"
+                                      Content="استخدام RADIUS لهذا البروفايل"
+                                      Margin="0,0,0,10"/>
+
+                            <CheckBox x:Name="HotSpotProfileRadiusAccountingCheckBox"
+                                      Content="إرسال المحاسبة"
+                                      Margin="0,0,0,10"/>
+
+                            <CheckBox x:Name="HotSpotProfileUseCookieCheckBox"
+                                      Content="استخدام Cookie"
+                                      Margin="0,0,0,10"/>
+
+                            <TextBlock Text="طرق الدخول المسموحة"
+                                       Margin="0,0,0,5"/>
+                            <ListBox x:Name="HotSpotProfileLoginMethodsListBox"
+                                     SelectionMode="Multiple"
+                                     MinHeight="100"
+                                     MaxHeight="140"
+                                     Margin="0,0,0,10"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="فترة تحديث RADIUS"
+                                               FontSize="11"
+                                               TextWrapping="Wrap"
+                                               Margin="0,0,0,5"/>
+                                    <TextBox x:Name="HotSpotProfileInterimUpdateTextBox"
+                                             Padding="8"
+                                             FlowDirection="LeftToRight"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="عدد المستخدمين المتزامنين"
+                                               FontSize="11"
+                                               TextWrapping="Wrap"
+                                               Margin="0,0,0,5"/>
+                                    <TextBox x:Name="HotSpotProfileSharedUsersTextBox"
+                                             Padding="8"
+                                             FlowDirection="LeftToRight"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="مدة Cookie بالدقائق"
+                                               FontSize="11"
+                                               Margin="0,0,0,5"/>
+                                    <TextBox x:Name="HotSpotProfileCookieTimeoutTextBox"
+                                             Padding="8"
+                                             FlowDirection="LeftToRight"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="خمول العميل بالثواني"
+                                               FontSize="11"
+                                               Margin="0,0,0,5"/>
+                                    <TextBox x:Name="HotSpotProfileIdleTimeoutTextBox"
+                                             Padding="8"
+                                             FlowDirection="LeftToRight"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="Keepalive بالثواني"
+                                       Margin="0,10,0,5"/>
+                            <TextBox x:Name="HotSpotProfileKeepaliveTimeoutTextBox"
+                                     Padding="8"
+                                     FlowDirection="LeftToRight"/>
+
+                            <TextBlock Text="ملاحظات"
+                                       Margin="0,10,0,5"/>
+                            <TextBox x:Name="HotSpotProfileCommentTextBox"
+                                     Padding="8"
+                                     MinHeight="45"
+                                     AcceptsReturn="True"
+                                     TextWrapping="Wrap"/>
+
+                            <Button Content="حفظ البروفايل"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Click="SaveHotSpotProfileButton_Click"
+                                    Margin="0,12,0,0"/>
+
+                            <TextBlock x:Name="HotSpotProfileStatusTextBlock"
+                                       Text="اختر بروفايلًا أو أنشئ واحدًا."
+                                       Foreground="{StaticResource MutedBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Portal branding -->
+            <TabItem Header="صفحة دخول العميل">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid Margin="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="14"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="هوية بوابة الدخول"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,12"/>
+
+                            <TextBlock Text="عنوان الصفحة"
+                                       Margin="0,0,0,5"/>
+                            <TextBox x:Name="HotSpotPortalTitleTextBox"
+                                     Padding="8"
+                                     Margin="0,0,0,12"/>
+
+                            <TextBlock Text="رسالة الترحيب"
+                                       Margin="0,0,0,5"/>
+                            <TextBox x:Name="HotSpotPortalWelcomeTextBox"
+                                     Padding="8"
+                                     MinHeight="90"
+                                     AcceptsReturn="True"
+                                     TextWrapping="Wrap"
+                                     Margin="0,0,0,12"/>
+
+                            <Button Content="معاينة صفحة الدخول"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Click="PreviewHotSpotPortalButton_Click"
+                                    HorizontalAlignment="Right"/>
+
+                            <TextBlock Text="هذه معاينة نصوص للمتطلبات فقط؛ لا يتم تعديل ملفات بوابة فعلية على الراوتر."
+                                       FontSize="11"
+                                       Foreground="{StaticResource MutedBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,12,0,0"/>
+                        </StackPanel>
+
+                        <Border Grid.Column="2"
+                                Background="{StaticResource AppBgBrush}"
+                                BorderBrush="{StaticResource BorderBrushSoft}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="18"
+                                VerticalAlignment="Top">
+                            <StackPanel>
+                                <TextBlock Text="معاينة البوابة"
+                                           FontSize="12"
+                                           Foreground="{StaticResource MutedBrush}"
+                                           Margin="0,0,0,16"/>
+
+                                <Border Background="White"
+                                        CornerRadius="10"
+                                        Padding="20">
+                                    <StackPanel>
+                                        <Border Background="{StaticResource PrimaryLightBrush}"
+                                                CornerRadius="8"
+                                                Padding="12"
+                                                HorizontalAlignment="Center"
+                                                Margin="0,0,0,14">
+                                            <TextBlock Text="NEXORA"
+                                                       FontSize="17"
+                                                       FontWeight="Bold"
+                                                       Foreground="{StaticResource PrimaryBrush}"/>
+                                        </Border>
+
+                                        <TextBlock x:Name="HotSpotPortalPreviewTitleTextBlock"
+                                                   Text="مرحبًا بك في الشبكة"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
+                                                   TextAlignment="Center"
+                                                   TextWrapping="Wrap"/>
+
+                                        <TextBlock x:Name="HotSpotPortalPreviewMessageTextBlock"
+                                                   Text="أدخل بيانات كرت الإنترنت للاتصال."
+                                                   FontSize="12"
+                                                   Foreground="{StaticResource MutedBrush}"
+                                                   TextAlignment="Center"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,8,0,18"/>
+
+                                        <TextBox Text="اسم المستخدم"
+                                                 Padding="9"
+                                                 IsReadOnly="True"
+                                                 Margin="0,0,0,8"/>
+
+                                        <PasswordBox Password="••••••••"
+                                                     Padding="9"
+                                                     IsEnabled="False"/>
+
+                                        <Border Background="{StaticResource PrimaryBrush}"
+                                                CornerRadius="7"
+                                                Padding="10"
+                                                Margin="0,14,0,0">
+                                            <TextBlock Text="تسجيل الدخول"
+                                                       Foreground="White"
+                                                       FontWeight="SemiBold"
+                                                       TextAlignment="Center"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Package bindings -->
+            <TabItem Header="ربط الباقات">
+                <StackPanel Margin="14">
+                    <TextBlock Text="ربط الباقات التجارية بموارد HotSpot"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,8"/>
+
+                    <TextBlock Text="السعر والصلاحية وحصة البيانات والسياسة التجارية تبقى في كتالوج باقات Nexora. تُدار روابط المورد التقنية من كتالوج الباقات."
+                               Foreground="{StaticResource MutedBrush}"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,14"/>
+
+                    <Border Background="{StaticResource AppBgBrush}"
+                            CornerRadius="9"
+                            Padding="14">
+                        <StackPanel>
+                            <TextBlock Text="الروابط المفعّلة في الكتالوج"
+                                       Foreground="{StaticResource MutedBrush}"
+                                       FontSize="11.5"/>
+
+                            <TextBlock x:Name="HotSpotPackageBindingSummaryTextBlock"
+                                       Text="0"
+                                       FontSize="25"
+                                       FontWeight="Bold"
+                                       Foreground="{StaticResource PrimaryBrush}"
+                                       Margin="0,4,0,8"/>
+
+                            <TextBlock Text="العدد يوضح بيانات الربط المحلية فقط، ولا يعني أن البروفايلات طُبقت على الراوتر."
+                                       FontSize="11"
+                                       Foreground="{StaticResource MutedBrush}"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Button Content="فتح كتالوج باقات HotSpot"
+                            Style="{StaticResource PrimaryButton}"
+                            Click="HotSpotPackagesButton_Click"
+                            HorizontalAlignment="Right"
+                            Margin="0,14,0,0"/>
+                </StackPanel>
+            </TabItem>
+
+            <!-- Diagnostics -->
+            <TabItem Header="التشخيص">
+                <StackPanel Margin="14">
+                    <TextBlock Text="حالة الإعداد"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,8"/>
+
+                    <TextBlock Text="تعرض هذه الصفحة مراجعة محلية للإعدادات، ولا ترسل أي طلب إلى جهاز فعلي."
+                               Foreground="{StaticResource MutedBrush}"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,12"/>
+
+                    <TextBlock x:Name="HotSpotDiagnosticsStatusTextBlock"
+                               Text="لم يتم تنفيذ اختبار اتصال فعلي."
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,12"/>
+
+                    <Button Content="تحديث مراجعة الإعدادات"
+                            Style="{StaticResource SecondaryButton}"
+                            Click="RefreshHotSpotDiagnosticsButton_Click"
+                            HorizontalAlignment="Right"/>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+
+        <TextBlock x:Name="HotSpotSettingsStatusTextBlock"
+                   Text="إعدادات HotSpot محفوظة محليًا في الديمو."
+                   Foreground="{StaticResource MutedBrush}"
+                   TextWrapping="Wrap"
+                   Margin="0,10,0,0"/>
+    </StackPanel>
+</Border>
+
+            <Border x:Name="RouterSettingsPanel"
+                    Background="White"
+                    BorderBrush="{StaticResource BorderBrushSoft}"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    Padding="16"
+                    Margin="0,10,0,0">
+                <StackPanel>
+                    <TextBlock Text="اتصالات الراوتر"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource TextBrush}"/>
+
+                    <TextBlock Text="إدارة ملفات الاتصال التي يمكن ربطها بمصادر المصادقة. هذه الإعدادات محلية في الديمو ولا تنشئ اتصالاً فعلياً."
+                               FontSize="12"
+                               Foreground="{StaticResource MutedBrush}"
+                               TextWrapping="Wrap"
+                               Margin="0,5,0,14"/>
+
+                    <TextBlock Text="الاتصالات المحفوظة"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,6"/>
+
+                    <ListBox x:Name="RouterConnectionsListBox"
+                             MinHeight="55"
+                             MaxHeight="130"
+                             DisplayMemberPath="Name"
+                             SelectionChanged="RouterConnectionsListBox_SelectionChanged"
+                             Margin="0,0,0,12"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,0,10">
+                            <TextBlock Text="اسم الاتصال" Margin="0,0,0,5"/>
+                            <TextBox x:Name="RouterNameTextBox"
+                                     Padding="8"
+                                     Text="الراوتر الرئيسي"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Margin="0,0,0,10">
+                            <TextBlock Text="عنوان الراوتر أو اسم المضيف"
+                                       Margin="0,0,0,5"/>
+                            <TextBox x:Name="RouterAddressTextBox"
+                                     Padding="8"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="0"
+                                    Margin="0,0,0,10">
+                            <TextBlock Text="طريقة الاتصال"
+                                       Margin="0,0,0,5"/>
+                            <ComboBox x:Name="RouterMethodComboBox"
+                                      Padding="6"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="2"
+            Margin="0,0,0,10">
+    <TextBlock Text="المنفذ" Margin="0,0,0,5"/>
+    <TextBox x:Name="RouterPortTextBox"
+             Padding="8"
+             Text="8729"/>
+</StackPanel>
+
+<StackPanel Grid.Row="2" Grid.Column="0"
+            Margin="0,0,0,10">
+    <TextBlock Text="اسم مستخدم الراوتر" Margin="0,0,0,5"/>
+    <TextBox x:Name="RouterUsernameTextBox" Padding="8"/>
+</StackPanel>
+
+<StackPanel Grid.Row="2" Grid.Column="2"
+            Margin="0,0,0,10">
+    <TextBlock Text="ملاحظات" Margin="0,0,0,5"/>
+    <TextBox x:Name="RouterCommentTextBox" Padding="8"/>
+</StackPanel>
+</Grid>
+
+                    <CheckBox x:Name="RouterEnabledCheckBox"
+                              Content="ملف الاتصال مفعّل"
+                              IsChecked="True"
+                              Margin="0,0,0,12"/>
+
+                    <WrapPanel>
+                        <Button Content="حفظ الاتصال"
+                                Style="{StaticResource PrimaryButton}"
+                                Click="SaveRouterConnectionButton_Click"
+                                Margin="0,0,8,8"/>
+
+                        <Button Content="اتصال جديد"
+                                Style="{StaticResource SecondaryButton}"
+                                Click="NewRouterConnectionButton_Click"
+                                Margin="0,0,8,8"/>
+
+                        <Button Content="إعادة تحميل"
+                                Style="{StaticResource SecondaryButton}"
+                                Click="ReloadRouterConnectionsButton_Click"
+                                Margin="0,0,0,8"/>
+                    </WrapPanel>
+
+                    <TextBlock x:Name="RouterSettingsStatusTextBlock"
+                               Text="الإعدادات محلية في الديمو."
+                               Foreground="{StaticResource MutedBrush}"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0"/>
                 </StackPanel>
             </Border>
         </StackPanel>

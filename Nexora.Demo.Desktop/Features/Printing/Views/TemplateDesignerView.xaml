@@ -86,16 +86,8 @@
                         <ComboBoxItem Content="Arial" Tag="Arial" />
                         <ComboBoxItem Content="Tahoma" Tag="Tahoma" />
                     </ComboBox>
-                    <ComboBox x:Name="HotspotPackageComboBox" Grid.Column="6" Height="29" SelectedIndex="0" VerticalContentAlignment="Center" SelectionChanged="PackageComboBox_SelectionChanged" ToolTip="باقة HotSpot">
-                        <ComboBoxItem Content="HotSpot · 500 ميجابايت · 100 ريال" Tag="hotspot-basic" />
-                        <ComboBoxItem Content="HotSpot · 1 جيجابايت · 200 ريال" Tag="hotspot-plus" />
-                        <ComboBoxItem Content="HotSpot · 2 جيجابايت · 350 ريال" Tag="hotspot-max" />
-                    </ComboBox>
-                    <ComboBox x:Name="UserManagerPackageComboBox" Grid.Column="8" Height="29" SelectedIndex="0" VerticalContentAlignment="Center" SelectionChanged="PackageComboBox_SelectionChanged" ToolTip="باقة User Manager">
-                        <ComboBoxItem Content="User Manager · 4 ساعات · 100 ريال" Tag="um-4-hours" />
-                        <ComboBoxItem Content="User Manager · يوم كامل · 250 ريال" Tag="um-day" />
-                        <ComboBoxItem Content="User Manager · أسبوع · 900 ريال" Tag="um-week" />
-                    </ComboBox>
+                    <ComboBox x:Name="HotspotPackageComboBox" Grid.Column="6" Height="29" VerticalContentAlignment="Center" SelectionChanged="PackageComboBox_SelectionChanged" ToolTip="الباقات الفعلية المرتبطة بمصدر HotSpot" />
+                    <ComboBox x:Name="UserManagerPackageComboBox" Grid.Column="8" Height="29" VerticalContentAlignment="Center" SelectionChanged="PackageComboBox_SelectionChanged" ToolTip="الباقات الفعلية المرتبطة بمصدر User Manager" />
                 </Grid>
             </Grid>
         </Border>
@@ -131,17 +123,18 @@
                         <CheckBox x:Name="ShowUsernameCheckBox" Tag="اسم المستخدم" Content="اسم المستخدم" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
                         <CheckBox x:Name="ShowPasswordCheckBox" Tag="كلمة المرور" Content="كلمة المرور" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
                         <CheckBox x:Name="ShowValidityCheckBox" Tag="الصلاحية" Content="الصلاحية" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
-                        <CheckBox x:Name="ShowTimeCheckBox" Tag="الوقت" Content="الوقت" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowTimeCheckBox" Tag="الوقت" Content="الوقت" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
                         <CheckBox x:Name="ShowPriceCheckBox" Tag="السعر" Content="السعر" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
-                        <CheckBox x:Name="ShowDownloadCheckBox" Tag="التحميل" Content="التحميل" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowDownloadCheckBox" Tag="التحميل" Content="التحميل" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
                         <CheckBox x:Name="ShowPackageCheckBox" Tag="الباقة" Content="الباقة" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
                         <CheckBox x:Name="ShowSerialCheckBox" Tag="الرقم التسلسلي" Content="التسلسلي" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
                         <CheckBox x:Name="ShowPrintDateCheckBox" Tag="تاريخ الطباعة" Content="تاريخ الطباعة" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
                         <CheckBox x:Name="ShowBatchCheckBox" Tag="رقم الدفعة" Content="رقم الدفعة" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
                         <CheckBox x:Name="ShowPointOfSaleCheckBox" Tag="نقطة البيع" Content="نقطة البيع" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
                         <CheckBox x:Name="ShowExtraCheckBox" Tag="معلومات إضافية" Content="معلومات إضافية" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowContactCheckBox" Tag="أرقام التواصل" Content="أرقام التواصل" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
                         <CheckBox x:Name="ShowRewardCheckBox" Tag="كود المكافأة" Content="كود المكافأة" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
-                        <CheckBox x:Name="ShowQrCheckBox" Tag="رمز QR" Content="رمز QR" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
+                        <CheckBox x:Name="ShowQrCheckBox" Tag="رمز QR" Content="رمز QR" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
                         <CheckBox x:Name="ShowBarcodeCheckBox" Tag="الباركود" Content="الباركود" IsChecked="False" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
                         <CheckBox x:Name="ShowNetworkLogoCheckBox" Tag="شعار الشبكة" Content="شعار الشبكة" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
                         <CheckBox x:Name="ShowHeaderCheckBox" Tag="الشريط العلوي" Content="الشريط العلوي" IsChecked="True" Margin="2,4" FontSize="10.5" Checked="ElementVisibility_Changed" Unchecked="ElementVisibility_Changed" />
@@ -190,41 +183,43 @@
                                     <Canvas x:Name="CardDesignCanvas" Width="420" Height="245" Background="Transparent" ClipToBounds="True" PreviewMouseLeftButtonDown="CardDesignCanvas_PreviewMouseLeftButtonDown" PreviewMouseMove="CardDesignCanvas_PreviewMouseMove" PreviewMouseLeftButtonUp="CardDesignCanvas_PreviewMouseLeftButtonUp">
                                         <Border x:Name="CardSurfaceBorder" Canvas.Left="0" Canvas.Top="0" Width="420" Height="245" Background="White" BorderBrush="#94151A" BorderThickness="1.3" CornerRadius="9" />
                                         <Image x:Name="TemplateBackgroundImage" Canvas.Left="0" Canvas.Top="0" Width="420" Height="245" Stretch="Fill" Visibility="Collapsed" IsHitTestVisible="False" />
-                                        <Border x:Name="CardHeaderBorder" Canvas.Left="0" Canvas.Top="0" Width="420" Height="54" Background="{StaticResource PrimaryBrush}" CornerRadius="9,9,0,0" />
-                                        <Ellipse x:Name="PreviewLogoBadgeEllipse" Canvas.Left="14" Canvas.Top="12" Width="30" Height="30" Fill="White" />
-                                        <TextBlock x:Name="PreviewLogoMarkTextBlock" Canvas.Left="16" Canvas.Top="16" Width="26" Height="20" Text="TC" FontSize="12" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" TextAlignment="Center" />
-                                        <TextBlock x:Name="PreviewBrandTextBlock" Canvas.Left="54" Canvas.Top="10" Width="150" Height="20" Text="TAB CARD" FontSize="15" FontWeight="Bold" Foreground="White" />
-                                        <TextBlock x:Name="PreviewNetworkTextBlock" Canvas.Left="54" Canvas.Top="30" Width="150" Height="18" Text="شبكات الإنترنت" FontSize="9.5" Foreground="#FFFFE9E9" />
-                                        <Border x:Name="CardDividerBorder" Canvas.Left="15" Canvas.Top="64" Width="390" Height="1" Background="#E7DADD" />
-                                        <TextBlock x:Name="PreviewLoginCodeTextBlock" Canvas.Left="20" Canvas.Top="73" Width="180" Height="34" Text="50723015" FontSize="23" FontWeight="Bold" Foreground="#22252A" />
-                                        <TextBlock x:Name="PreviewUsernameTextBlock" Canvas.Left="20" Canvas.Top="116" Width="180" Height="20" Text="اسم المستخدم: 50723015" FontSize="11.5" Foreground="#343941" />
-                                        <TextBlock x:Name="PreviewPasswordTextBlock" Canvas.Left="20" Canvas.Top="141" Width="180" Height="20" Text="كلمة المرور: 1432" FontSize="11.5" Foreground="#343941" />
-                                        <TextBlock x:Name="PreviewValidityTextBlock" Canvas.Left="20" Canvas.Top="175" Width="145" Height="18" Text="الصلاحية: 4 ساعات" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" />
-                                        <TextBlock x:Name="PreviewPriceTextBlock" Canvas.Left="188" Canvas.Top="175" Width="120" Height="18" Text="السعر: 100 ريال" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" />
-                                        <TextBlock x:Name="PreviewPackageTextBlock" Canvas.Left="188" Canvas.Top="141" Width="180" Height="18" Text="الباقة: 500 ميجابايت" FontSize="10.5" Foreground="#343941" />
-                                        <TextBlock x:Name="PreviewDownloadTextBlock" Canvas.Left="188" Canvas.Top="158" Width="180" Height="18" Text="التحميل: 500 ميجابايت" FontSize="9.5" Foreground="#343941" Visibility="Collapsed" />
-                                        <TextBlock x:Name="PreviewPointOfSaleTextBlock" Canvas.Left="20" Canvas.Top="198" Width="160" Height="16" Text="نقطة البيع: الرئيسية" FontSize="8.5" Foreground="#777D86" Visibility="Collapsed" />
-                                        <TextBlock x:Name="PreviewBatchTextBlock" Canvas.Left="188" Canvas.Top="198" Width="140" Height="16" Text="رقم الدفعة: B-0001" FontSize="8.5" Foreground="#777D86" Visibility="Collapsed" />
-                                        <TextBlock x:Name="PreviewPrintDateTextBlock" Canvas.Left="20" Canvas.Top="220" Width="160" Height="15" Text="تاريخ الطباعة: 14/10/2026" FontSize="8" Foreground="#777D86" Visibility="Collapsed" />
-                                        <TextBlock x:Name="PreviewRewardTextBlock" Canvas.Left="188" Canvas.Top="220" Width="140" Height="15" Text="كود المكافأة: —" FontSize="8" Foreground="#777D86" Visibility="Collapsed" />
-                                        <Border x:Name="PreviewQrBorder" Canvas.Left="340" Canvas.Top="156" Width="62" Height="62" Background="White" BorderBrush="#D5D9DF" BorderThickness="1" CornerRadius="3">
+                                        <Border x:Name="CardHeaderBorder" Canvas.Left="0" Canvas.Top="0" Width="86" Height="245" Background="{StaticResource PrimaryBrush}" CornerRadius="9,0,0,9" />
+                                        <Ellipse x:Name="PreviewLogoBadgeEllipse" Canvas.Left="25" Canvas.Top="7" Width="36" Height="36" Fill="White" />
+                                        <TextBlock x:Name="PreviewLogoMarkTextBlock" Canvas.Left="30" Canvas.Top="14" Width="26" Height="20" Text="TC" FontSize="12" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" TextAlignment="Center" />
+                                        <TextBlock x:Name="PreviewBrandTextBlock" Canvas.Left="7" Canvas.Top="48" Width="72" Height="17" Text="TAB CARD" FontSize="13" FontWeight="Bold" Foreground="White" TextAlignment="Center" />
+                                        <TextBlock x:Name="PreviewNetworkTextBlock" Canvas.Left="7" Canvas.Top="68" Width="72" Height="30" Text="اسم الشبكة" FontSize="9.5" Foreground="#FFFFE9E9" TextAlignment="Center" TextWrapping="Wrap" />
+                                        <Border x:Name="CardDividerBorder" Canvas.Left="94" Canvas.Top="34" Width="310" Height="1" Background="#E7DADD" />
+                                        <TextBlock x:Name="PreviewLoginCodeTextBlock" Canvas.Left="98" Canvas.Top="5" Width="245" Height="28" Text="50723015" FontSize="20" FontWeight="Bold" Foreground="#22252A" />
+                                        <TextBlock x:Name="PreviewUsernameTextBlock" Canvas.Left="98" Canvas.Top="39" Width="174" Height="18" Text="اسم المستخدم: 50723015" FontSize="13.5" Foreground="#343941" />
+                                        <TextBlock x:Name="PreviewPasswordTextBlock" Canvas.Left="277" Canvas.Top="39" Width="174" Height="18" Text="كلمة المرور: 1432" FontSize="13.5" Foreground="#343941" />
+                                        <TextBlock x:Name="PreviewTimeTextBlock" Canvas.Left="221" Canvas.Top="58" Width="96" Height="16" Text="الوقت: 1 س 0 د" FontSize="13" Foreground="#343941" />
+                                        <TextBlock x:Name="PreviewValidityTextBlock" Canvas.Left="98" Canvas.Top="58" Width="118" Height="16" Text="الصلاحية: 7 أيام" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" />
+                                        <TextBlock x:Name="PreviewPriceTextBlock" Canvas.Left="320" Canvas.Top="58" Width="124" Height="16" Text="السعر: 100 ريال" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" />
+                                        <TextBlock x:Name="PreviewPackageTextBlock" Canvas.Left="98" Canvas.Top="77" Width="170" Height="16" Text="الباقة: باقة تجريبية" FontSize="13.5" Foreground="#343941" />
+                                        <TextBlock x:Name="PreviewDownloadTextBlock" Canvas.Left="276" Canvas.Top="77" Width="174" Height="16" Text="التحميل: 500 ميجابايت" FontSize="13.5" Foreground="#343941" />
+                                        <TextBlock x:Name="PreviewPointOfSaleTextBlock" Canvas.Left="98" Canvas.Top="95" Width="145" Height="12" Text="نقطة البيع: الرئيسية" FontSize="8.5" Foreground="#777D86" Visibility="Collapsed" />
+                                        <TextBlock x:Name="PreviewBatchTextBlock" Canvas.Left="249" Canvas.Top="95" Width="160" Height="12" Text="رقم الدفعة: B-0001" FontSize="8.5" Foreground="#777D86" Visibility="Collapsed" />
+                                        <TextBlock x:Name="PreviewPrintDateTextBlock" Canvas.Left="98" Canvas.Top="95" Width="145" Height="12" Text="تاريخ الطباعة: 14/10/2026" FontSize="8" Foreground="#777D86" Visibility="Collapsed" />
+                                        <TextBlock x:Name="PreviewRewardTextBlock" Canvas.Left="249" Canvas.Top="95" Width="160" Height="12" Text="كود المكافأة: —" FontSize="8" Foreground="#777D86" Visibility="Collapsed" />
+                                        <Border x:Name="PreviewQrBorder" Canvas.Left="373" Canvas.Top="3" Width="32" Height="32" Background="White" BorderBrush="#D5D9DF" BorderThickness="1" CornerRadius="3">
                                             <Grid>
                                                 <TextBlock Text="▦" FontSize="37" Foreground="#20242A" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                             </Grid>
                                         </Border>
-                                        <Border x:Name="PreviewBarcodeBorder" Canvas.Left="188" Canvas.Top="202" Width="130" Height="22" Background="White" BorderBrush="#D5D9DF" BorderThickness="1" CornerRadius="2" Visibility="Collapsed">
+                                        <Border x:Name="PreviewBarcodeBorder" Canvas.Left="98" Canvas.Top="94" Width="145" Height="13" Background="White" BorderBrush="#D5D9DF" BorderThickness="1" CornerRadius="2" Visibility="Collapsed">
                                             <TextBlock Text="▏▌▏▎▌▏▏▌▎▏▌▏" FontFamily="Consolas" FontSize="11" Foreground="#20242A" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                         </Border>
-                                        <TextBlock x:Name="PreviewSerialTextBlock" Canvas.Left="20" Canvas.Top="204" Width="160" Height="16" Text="الرقم التسلسلي: 0001" FontSize="8.5" Foreground="#777D86" Visibility="Collapsed" />
-                                        <TextBlock x:Name="PreviewExtraTextBlock" Canvas.Left="20" Canvas.Top="225" Width="200" Height="15" Text="للدعم: تواصل مع مسؤول الشبكة" FontSize="8.5" Foreground="#777D86" Visibility="Collapsed" />
-                                        <Border x:Name="SelectionFrameBorder" Canvas.Left="20" Canvas.Top="73" Width="180" Height="34" BorderBrush="{StaticResource PrimaryBrush}" BorderThickness="1.2" Background="Transparent" IsHitTestVisible="False" Visibility="Collapsed" Panel.ZIndex="9999" />
+                                        <TextBlock x:Name="PreviewSerialTextBlock" Canvas.Left="98" Canvas.Top="95" Width="145" Height="12" Text="الرقم التسلسلي: 0001" FontSize="8.5" Foreground="#777D86" Visibility="Collapsed" />
+                                        <TextBlock x:Name="PreviewExtraTextBlock" Canvas.Left="98" Canvas.Top="95" Width="310" Height="12" Text="للدعم: تواصل مع مسؤول الشبكة" FontSize="8.5" Foreground="#777D86" Visibility="Collapsed" />
+                                        <TextBlock x:Name="PreviewContactTextBlock" Canvas.Left="98" Canvas.Top="95" Width="350" Height="13" Text="" FontSize="12.5" Foreground="#777D86" Visibility="Visible" />
+                                        <Border x:Name="SelectionFrameBorder" Canvas.Left="98" Canvas.Top="5" Width="245" Height="27" BorderBrush="{StaticResource PrimaryBrush}" BorderThickness="1.2" Background="Transparent" IsHitTestVisible="False" Visibility="Collapsed" Panel.ZIndex="9999" />
                                     </Canvas>
                                 </Canvas>
                             </Viewbox>
                         </Grid>
                     </Border>
                     <DockPanel Grid.Row="3" Margin="2,4,2,0" LastChildFill="True">
-                        <TextBlock x:Name="CanvasSizeTextBlock" DockPanel.Dock="Right" Text="60 × 35 مم · دوران 0°" FontSize="9.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
+                        <TextBlock x:Name="CanvasSizeTextBlock" DockPanel.Dock="Right" Text="66 × 15.5 مم · دوران 0°" FontSize="9.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
                         <TextBlock Text="اسحب العنصر لتغيير X وY؛ التغييرات البصرية لا تعني اتصالًا فعليًا بـ MikroTik." FontSize="9" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                     </DockPanel>
                 </Grid>
@@ -249,11 +244,11 @@
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="5"/><ColumnDefinition/><ColumnDefinition Width="5"/><ColumnDefinition/></Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="العرض مم" FontSize="9" Foreground="{StaticResource MutedBrush}"/>
-                            <TextBox x:Name="CardWidthTextBox" Text="60" Height="27" FlowDirection="LeftToRight" ToolTip="عرض القالب بالملليمتر" />
+                            <TextBox x:Name="CardWidthTextBox" Text="66" Height="27" FlowDirection="LeftToRight" ToolTip="عرض القالب بالملليمتر" />
                         </StackPanel>
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="الارتفاع مم" FontSize="9" Foreground="{StaticResource MutedBrush}"/>
-                            <TextBox x:Name="CardHeightTextBox" Text="35" Height="27" FlowDirection="LeftToRight" ToolTip="ارتفاع القالب بالملليمتر" />
+                            <TextBox x:Name="CardHeightTextBox" Text="15.5" Height="27" FlowDirection="LeftToRight" ToolTip="ارتفاع القالب بالملليمتر" />
                         </StackPanel>
                         <StackPanel Grid.Column="4">
                             <TextBlock Text="زاوية القالب °" FontSize="9" Foreground="{StaticResource MutedBrush}"/>

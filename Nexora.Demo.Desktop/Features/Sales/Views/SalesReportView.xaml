@@ -3,130 +3,238 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              FlowDirection="RightToLeft"
              Background="{StaticResource AppBgBrush}">
-    <Grid Margin="0">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="132" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-
-        <DockPanel Grid.Row="0" Margin="0,0,0,8">
-            <StackPanel>
-                <TextBlock Text="تقارير المبيعات" FontSize="21" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
-                <TextBlock Text="تحليل عمليات بيع دفعات الكروت، قيمة المبيعات، وعدد الكروت المباعة." FontSize="11.5" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" />
-            </StackPanel>
-            <Border DockPanel.Dock="Left" Background="#FBEDEF" BorderBrush="#F0CDD0" BorderThickness="1" CornerRadius="8" Padding="10,6" VerticalAlignment="Center">
-                <TextBlock Text="تقارير المبيعات" Foreground="{StaticResource PrimaryBrush}" FontSize="10.5" FontWeight="SemiBold" />
-            </Border>
-        </DockPanel>
-
-        <Border Grid.Row="1" Background="#FBEDEF" BorderBrush="#F0CDD0" BorderThickness="1" CornerRadius="8" Padding="9,6" Margin="0,0,0,8">
-            <TextBlock x:Name="SalesScenarioTextBlock" Text="تعرض المؤشرات والنتائج سجلات معاملات البيع المطابقة للفلاتر الحالية." FontSize="11" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" />
-        </Border>
-
-        <UniformGrid Grid.Row="2" Columns="4" Margin="0,0,0,8">
-            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="9" Margin="0,0,6,0">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="2,0,2,12">
+            <!-- Owner dashboard header -->
+            <DockPanel Margin="0,0,0,10">
+                <Border DockPanel.Dock="Left" Background="{StaticResource PrimaryLightBrush}" BorderBrush="#E8C7CA" BorderThickness="1" CornerRadius="8" Padding="11,7" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="▥" FontSize="15" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,7,0" />
+                        <TextBlock Text="لوحة المبيعات" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" />
+                    </StackPanel>
+                </Border>
                 <StackPanel>
-                    <TextBlock Text="إجمالي المبيعات" FontSize="11" Foreground="{StaticResource MutedBrush}" />
-                    <TextBlock x:Name="TotalSalesTextBlock" Text="499,000 ريال" FontSize="19" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,4,0,1" />
-                    <TextBlock Text="بحسب السجلات المعروضة" FontSize="10" Foreground="{StaticResource MutedBrush}" />
+                    <TextBlock Text="مبيعات الشبكة" FontSize="23" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                    <TextBlock Text="صورة تشغيلية لأداء البيع، الباقات الأكثر طلبًا، ووسائل الدفع ونقاط البيع." FontSize="11.5" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" />
                 </StackPanel>
-            </Border>
-            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="9" Margin="3,0">
-                <StackPanel>
-                    <TextBlock Text="عمليات البيع" FontSize="11" Foreground="{StaticResource MutedBrush}" />
-                    <TextBlock x:Name="TransactionCountTextBlock" Text="21" FontSize="19" FontWeight="Bold" Margin="0,4,0,1" />
-                    <TextBlock Text="سجلات دفعات" FontSize="10" Foreground="{StaticResource MutedBrush}" />
-                </StackPanel>
-            </Border>
-            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="14" Margin="3,0">
-                <StackPanel>
-                    <TextBlock Text="الكروت المباعة" FontSize="11" Foreground="{StaticResource MutedBrush}" />
-                    <TextBlock x:Name="CardsSoldTextBlock" Text="1,158" FontSize="19" FontWeight="Bold" Margin="0,4,0,1" />
-                    <TextBlock Text="بحسب الفترة المحددة" FontSize="10" Foreground="{StaticResource MutedBrush}" />
-                </StackPanel>
-            </Border>
-            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="9" Margin="6,0,0,0">
-                <StackPanel>
-                    <TextBlock Text="متوسط قيمة العملية" FontSize="11" Foreground="{StaticResource MutedBrush}" />
-                    <TextBlock x:Name="AverageSaleTextBlock" Text="23,762 ريال" FontSize="19" FontWeight="Bold" Margin="0,4,0,1" />
-                    <TextBlock Text="يتغير حسب التصفية" FontSize="10" Foreground="{StaticResource MutedBrush}" />
-                </StackPanel>
-            </Border>
-        </UniformGrid>
+            </DockPanel>
 
-        <Border Grid.Row="3" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="8" Margin="0,0,0,7">
-            <Grid>
-                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
-                <DockPanel Grid.Row="0" Margin="0,0,0,3">
-                    <TextBlock Text="المبيعات حسب اليوم" FontSize="13" FontWeight="SemiBold" />
-                    <TextBlock DockPanel.Dock="Left" Text="اضغط على اليوم لعرض عملياته" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
+            <Border Background="#FFF9F9" BorderBrush="#F0D7D9" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,9">
+                <DockPanel>
+                    <TextBlock Text="بيانات محلية تجريبية" FontWeight="SemiBold" FontSize="10.5" Foreground="{StaticResource PrimaryBrush}" DockPanel.Dock="Right" Margin="0,0,0,0" />
+                    <TextBlock x:Name="SalesScenarioTextBlock" Text="تعرض اللوحة سجل المبيعات التجريبي؛ قيمة البيع المسجلة لا تعني أن المبلغ تم تحصيله فعليًا." FontSize="10.5" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="10,0,0,0" />
                 </DockPanel>
-                <ItemsControl x:Name="SalesDaysItemsControl" Grid.Row="1">
-                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="7" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Button Tag="{Binding Day}" Click="SalesDayButton_Click" Background="Transparent" BorderThickness="0" Padding="3,0" Cursor="Hand" VerticalContentAlignment="Bottom" ToolTip="انقر لعرض تفاصيل مبيعات هذا اليوم">
-                                <StackPanel VerticalAlignment="Bottom">
-                                    <TextBlock Text="{Binding AmountShortLabel}" FontSize="9" HorizontalAlignment="Center" Foreground="{StaticResource TextBrush}" />
-                                    <Border Height="{Binding BarHeight}" MaxHeight="68" VerticalAlignment="Bottom" Background="{StaticResource PrimaryBrush}" CornerRadius="4,4,0,0" Margin="2,2,2,2" />
-                                    <TextBlock Text="{Binding DayLabel}" FontSize="9" HorizontalAlignment="Center" Foreground="{StaticResource TextBrush}" />
-                                    <TextBlock Text="{Binding DateLabel}" FontSize="8" HorizontalAlignment="Center" Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0" />
-                                </StackPanel>
-                            </Button>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+            </Border>
+
+            <!-- Filter workbench -->
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="11" Margin="0,0,0,10">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,8">
+                        <TextBlock Text="تخصيص العرض" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                        <TextBlock DockPanel.Dock="Left" Text="الفلاتر تؤثر في المؤشرات وسجل العمليات" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
+                    </DockPanel>
+                    <Grid>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2.1*"/><ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="1*"/><ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="1.25*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Row="0" Grid.Column="0">
+                            <TextBlock Text="بحث سريع" Style="{StaticResource FieldLabel}" />
+                            <TextBox x:Name="SalesSearchTextBox" Height="36" Padding="10,4" VerticalContentAlignment="Center" ToolTip="ابحث برقم العملية أو اسم الباقة أو نقطة البيع أو الموظف أو طريقة الدفع" TextChanged="SalesSearchTextBox_TextChanged" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="2">
+                            <TextBlock Text="الفترة" Style="{StaticResource FieldLabel}" />
+                            <ComboBox x:Name="SalesDateFilterComboBox" Height="36" SelectedIndex="0" SelectionChanged="SalesDateFilterComboBox_SelectionChanged">
+                                <ComboBoxItem Content="آخر 7 أيام مسجلة" Tag="week" />
+                                <ComboBoxItem Content="آخر يوم مسجل" Tag="last-day" />
+                                <ComboBoxItem Content="كل السجلات" Tag="all" />
+                            </ComboBox>
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="4">
+                            <TextBlock Text="الباقة" Style="{StaticResource FieldLabel}" />
+                            <ComboBox x:Name="PackageFilterComboBox" Height="36" SelectionChanged="SalesFilterComboBox_SelectionChanged" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Grid.Column="0">
+                            <TextBlock Text="نقطة البيع" Style="{StaticResource FieldLabel}" />
+                            <ComboBox x:Name="PointFilterComboBox" Height="36" SelectionChanged="SalesFilterComboBox_SelectionChanged" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Grid.Column="2">
+                            <TextBlock Text="طريقة الدفع" Style="{StaticResource FieldLabel}" />
+                            <ComboBox x:Name="PaymentFilterComboBox" Height="36" SelectionChanged="SalesFilterComboBox_SelectionChanged" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Stretch">
+                            <Button Content="مسح الفلاتر" Style="{StaticResource SecondaryButton}" Height="36" Padding="12,0" Click="ResetFiltersButton_Click" Margin="0,0,7,0" />
+                            <Button Content="تحديث العرض" Style="{StaticResource PrimaryButton}" Height="36" Padding="12,0" Click="RefreshReportButton_Click" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Core sales indicators -->
+            <UniformGrid Columns="4" Margin="0,0,0,10">
+                <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="12" Margin="0,0,6,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Border Width="37" Height="37" Background="#FCEBED" CornerRadius="19" VerticalAlignment="Top" Margin="0,0,10,0"><TextBlock Text="ري" FontSize="12" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="إجمالي البيع المسجل" FontSize="11" Foreground="{StaticResource MutedBrush}" />
+                            <TextBlock x:Name="TotalSalesTextBlock" Text="—" FontSize="20" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,5,0,2" />
+                            <TextBlock Text="حسب الفلاتر الحالية" FontSize="9.5" Foreground="{StaticResource MutedBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="12" Margin="3,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Border Width="37" Height="37" Background="#EAF4FF" CornerRadius="19" VerticalAlignment="Top" Margin="0,0,10,0"><TextBlock Text="▤" FontSize="16" Foreground="#2878C8" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="الكروت المباعة" FontSize="11" Foreground="{StaticResource MutedBrush}" />
+                            <TextBlock x:Name="CardsSoldTextBlock" Text="—" FontSize="20" FontWeight="Bold" Margin="0,5,0,2" />
+                            <TextBlock Text="الكمية ضمن السجلات" FontSize="9.5" Foreground="{StaticResource MutedBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="12" Margin="3,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Border Width="37" Height="37" Background="#FFF5E5" CornerRadius="19" VerticalAlignment="Top" Margin="0,0,10,0"><TextBlock Text="#" FontSize="17" FontWeight="Bold" Foreground="#B66B00" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="عمليات البيع" FontSize="11" Foreground="{StaticResource MutedBrush}" />
+                            <TextBlock x:Name="TransactionCountTextBlock" Text="—" FontSize="20" FontWeight="Bold" Margin="0,5,0,2" />
+                            <TextBlock Text="عدد السجلات المطابقة" FontSize="9.5" Foreground="{StaticResource MutedBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="12" Margin="6,0,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Border Width="37" Height="37" Background="#E8F7F0" CornerRadius="19" VerticalAlignment="Top" Margin="0,0,10,0"><TextBlock Text="↗" FontSize="20" FontWeight="Bold" Foreground="#16845B" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="متوسط قيمة العملية" FontSize="11" Foreground="{StaticResource MutedBrush}" />
+                            <TextBlock x:Name="AverageSaleTextBlock" Text="—" FontSize="20" FontWeight="Bold" Margin="0,5,0,2" />
+                            <TextBlock Text="إجمالي البيع ÷ العمليات" FontSize="9.5" Foreground="{StaticResource MutedBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </UniformGrid>
+
+            <DockPanel Margin="0,0,0,8">
+                <TextBlock Text="قراءة سريعة لأداء الشبكة" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                <TextBlock DockPanel.Dock="Left" Text="تحليلات الفترة ونقطة البيع المحددتين" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
+            </DockPanel>
+
+            <!-- Analytics: daily trend, best-selling packages, payment methods -->
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="1.1*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="11">
+                    <Grid>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="150"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                        <TextBlock Text="حركة المبيعات اليومية" FontSize="13" FontWeight="Bold" />
+                        <TextBlock Grid.Row="1" Text="اختر عمود يوم لمراجعة عملياته" FontSize="10" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" />
+                        <ItemsControl x:Name="SalesDaysItemsControl" Grid.Row="2" Margin="0,5,0,0">
+                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="7" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Tag="{Binding Day}" Click="SalesDayButton_Click" Background="Transparent" BorderThickness="0" Padding="2,0" Cursor="Hand" VerticalContentAlignment="Bottom" ToolTip="عرض مبيعات هذا اليوم">
+                                        <StackPanel VerticalAlignment="Bottom">
+                                            <TextBlock Text="{Binding AmountShortLabel}" FontSize="8.5" HorizontalAlignment="Center" Foreground="{StaticResource TextBrush}" />
+                                            <Border Height="{Binding BarHeight}" MaxHeight="92" VerticalAlignment="Bottom" Background="{StaticResource PrimaryBrush}" CornerRadius="4,4,0,0" Margin="2,3,2,3" />
+                                            <TextBlock Text="{Binding DayLabel}" FontSize="9" HorizontalAlignment="Center" Foreground="{StaticResource TextBrush}" />
+                                            <TextBlock Text="{Binding DateLabel}" FontSize="8" HorizontalAlignment="Center" Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Button Grid.Row="3" Content="إلغاء تحديد اليوم" Style="{StaticResource SecondaryButton}" Height="30" HorizontalAlignment="Left" Padding="10,0" Click="ClearDayFilterButton_Click" />
+                    </Grid>
+                </Border>
+
+                <Border Grid.Column="2" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="11">
+                    <Grid>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                        <TextBlock Text="الباقات الأكثر مبيعًا" FontSize="13" FontWeight="Bold" />
+                        <TextBlock Grid.Row="1" Text="مرتبة حسب عدد الكروت المباعة" FontSize="10" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,8" />
+                        <ItemsControl x:Name="TopPackagesItemsControl" Grid.Row="2">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Tag="{Binding PackageName}" Click="PackageRankingButton_Click" Background="Transparent" BorderThickness="0" Padding="5,5" HorizontalContentAlignment="Stretch" ToolTip="انقر لتصفية سجل العمليات بهذه الباقة">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding PackageName}" FontSize="10.5" FontWeight="SemiBold" />
+                                                <ProgressBar Value="{Binding RelativeValue}" Maximum="100" Height="5" Margin="0,6,8,0" Foreground="{StaticResource PrimaryBrush}" Background="#F1E3E4" BorderThickness="0" />
+                                                <TextBlock Text="{Binding DetailLabel}" FontSize="9" Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,0,0,0">
+                                                <TextBlock Text="{Binding QuantityLabel}" FontSize="12" FontWeight="Bold" HorizontalAlignment="Left" />
+                                                <TextBlock Text="{Binding ShareLabel}" FontSize="9" Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Left" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Column="4" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="11">
+                    <Grid>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                        <TextBlock Text="المبيعات حسب الدفع" FontSize="13" FontWeight="Bold" />
+                        <TextBlock Grid.Row="1" Text="توزيع قيمة السجلات حسب الوسيلة" FontSize="10" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,8" />
+                        <ItemsControl x:Name="PaymentBreakdownItemsControl" Grid.Row="2">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="0,4,0,9">
+                                        <DockPanel>
+                                            <TextBlock Text="{Binding PaymentMethod}" FontSize="10.5" FontWeight="SemiBold" />
+                                            <TextBlock DockPanel.Dock="Left" Text="{Binding ShareLabel}" FontSize="9" Foreground="{StaticResource MutedBrush}" />
+                                        </DockPanel>
+                                        <TextBlock Text="{Binding RevenueLabel}" FontSize="10" Foreground="{StaticResource TextBrush}" Margin="0,3,0,0" />
+                                        <ProgressBar Value="{Binding SharePercent}" Maximum="100" Height="6" Margin="0,5,0,0" Foreground="{StaticResource PrimaryBrush}" Background="#F1E3E4" BorderThickness="0" />
+                                        <TextBlock Text="{Binding TransactionCountLabel}" FontSize="9" Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </Border>
             </Grid>
-        </Border>
 
-        <Border Grid.Row="4" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="10" Margin="0,0,0,7">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <DockPanel Grid.Row="0" Margin="0,0,0,7">
-                    <TextBlock Text="تفاصيل عمليات البيع" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
-                    <Button DockPanel.Dock="Left" Content="عرض كل الأيام" Style="{StaticResource SecondaryButton}" Height="32" Padding="12,0" Click="ClearDayFilterButton_Click" />
-                </DockPanel>
-                <Grid Grid.Row="1" Margin="0,0,0,7">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="12" />
-                        <ColumnDefinition Width="180" />
-                    </Grid.ColumnDefinitions>
-                    <TextBox x:Name="SalesSearchTextBox" Height="38" Padding="10,6" VerticalContentAlignment="Center" ToolTip="ابحث برقم العملية أو الباقة أو نقطة البيع أو طريقة الدفع" TextChanged="SalesSearchTextBox_TextChanged" />
-                    <ComboBox x:Name="SalesDateFilterComboBox" Grid.Column="2" Height="38" SelectionChanged="SalesDateFilterComboBox_SelectionChanged">
-                        <ComboBoxItem Content="آخر سبعة أيام" Tag="week" IsSelected="True" />
-                        <ComboBoxItem Content="آخر يوم مسجل" Tag="last-day" />
-                        <ComboBoxItem Content="كل السجلات" Tag="all" />
-                    </ComboBox>
+            <!-- Detailed sales transactions -->
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="11">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="300"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="سجل عمليات البيع" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                            <TextBlock Text="التفاصيل المالية والتشغيلية لكل معاملة مسجلة" FontSize="10" Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0" />
+                        </StackPanel>
+                        <Button DockPanel.Dock="Left" Content="تصدير النتائج CSV" Style="{StaticResource SecondaryButton}" Height="34" Padding="12,0" Click="ExportReportButton_Click" />
+                    </DockPanel>
+                    <DataGrid x:Name="SalesTransactionsGrid" Grid.Row="2" FlowDirection="RightToLeft" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" SelectionMode="Single" SelectionUnit="FullRow" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" EnableRowVirtualization="True" CanUserReorderColumns="True" CanUserSortColumns="True" RowHeight="32" ColumnHeaderHeight="36" FontSize="10.5">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="رقم العملية" Binding="{Binding TransactionNumber}" Width="145" />
+                            <DataGridTextColumn Header="تاريخ البيع" Binding="{Binding OccurredAtLabel}" Width="135" />
+                            <DataGridTextColumn Header="الباقة" Binding="{Binding PackageName}" Width="120" />
+                            <DataGridTextColumn Header="الكمية" Binding="{Binding Quantity}" Width="70" />
+                            <DataGridTextColumn Header="سعر الكرت" Binding="{Binding UnitPriceLabel}" Width="100" />
+                            <DataGridTextColumn Header="الإجمالي المسجل" Binding="{Binding TotalLabel}" Width="115" />
+                            <DataGridTextColumn Header="طريقة الدفع" Binding="{Binding PaymentMethod}" Width="120" />
+                            <DataGridTextColumn Header="نقطة البيع" Binding="{Binding PointOfSale}" Width="125" />
+                            <DataGridTextColumn Header="الموظف" Binding="{Binding OperatorName}" Width="125" />
+                            <DataGridTextColumn Header="الحالة" Binding="{Binding Status}" Width="85" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <DockPanel Grid.Row="3" Margin="0,8,0,0">
+                        <TextBlock x:Name="SalesFilterSummaryTextBlock" Text="تظهر المعاملات المطابقة للفلاتر الحالية." FontSize="10.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                        <TextBlock DockPanel.Dock="Left" Text="يمكن تغيير ترتيب الجدول بالنقر على عنوان العمود." FontSize="9.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" Margin="10,0,0,0" />
+                    </DockPanel>
                 </Grid>
-                <DataGrid x:Name="SalesTransactionsGrid" Grid.Row="2" FlowDirection="RightToLeft" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" SelectionMode="Single" SelectionUnit="FullRow" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" EnableRowVirtualization="True" RowHeight="31" ColumnHeaderHeight="36" FontSize="10.5">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="رقم العملية" Binding="{Binding TransactionNumber}" Width="145" />
-                        <DataGridTextColumn Header="تاريخ البيع" Binding="{Binding OccurredAtLabel}" Width="135" />
-                        <DataGridTextColumn Header="الباقة" Binding="{Binding PackageName}" Width="125" />
-                        <DataGridTextColumn Header="الكمية" Binding="{Binding Quantity}" Width="75" />
-                        <DataGridTextColumn Header="سعر الكرت" Binding="{Binding UnitPriceLabel}" Width="105" />
-                        <DataGridTextColumn Header="الإجمالي" Binding="{Binding TotalLabel}" Width="115" />
-                        <DataGridTextColumn Header="طريقة الدفع" Binding="{Binding PaymentMethod}" Width="125" />
-                        <DataGridTextColumn Header="نقطة البيع" Binding="{Binding PointOfSale}" Width="125" />
-                        <DataGridTextColumn Header="الموظف" Binding="{Binding OperatorName}" Width="125" />
-                        <DataGridTextColumn Header="الحالة" Binding="{Binding Status}" Width="85" />
-                    </DataGrid.Columns>
-                </DataGrid>
-            </Grid>
-        </Border>
-
-        <DockPanel Grid.Row="5">
-            <TextBlock x:Name="SalesFilterSummaryTextBlock" Text="تفاصيل معاملات البيع المسجلة." FontSize="10.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
-            <Button DockPanel.Dock="Left" Content="تصدير التقرير" Style="{StaticResource SecondaryButton}" Height="34" Padding="14,0" Click="ExportReportButton_Click" />
-        </DockPanel>
-    </Grid>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>
