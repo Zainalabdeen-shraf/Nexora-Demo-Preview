@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 
 using System.Windows;
 
@@ -50,6 +50,7 @@ public partial class CardIssuanceView : UserControl
 
     private bool _isSubscribed;
     private bool _isSyncingPrintTemplateControls;
+    private bool _isApplyingPreviousBatch;
 
     private string _printPaperSize = "A4";
 
@@ -71,19 +72,19 @@ public partial class CardIssuanceView : UserControl
         _issuanceService = issuanceService;
 
         _targetSystem = targetSystem;
-        IssuanceSettingsHeadingTextBlock.Text = "بيانات الإصدار";
+        IssuanceSettingsHeadingTextBlock.Text = "معلومات الدفعة والباقة";
         IssuanceModeSubtitleTextBlock.Visibility = Visibility.Collapsed;
         CardNumberPatternLabelTextBlock.Text = targetSystem == DemoAccountSystem.UserManager
             ? "طول / نمط اسم المستخدم"
             : "طول / نمط رقم الكرت";
         PreviewSourceTypeTextBlock.Text = targetSystem == DemoAccountSystem.UserManager
-            ? "يوزر منجر"
-            : "هوتسبوت";
+            ? "مدير المستخدمين"
+            : "نقطة الاتصال";
         HotSpotSourceInfoBorder.Visibility = Visibility.Collapsed;
         UserManagerSourceInfoBorder.Visibility = Visibility.Collapsed;
         CardNumberLengthTextBox.ToolTip = targetSystem == DemoAccountSystem.UserManager
-            ? "في يوزر منجر رقم الكرت هو اسم المستخدم؛ هذا الطول يحدد الاثنين."
-            : "هذا الطول يحدد طول رقم الكرت في الهوتسبوت.";
+            ? "في مدير المستخدمين، رقم الكرت هو اسم المستخدم؛ هذا الطول يحدد الاثنين."
+            : "هذا الطول يحدد طول رقم الكرت في نقطة الاتصال.";
 
         _recentBatchesView = new ListCollectionView(_issuanceService.Batches) { Filter = MatchRecentBatch };
 
@@ -93,15 +94,15 @@ public partial class CardIssuanceView : UserControl
 
         TargetSystemBadgeTextBlock.Text = targetSystem == DemoAccountSystem.HotSpot
 
-            ? "هوتسبوت"
+            ? "نقطة الاتصال"
 
-            : "يوزر منجر";
+            : "مدير المستخدمين";
 
         IssuanceModeSubtitleTextBlock.Text = targetSystem == DemoAccountSystem.HotSpot
 
-            ? "أنشئ كروت الهوتسبوت من باقة فنية مرتبطة، وحدد بيانات الدخول والمشاركة."
+            ? "أنشئ كروت نقطة الاتصال من باقة مرتبطة، وحدد بيانات الدخول والمشاركة."
 
-            : "أنشئ كروت مدير المستخدمين من باقة مرتبطة، وحدد المستخدم والمجموعة وصيغة الدخول.";
+            : "أنشئ كروت مدير المستخدمين من باقة مرتبطة، وحدد الحساب والمجموعة وصيغة الدخول.";
 
         ManagerUserPanel.Visibility = targetSystem == DemoAccountSystem.UserManager
 
@@ -109,9 +110,9 @@ public partial class CardIssuanceView : UserControl
 
         SharedUsersHelpTextBlock.Text = targetSystem == DemoAccountSystem.UserManager
 
-            ? "يحدد هذا الخيار عدد الجلسات المتزامنة المسموح بها للحساب وفق إعداد User Manager."
+            ? "يحدد هذا الخيار عدد الجلسات المتزامنة المسموح بها للحساب وفق إعداد مدير المستخدمين."
 
-            : "يحدد هذا الخيار عدد الجلسات المتزامنة وفق ملف مستخدم HotSpot المرتبط.";
+            : "يحدد هذا الخيار عدد الجلسات المتزامنة وفق ملف مستخدم نقطة الاتصال المرتبط.";
 
 
 
@@ -138,6 +139,9 @@ public partial class CardIssuanceView : UserControl
         LoadPersistedOptions();
 
         LoadPersistedPreferences();
+
+        if (string.IsNullOrWhiteSpace(CardPrefixTextBox.Text))
+            CardPrefixTextBox.Text = targetSystem == DemoAccountSystem.HotSpot ? "HP-" : "UM-";
 
         ManagerUserPanel.Visibility = targetSystem == DemoAccountSystem.UserManager ? Visibility.Visible : Visibility.Collapsed;
 
@@ -346,15 +350,9 @@ public partial class CardIssuanceView : UserControl
                     break;
 
                 case "upload-print":
-
-                    _workflowStore.RecordRouterUpload(_lastGeneratedCards);
-
                     _workflowStore.QueuePrintSelection(_lastGeneratedCards);
-
-                    SetStatus($"تم إنشاء {_lastGeneratedCards.Count:N0} كرت وتسجيل طلب المزامنة وإضافة الكروت إلى قائمة الطباعة.", false);
-
-                    NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("printing", "قائمة الطباعة"));
-
+                    SetStatus($"تم إنشاء {_lastGeneratedCards.Count:N0} كرت محليًا في الدفعة {_lastGeneratedBatchId}. ستظهر الأرقام في معاينة الطباعة المنفصلة.", false);
+                    ShowLocalPrintPreview(_lastGeneratedCards);
                     break;
 
                 case "online-sale":
@@ -395,7 +393,7 @@ public partial class CardIssuanceView : UserControl
 
             return false;
 
-        var targetName = _targetSystem == DemoAccountSystem.HotSpot ? "مستخدمو الهوتسبوت" : "مدير المستخدمين";
+        var targetName = _targetSystem == DemoAccountSystem.HotSpot ? "مستخدمو نقطة الاتصال" : "مدير المستخدمين";
 
         return string.Equals(batch.TargetSystem, targetName, StringComparison.Ordinal);
 
@@ -447,7 +445,7 @@ public partial class CardIssuanceView : UserControl
 
             var batch = _issuanceService.GenerateBatch(request, existingBatchId);
 
-            var targetName = _targetSystem == DemoAccountSystem.HotSpot ? "مستخدمو الهوتسبوت" : "مدير المستخدمين";
+            var targetName = _targetSystem == DemoAccountSystem.HotSpot ? "مستخدمو نقطة الاتصال" : "مدير المستخدمين";
 
             _lastGeneratedBatchId = batch.BatchId;
 
@@ -553,6 +551,9 @@ public partial class CardIssuanceView : UserControl
 
 
 
+        if (quantity < 1)
+            throw new ArgumentException("عدد الكروت يجب أن يكون أكبر من صفر.");
+
         if (!TryParseInteger(CardNumberLengthTextBox.Text, out var cardNumberLength))
 
             throw new ArgumentException("أدخل الطول الكلي لرقم الكرت كعدد صحيح.");
@@ -593,13 +594,13 @@ public partial class CardIssuanceView : UserControl
 
 
 
+        var cardPrefix = CardPrefixTextBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(cardPrefix))
+            throw new ArgumentException("بادئة الكرت مطلوبة.");
+
         var cardSet = ParseCardCharacterSet(ReadTag(CardNumberCharacterSetComboBox));
 
-        var numberMode = SequentialGenerationRadioButton.IsChecked == true
-
-            ? CardNumberGenerationMode.Sequential
-
-            : CardNumberGenerationMode.Random;
+        var numberMode = CardNumberGenerationMode.Random;
 
         var usernameSet = _targetSystem == DemoAccountSystem.UserManager
 
@@ -651,7 +652,7 @@ public partial class CardIssuanceView : UserControl
 
             cardNumberLength,
 
-            CardPrefixTextBox.Text.Trim().ToUpperInvariant(),
+            cardPrefix.ToUpperInvariant(),
 
             CardSuffixTextBox.Text.Trim().ToUpperInvariant(),
 
@@ -881,61 +882,36 @@ public partial class CardIssuanceView : UserControl
     private void AdvancedSettingsBackButton_Click(object sender, RoutedEventArgs e) =>
         SetAdvancedSettingsPageOpen(false);
 
-    private void ShowAdvancedSettingsPage() => SetAdvancedSettingsPageOpen(true);
+    private void ShowAdvancedSettingsPage()
+    {
+        AdvancedSettingsPage.Visibility = Visibility.Collapsed;
+        IssuanceMainPage.Visibility = Visibility.Visible;
+    }
 
     private void SetAdvancedSettingsPageOpen(bool isOpen)
     {
-        AdvancedSettingsPage.Visibility = isOpen ? Visibility.Visible : Visibility.Collapsed;
-        IssuanceMainPage.Visibility = isOpen ? Visibility.Collapsed : Visibility.Visible;
-        if (isOpen)
-            AdvancedSettingsPage.Focus();
-        else
-            AdvancedSettingsButton.Focus();
+        AdvancedSettingsPage.Visibility = Visibility.Collapsed;
+        IssuanceMainPage.Visibility = Visibility.Visible;
     }
+
     private void GenerationMode_Changed(object sender, RoutedEventArgs e)
-
     {
-
-        if (!IsLoaded || SequenceStartPanel is null || CardNumberCharacterSetComboBox is null ||
-
-            SequentialGenerationRadioButton is null || SequenceStartTextBox is null)
-
+        if (!IsLoaded || RandomGenerationRadioButton is null || SequentialGenerationRadioButton is null)
             return;
 
-
-
-        var sequential = SequentialGenerationRadioButton.IsChecked == true;
-
-        if (sequential)
-            ShowAdvancedSettingsPage();
-
-        SequenceStartPanel.Visibility = sequential ? Visibility.Visible : Visibility.Collapsed;
-
-        if (sequential)
-
-        {
-
-            CardNumberCharacterSetComboBox.SelectedItem = CardNumberCharacterSetComboBox.Items
-
-                .OfType<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == "NumericOnly");
-
-            CardNumberCharacterSetComboBox.IsEnabled = false;
-
-        }
-
-        else
-
-        {
-
-            CardNumberCharacterSetComboBox.IsEnabled = true;
-
-        }
-
+        if (SequentialGenerationRadioButton.IsChecked == true)
+            SequentialGenerationRadioButton.IsChecked = false;
+        RandomGenerationRadioButton.IsChecked = true;
+        SequentialGenerationRadioButton.IsEnabled = false;
+        SequentialGenerationRadioButton.Visibility = Visibility.Collapsed;
+        if (SequenceStartPanel is not null) SequenceStartPanel.Visibility = Visibility.Collapsed;
+        if (SequenceStartTextBox is not null) SequenceStartTextBox.Visibility = Visibility.Collapsed;
+        if (CardNumberCharacterSetComboBox is not null) CardNumberCharacterSetComboBox.IsEnabled = true;
         _previewCard = null;
-
         UpdatePreview();
-
+        PersistCurrentPreferences();
     }
+
 
 
 
@@ -1040,7 +1016,7 @@ public partial class CardIssuanceView : UserControl
 
         var bodyLength = Math.Max(1, totalLength - prefix.Length - suffix.Length);
 
-        var sequential = SequentialGenerationRadioButton.IsChecked == true;
+        var sequential = false;
 
         var body = sequential
 
@@ -1114,7 +1090,7 @@ public partial class CardIssuanceView : UserControl
 
         PreviewPackageTextBlock.Text = string.Join(" · ", packageParts);
 
-        PreviewProfileTextBlock.Text = string.IsNullOrWhiteSpace(RouterProfileTextBox.Text) ? "info3" : RouterProfileTextBox.Text.Trim();
+        PreviewProfileTextBlock.Text = string.IsNullOrWhiteSpace(RouterProfileTextBox.Text) ? "ملف الاستخدام" : RouterProfileTextBox.Text.Trim();
 
 
 
@@ -1306,11 +1282,11 @@ public partial class CardIssuanceView : UserControl
 
                 {
 
-                    "nexora" => ReferenceEquals(target, PreviewTemplateComboBox) ? "info1" : "default",
+                    "nexora" => ReferenceEquals(target, PreviewTemplateComboBox) ? "القالب الافتراضي" : "القالب الافتراضي",
 
-                    "light" => ReferenceEquals(target, PreviewTemplateComboBox) ? "info2" : "قالب فاتح",
+                    "light" => ReferenceEquals(target, PreviewTemplateComboBox) ? "القالب الفاتح" : "القالب الفاتح",
 
-                    "compact" => ReferenceEquals(target, PreviewTemplateComboBox) ? "info3" : "قالب مضغوط",
+                    "compact" => ReferenceEquals(target, PreviewTemplateComboBox) ? "القالب المضغوط" : "القالب المضغوط",
 
                     _ when tag.StartsWith("custom-template:", StringComparison.OrdinalIgnoreCase) => tag["custom-template:".Length..],
 
@@ -1413,136 +1389,136 @@ public partial class CardIssuanceView : UserControl
 
 
     private void BatchMode_Changed(object sender, RoutedEventArgs e)
-
     {
-
         if (!IsLoaded || ExistingBatchPanel is null || AppendToPreviousBatchRadioButton is null)
-
             return;
-
-
 
         ExistingBatchPanel.IsEnabled = AppendToPreviousBatchRadioButton.IsChecked == true;
-
         BatchRegistrationHintTextBlock.Text = AppendToPreviousBatchRadioButton.IsChecked == true
-
-            ? "يُسمح بالإضافة إلى دفعة من نفس النظام والباقة فقط، حفاظًا على اتساق السجل."
-
-            : "سيُنشأ رقم دفعة من النظام تلقائيًا.";
+            ? "اختر دفعة سابقة؛ ستُحمّل الباقة ونقطة البيع وملف الاستخدام وإعدادات المشاركة المطابقة تلقائيًا."
+            : "سيُنشأ رقم دفعة جديد تلقائيًا.";
 
         RefreshExistingBatches();
-
+        if (AppendToPreviousBatchRadioButton.IsChecked == true && ExistingBatchComboBox.SelectedItem is GeneratedCardBatch batch)
+            ApplyPreviousBatchSettings(batch);
         PersistCurrentPreferences();
-
     }
-
-
-
-    private void ExistingBatchComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-
+private void ExistingBatchComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-
-        if (!IsLoaded || ExistingBatchComboBox.SelectedItem is not GeneratedCardBatch batch)
-
+        if (!IsLoaded || _isApplyingPreviousBatch || AppendToPreviousBatchRadioButton.IsChecked != true ||
+            ExistingBatchComboBox.SelectedItem is not GeneratedCardBatch batch)
             return;
 
-        BatchRegistrationHintTextBlock.Text = $"الدفعة المحددة: {batch.BatchId} · المسجل حاليًا {batch.Quantity:N0} كرت.";
-
+        ApplyPreviousBatchSettings(batch);
     }
-
-
-
-    private void RefreshExistingBatches()
-
+private void RefreshExistingBatches()
     {
-
-        if (ExistingBatchComboBox is null || PackageComboBox is null)
-
+        if (_isApplyingPreviousBatch || ExistingBatchComboBox is null || PackageComboBox is null)
             return;
-
-
 
         var previousId = (ExistingBatchComboBox.SelectedItem as GeneratedCardBatch)?.BatchId;
-
         var targetName = _targetSystem == DemoAccountSystem.HotSpot ? "مستخدمو الهوتسبوت" : "مدير المستخدمين";
-
-        var packageName = (PackageComboBox.SelectedItem as DemoCardPackage)?.DisplayName;
-
-        var profile = RouterProfileTextBox?.Text.Trim() ?? string.Empty;
-
-        var pointOfSale = (PointOfSaleComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? string.Empty;
-
-        var managerAccount = _targetSystem == DemoAccountSystem.UserManager
-
-            ? (ReadTag(ManagerUserComboBox) ?? "admin")
-
-            : "غير منطبق";
-
-        var sharedUsers = int.TryParse(ReadTag(SharedUsersComboBox), out var parsedSharedUsers) ? parsedSharedUsers : 1;
-
         var eligible = _issuanceService.Batches
-
-            .Where(batch => batch.TargetSystem == targetName &&
-
-                            !string.IsNullOrWhiteSpace(packageName) &&
-
-                            batch.PackageName == packageName &&
-
-                            batch.RouterProfile == profile &&
-
-                            batch.PointOfSale == pointOfSale &&
-
-                            batch.ManagerAccount == managerAccount &&
-
-                            batch.SharedUsers == sharedUsers)
-
+            .Where(batch => string.Equals(batch.TargetSystem, targetName, StringComparison.Ordinal))
+            .OrderByDescending(batch => batch.CreatedAt)
             .ToList();
 
-
-
-        ExistingBatchComboBox.ItemsSource = eligible;
-
-        ExistingBatchComboBox.SelectedItem = eligible.FirstOrDefault(batch => batch.BatchId == previousId)
-
-            ?? eligible.FirstOrDefault();
-
-        AppendToPreviousBatchRadioButton.IsEnabled = eligible.Count > 0;
+        _isApplyingPreviousBatch = true;
+        try
+        {
+            ExistingBatchComboBox.ItemsSource = eligible;
+            ExistingBatchComboBox.SelectedItem = eligible.FirstOrDefault(batch =>
+                string.Equals(batch.BatchId, previousId, StringComparison.OrdinalIgnoreCase))
+                ?? eligible.FirstOrDefault();
+            AppendToPreviousBatchRadioButton.IsEnabled = eligible.Count > 0;
+            ExistingBatchPanel.IsEnabled = AppendToPreviousBatchRadioButton.IsChecked == true && eligible.Count > 0;
+        }
+        finally
+        {
+            _isApplyingPreviousBatch = false;
+        }
 
         if (eligible.Count == 0 && AppendToPreviousBatchRadioButton.IsChecked == true)
-
             NewBatchRadioButton.IsChecked = true;
-
     }
 
-
-
-    private void PickExistingBatchButton_Click(object sender, RoutedEventArgs e)
-
+    private void ApplyPreviousBatchSettings(GeneratedCardBatch batch)
     {
+        _isApplyingPreviousBatch = true;
+        try
+        {
+            var package = PackageComboBox.Items.OfType<DemoCardPackage>().FirstOrDefault(item =>
+                string.Equals(item.DisplayName, batch.PackageName, StringComparison.Ordinal) && item.Price == batch.UnitPrice);
+            if (package is null)
+            {
+                SetStatus("لا يمكن الإلحاق بهذه الدفعة لأن باقتها لم تعد موجودة في قائمة الباقات.", true);
+                return;
+            }
+
+            PackageComboBox.SelectedItem = package;
+            RouterProfileTextBox.Text = batch.RouterProfile;
+
+            var pointOfSale = PointOfSaleComboBox.Items.OfType<ComboBoxItem>().FirstOrDefault(item =>
+                string.Equals(item.Content?.ToString(), batch.PointOfSale, StringComparison.Ordinal));
+            if (pointOfSale is null)
+            {
+                SetStatus("نقطة البيع المسجلة في الدفعة السابقة غير متاحة حاليًا. راجع نقاط البيع أولًا.", true);
+                return;
+            }
+            PointOfSaleComboBox.SelectedItem = pointOfSale;
+
+            if (_targetSystem == DemoAccountSystem.UserManager)
+            {
+                var manager = ManagerUserComboBox.Items.OfType<ComboBoxItem>().FirstOrDefault(item =>
+                    string.Equals(item.Tag?.ToString(), batch.ManagerAccount, StringComparison.OrdinalIgnoreCase));
+                if (manager is null)
+                {
+                    SetStatus("مستخدم يوزر منجر المرتبط بالدفعة السابقة غير متاح في القائمة.", true);
+                    return;
+                }
+                ManagerUserComboBox.SelectedItem = manager;
+            }
+
+            var sharedUsers = SharedUsersComboBox.Items.OfType<ComboBoxItem>().FirstOrDefault(item =>
+                string.Equals(item.Tag?.ToString(), batch.SharedUsers.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal));
+            if (sharedUsers is null)
+            {
+                SetStatus("عدد الأجهزة المرتبط بالدفعة السابقة غير متاح في إعدادات الشاشة الحالية.", true);
+                return;
+            }
+            SharedUsersComboBox.SelectedItem = sharedUsers;
+            ExistingBatchComboBox.SelectedItem = batch;
+            _previewCard = null;
+            UpdatePreview();
+            PersistCurrentPreferences();
+        }
+        finally
+        {
+            _isApplyingPreviousBatch = false;
+        }
 
         RefreshExistingBatches();
-
-        if (ExistingBatchComboBox.Items.Count == 0)
-
+        BatchRegistrationHintTextBlock.Text = $"الدفعة المحددة: {batch.BatchId} · المسجل حاليًا {batch.Quantity:N0} كرت. ستتم إضافة العدد الجديد إليها.";
+        SetStatus($"تم تحميل إعدادات الدفعة السابقة {batch.BatchId}. حدّد عدد الكروت المراد إضافته ثم أنشئ الدفعة.", false);
+    }
+private void PickExistingBatchButton_Click(object sender, RoutedEventArgs e)
+    {
+        RefreshExistingBatches();
+        var batches = ExistingBatchComboBox.Items.OfType<GeneratedCardBatch>().ToList();
+        if (batches.Count == 0)
         {
-
-            SetStatus("لا توجد دفعات سابقة متوافقة مع النظام والباقة وملف الاستخدام الحالي.", true);
-
+            SetStatus("لا توجد دفعات سابقة لهذا النظام بعد. أنشئ الدفعة الأولى، وبعدها يمكنك الإلحاق بها.", false);
             return;
-
         }
 
         AppendToPreviousBatchRadioButton.IsChecked = true;
-
+        RefreshExistingBatches();
+        if (ExistingBatchComboBox.SelectedItem is GeneratedCardBatch selectedBatch)
+            ApplyPreviousBatchSettings(selectedBatch);
         ExistingBatchComboBox.Focus();
-
         ExistingBatchComboBox.IsDropDownOpen = true;
-
     }
-
-
-
-    private void AddPrintTemplateButton_Click(object sender, RoutedEventArgs e) => AddNamedOption("template");
+private void AddPrintTemplateButton_Click(object sender, RoutedEventArgs e) => AddNamedOption("template");
 
     private void AddPointOfSaleButton_Click(object sender, RoutedEventArgs e) => AddNamedOption("point-of-sale");
 
@@ -1836,24 +1812,20 @@ public partial class CardIssuanceView : UserControl
 
             {
 
-                DefaultPrintModeRadioButton.IsChecked = printMode == "default";
+                DefaultPrintModeRadioButton.IsChecked = printMode == "default" || printMode == "file";
 
                 SingleCardModeRadioButton.IsChecked = printMode == "single";
 
                 SequentialPrintModeRadioButton.IsChecked = printMode == "sequential";
 
-                FastFilePrintModeRadioButton.IsChecked = printMode == "file";
+                FastFilePrintModeRadioButton.IsChecked = false;
 
             }
 
-            if (values.TryGetValue("NumberGenerationMode", out var numberMode))
-
+            if (values.TryGetValue("NumberGenerationMode", out _))
             {
-
-                SequentialGenerationRadioButton.IsChecked = numberMode == "sequential";
-
-                RandomGenerationRadioButton.IsChecked = numberMode != "sequential";
-
+                SequentialGenerationRadioButton.IsChecked = false;
+                RandomGenerationRadioButton.IsChecked = true;
             }
 
             if (values.TryGetValue("BatchMode", out var batchMode))
@@ -1964,7 +1936,7 @@ public partial class CardIssuanceView : UserControl
 
                 ["PrintMode"] = SingleCardModeRadioButton.IsChecked == true ? "single" : SequentialPrintModeRadioButton.IsChecked == true ? "sequential" : FastFilePrintModeRadioButton.IsChecked == true ? "file" : "default",
 
-                ["NumberGenerationMode"] = SequentialGenerationRadioButton.IsChecked == true ? "sequential" : "random",
+                ["NumberGenerationMode"] = "random",
 
                 ["ExistingBatchId"] = (ExistingBatchComboBox.SelectedItem as GeneratedCardBatch)?.BatchId ?? string.Empty,
 
@@ -2122,9 +2094,289 @@ public partial class CardIssuanceView : UserControl
 
 
 
-    private void OpenPrintQueueButton_Click(object sender, RoutedEventArgs e) =>
+    private void OpenPrintQueueButton_Click(object sender, RoutedEventArgs e)
+    {
+        List<GeneratedDemoCard> cards;
+        var targetName = _targetSystem == DemoAccountSystem.HotSpot ? "مستخدمو الهوتسبوت" : "مدير المستخدمين";
+        var selectedBatch = RecentBatchesGrid.SelectedItem as GeneratedCardBatch;
+        var batch = selectedBatch ?? _issuanceService.Batches
+            .Where(item => string.Equals(item.TargetSystem, targetName, StringComparison.Ordinal))
+            .OrderByDescending(item => item.CreatedAt)
+            .FirstOrDefault();
 
-        NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("printing", "قائمة الطباعة"));
+        if (batch is not null)
+        {
+            cards = _issuanceService.Cards
+                .Where(card => string.Equals(card.BatchId, batch.BatchId, StringComparison.Ordinal))
+                .OrderBy(card => card.CreatedAt).ToList();
+        }
+        else if (_lastGeneratedCards.Count > 0)
+        {
+            cards = _lastGeneratedCards.ToList();
+        }
+        else
+        {
+            cards = _issuanceService.Cards
+                .Where(card => string.Equals(card.TargetSystem, targetName, StringComparison.Ordinal))
+                .OrderByDescending(card => card.CreatedAt).Take(100).OrderBy(card => card.CreatedAt).ToList();
+        }
+        ShowLocalPrintPreview(cards);
+    }
+
+    private void ShowLocalPrintPreview(List<GeneratedDemoCard> cards)
+    {
+        if (cards is null || cards.Count == 0)
+        {
+            SetStatus("لا توجد كروت للمعاينة بعد. أنشئ دفعة أولًا أو اختر دفعة موجودة.", false);
+            return;
+        }
+
+        var orderedCards = cards.ToList();
+        var batchIds = string.Join("، ", orderedCards.Select(card => card.BatchId).Distinct(StringComparer.OrdinalIgnoreCase).Take(3));
+        var previewRows = orderedCards.Select((card, index) => new
+        {
+            SerialNumber = index + 1,
+            CardNumber = card.CardNumber,
+            Username = card.Username,
+            Password = card.PasswordDisplay,
+            Package = card.PackageName,
+            Price = card.UnitPriceLabel
+        }).ToList();
+
+        var owner = Window.GetWindow(this);
+        var previewWindow = new Window
+        {
+            Title = "معاينة الطباعة",
+            Width = 1080,
+            Height = 690,
+            MinWidth = 780,
+            MinHeight = 480,
+            WindowStartupLocation = owner is null ? WindowStartupLocation.CenterScreen : WindowStartupLocation.CenterOwner,
+            Background = new SolidColorBrush(Color.FromRgb(247, 248, 250)),
+            FlowDirection = FlowDirection.RightToLeft,
+            ResizeMode = ResizeMode.CanResize
+        };
+        if (owner is not null) previewWindow.Owner = owner;
+
+        var root = new Grid { Margin = new Thickness(12), FlowDirection = FlowDirection.RightToLeft };
+        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+        var header = new Border
+        {
+            Background = Brushes.White,
+            BorderBrush = new SolidColorBrush(Color.FromRgb(192, 27, 42)),
+            BorderThickness = new Thickness(0, 3, 0, 0),
+            CornerRadius = new CornerRadius(8),
+            Padding = new Thickness(13, 9, 13, 9),
+            Margin = new Thickness(0, 0, 0, 8)
+        };
+        var headerStack = new StackPanel { FlowDirection = FlowDirection.RightToLeft };
+        headerStack.Children.Add(new TextBlock
+        {
+            Text = "معاينة الطباعة",
+            FontSize = 18,
+            FontWeight = FontWeights.Bold,
+            Foreground = new SolidColorBrush(Color.FromRgb(32, 36, 42)),
+            HorizontalAlignment = HorizontalAlignment.Right
+        });
+        headerStack.Children.Add(new TextBlock
+        {
+            Text = $"الدفعة: {batchIds}  ·  عدد الكروت: {orderedCards.Count:N0}",
+            FontSize = 11,
+            Foreground = new SolidColorBrush(Color.FromRgb(105, 112, 120)),
+            Margin = new Thickness(0, 4, 0, 0),
+            HorizontalAlignment = HorizontalAlignment.Right
+        });
+        header.Child = headerStack;
+        root.Children.Add(header);
+        Grid.SetRow(header, 0);
+
+        var cardsGrid = new DataGrid
+        {
+            AutoGenerateColumns = false,
+            ItemsSource = previewRows,
+            IsReadOnly = true,
+            CanUserAddRows = false,
+            CanUserDeleteRows = false,
+            HeadersVisibility = DataGridHeadersVisibility.Column,
+            GridLinesVisibility = DataGridGridLinesVisibility.Horizontal,
+            HorizontalGridLinesBrush = new SolidColorBrush(Color.FromRgb(225, 228, 233)),
+            VerticalGridLinesBrush = new SolidColorBrush(Color.FromRgb(225, 228, 233)),
+            RowHeight = 32,
+            ColumnHeaderHeight = 38,
+            FontSize = 12,
+            Background = Brushes.White,
+            BorderBrush = new SolidColorBrush(Color.FromRgb(222, 225, 230)),
+            BorderThickness = new Thickness(1),
+            FlowDirection = FlowDirection.RightToLeft,
+            Margin = new Thickness(0, 0, 0, 8)
+        };
+        var headerStyle = new Style(typeof(System.Windows.Controls.Primitives.DataGridColumnHeader));
+        headerStyle.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush(Color.FromRgb(249, 237, 237))));
+        headerStyle.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush(Color.FromRgb(127, 17, 24))));
+        headerStyle.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.SemiBold));
+        headerStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Center));
+        cardsGrid.ColumnHeaderStyle = headerStyle;
+        cardsGrid.Columns.Add(new DataGridTextColumn { Header = "م", Binding = new System.Windows.Data.Binding("SerialNumber"), Width = new DataGridLength(48) });
+        cardsGrid.Columns.Add(new DataGridTextColumn { Header = "رقم الكرت", Binding = new System.Windows.Data.Binding("CardNumber"), Width = new DataGridLength(1.1, DataGridLengthUnitType.Star) });
+        cardsGrid.Columns.Add(new DataGridTextColumn { Header = "اسم المستخدم", Binding = new System.Windows.Data.Binding("Username"), Width = new DataGridLength(1.2, DataGridLengthUnitType.Star) });
+        cardsGrid.Columns.Add(new DataGridTextColumn { Header = "كلمة المرور", Binding = new System.Windows.Data.Binding("Password"), Width = new DataGridLength(1.1, DataGridLengthUnitType.Star) });
+        cardsGrid.Columns.Add(new DataGridTextColumn { Header = "الباقة", Binding = new System.Windows.Data.Binding("Package"), Width = new DataGridLength(1.3, DataGridLengthUnitType.Star) });
+        cardsGrid.Columns.Add(new DataGridTextColumn { Header = "السعر", Binding = new System.Windows.Data.Binding("Price"), Width = new DataGridLength(0.8, DataGridLengthUnitType.Star) });
+        root.Children.Add(cardsGrid);
+        Grid.SetRow(cardsGrid, 1);
+
+        var footer = new Border
+        {
+            Background = Brushes.White,
+            BorderBrush = new SolidColorBrush(Color.FromRgb(222, 225, 230)),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(8),
+            Padding = new Thickness(9)
+        };
+        var footerGrid = new Grid { FlowDirection = FlowDirection.RightToLeft };
+        footerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        footerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        footerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        var closeButton = new Button
+        {
+            Content = "إغلاق",
+            MinWidth = 100,
+            Height = 34,
+            Margin = new Thickness(2),
+            Padding = new Thickness(12, 0, 12, 0),
+            Background = Brushes.White,
+            Foreground = new SolidColorBrush(Color.FromRgb(32, 36, 42)),
+            BorderBrush = new SolidColorBrush(Color.FromRgb(222, 225, 230)),
+            BorderThickness = new Thickness(1),
+            FontSize = 12,
+            Cursor = System.Windows.Input.Cursors.Hand
+        };
+        closeButton.Click += (_, _) => previewWindow.Close();
+        var note = new TextBlock
+        {
+            Text = "عرض تجريبي محلي. الرقم في عمود (م) هو ترتيب عرض فقط؛ أرقام الكروت نفسها لم تتحول إلى تسلسل.",
+            FontSize = 10.5,
+            Foreground = new SolidColorBrush(Color.FromRgb(105, 112, 120)),
+            VerticalAlignment = VerticalAlignment.Center,
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(10, 0, 10, 0)
+        };
+        var printButton = new Button
+        {
+            Content = "طباعة المعاينة",
+            MinWidth = 140,
+            Height = 34,
+            Margin = new Thickness(2),
+            Padding = new Thickness(12, 0, 12, 0),
+            Background = new SolidColorBrush(Color.FromRgb(192, 27, 42)),
+            Foreground = Brushes.White,
+            BorderBrush = new SolidColorBrush(Color.FromRgb(192, 27, 42)),
+            BorderThickness = new Thickness(1),
+            FontSize = 12,
+            FontWeight = FontWeights.SemiBold,
+            Cursor = System.Windows.Input.Cursors.Hand
+        };
+        printButton.Click += (_, _) =>
+        {
+            var dialog = new PrintDialog();
+            if (dialog.ShowDialog() != true) return;
+            try
+            {
+                var document = BuildLocalPrintDocument(orderedCards, batchIds, dialog.PrintableAreaWidth, dialog.PrintableAreaHeight);
+                dialog.PrintDocument(((System.Windows.Documents.IDocumentPaginatorSource)document).DocumentPaginator, "طباعة كروت تاب كارد");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(previewWindow, "تعذرت طباعة المعاينة: " + ex.Message, "تاب كارد", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        };
+        footerGrid.Children.Add(closeButton);
+        Grid.SetColumn(closeButton, 0);
+        footerGrid.Children.Add(note);
+        Grid.SetColumn(note, 1);
+        footerGrid.Children.Add(printButton);
+        Grid.SetColumn(printButton, 2);
+        footer.Child = footerGrid;
+        root.Children.Add(footer);
+        Grid.SetRow(footer, 2);
+
+        previewWindow.Content = root;
+        previewWindow.ShowDialog();
+    }
+
+    private static System.Windows.Documents.FlowDocument BuildLocalPrintDocument(
+        List<GeneratedDemoCard> cards, string batchIds, double printableWidth, double printableHeight)
+    {
+        var document = new System.Windows.Documents.FlowDocument
+        {
+            PageWidth = Math.Max(500, printableWidth),
+            PageHeight = Math.Max(600, printableHeight),
+            PagePadding = new Thickness(24),
+            ColumnWidth = double.PositiveInfinity,
+            FlowDirection = FlowDirection.RightToLeft,
+            FontFamily = new FontFamily("Tahoma"),
+            FontSize = 10
+        };
+        document.Blocks.Add(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Run("تاب كارد — معاينة طباعة الكروت"))
+        {
+            FontSize = 18,
+            FontWeight = FontWeights.Bold,
+            TextAlignment = TextAlignment.Right,
+            Margin = new Thickness(0, 0, 0, 8)
+        });
+        document.Blocks.Add(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Run($"الدفعة: {batchIds} · عدد الكروت: {cards.Count:N0}"))
+        {
+            FontSize = 11,
+            TextAlignment = TextAlignment.Right,
+            Margin = new Thickness(0, 0, 0, 12)
+        });
+
+        var table = new System.Windows.Documents.Table { CellSpacing = 0 };
+        foreach (var width in new[] { 0.45, 1.05, 1.15, 1.05, 1.3, 0.8 })
+            table.Columns.Add(new System.Windows.Documents.TableColumn { Width = new GridLength(width, GridUnitType.Star) });
+        var headerGroup = new System.Windows.Documents.TableRowGroup();
+        var headerRow = new System.Windows.Documents.TableRow();
+        foreach (var header in new[] { "م", "رقم الكرت", "اسم المستخدم", "كلمة المرور", "الباقة", "السعر" })
+            headerRow.Cells.Add(CreateLocalPrintCell(header, true));
+        headerGroup.Rows.Add(headerRow);
+        table.RowGroups.Add(headerGroup);
+
+        var bodyGroup = new System.Windows.Documents.TableRowGroup();
+        for (var index = 0; index < cards.Count; index++)
+        {
+            var card = cards[index];
+            var row = new System.Windows.Documents.TableRow();
+            row.Cells.Add(CreateLocalPrintCell((index + 1).ToString(CultureInfo.CurrentCulture), false));
+            row.Cells.Add(CreateLocalPrintCell(card.CardNumber, false));
+            row.Cells.Add(CreateLocalPrintCell(card.Username, false));
+            row.Cells.Add(CreateLocalPrintCell(card.PasswordDisplay, false));
+            row.Cells.Add(CreateLocalPrintCell(card.PackageName, false));
+            row.Cells.Add(CreateLocalPrintCell(card.UnitPriceLabel, false));
+            bodyGroup.Rows.Add(row);
+        }
+        table.RowGroups.Add(bodyGroup);
+        document.Blocks.Add(table);
+        return document;
+    }
+
+    private static System.Windows.Documents.TableCell CreateLocalPrintCell(string value, bool header)
+    {
+        var paragraph = new System.Windows.Documents.Paragraph(new System.Windows.Documents.Run(value ?? string.Empty))
+        { Margin = new Thickness(0), TextAlignment = TextAlignment.Center };
+        var cell = new System.Windows.Documents.TableCell(paragraph)
+        {
+            BorderBrush = new SolidColorBrush(Color.FromRgb(222, 225, 230)),
+            BorderThickness = new Thickness(0.5),
+            Padding = new Thickness(4, 3, 4, 3),
+            Background = header ? new SolidColorBrush(Color.FromRgb(249, 237, 237)) : Brushes.White,
+            FontWeight = header ? FontWeights.SemiBold : FontWeights.Normal
+        };
+        return cell;
+    }
+
 
 
 

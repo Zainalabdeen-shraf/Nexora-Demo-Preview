@@ -1,0 +1,375 @@
+<UserControl x:Class="Nexora.Demo.Desktop.Features.NetworkOperations.Views.NetworkCenterView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" FlowDirection="RightToLeft" Background="{StaticResource AppBgBrush}">
+    <Grid Margin="5" Background="{StaticResource AppBgBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Border Background="White" CornerRadius="10" Padding="14" Margin="0,0,0,10" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" Grid.Row="0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="145" />
+                </Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="NEXORA  /  NETWORK OPERATIONS" FontSize="10" FontWeight="Bold" Foreground="#A61919" />
+                    <TextBlock Text="مركز عمليات الشبكة" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,7,0,0" />
+                    <TextBlock Text="افهم حالة الشبكة، جرّب سيناريو عطل، وتابع أثره عبر التنبيهات والصيانة." FontSize="11.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <Border Background="#FEE2E2" CornerRadius="7" Padding="8,6" Margin="0,0,0,9">
+                        <TextBlock x:Name="ConnectionModeBadgeTextBlock" Text="ديمو محلي" FontSize="10" FontWeight="Bold" Foreground="#A61919" HorizontalAlignment="Center" />
+                    </Border>
+                    <Button Content="تحديث الملخص" Style="{StaticResource SecondaryButton}" Click="RefreshButton_Click" Margin="0,0,0,7" />
+                    <Button Content="المواقع والأجهزة" Style="{StaticResource PrimaryButton}" Click="OpenDevicesButton_Click" />
+                </StackPanel>
+            </Grid>
+        </Border>
+        <TabControl FlowDirection="RightToLeft" Grid.Row="1" Margin="0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" Padding="0">
+            <TabControl.ItemContainerStyle>
+                <Style TargetType="{x:Type TabItem}">
+                    <Setter Property="Padding" Value="14,9" />
+                    <Setter Property="Margin" Value="0,0,3,0" />
+                    <Setter Property="Foreground" Value="#334155" />
+                    <Setter Property="FontWeight" Value="SemiBold" />
+                    <Setter Property="Background" Value="White" />
+                    <Setter Property="BorderBrush" Value="#E2E8F0" />
+                    <Setter Property="BorderThickness" Value="1" />
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="#A61919" />
+                            <Setter Property="BorderBrush" Value="#A61919" />
+                            <Setter Property="Foreground" Value="White" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="BorderBrush" Value="#A61919" />
+                            <Setter Property="Background" Value="#FEE2E2" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </TabControl.ItemContainerStyle>
+            <TabItem Header="نظرة عامة">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="8,8,8,12">
+                        <TextBlock Text="ملخص مركز الشبكة" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,0,0,3" />
+                        <TextBlock Text="بيانات الراوتر الفعلية تبقى مميزة عن سجلات المواقع والتنبيهات والمحاكاة التجريبية." FontSize="11" FontWeight="Normal" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,12" />
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border MinHeight="98" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="0" Margin="4" Grid.Column="0">
+                                <Grid>
+                                    <StackPanel Margin="11,10,11,9">
+                                        <TextBlock x:Name="NetworkMetricInterfacesLabelTextBlock" Text="الأجهزة المسجلة (ديمو)" FontSize="10.5" Foreground="{StaticResource MutedBrush}" />
+                                        <TextBlock x:Name="DeviceCountTextBlock" Text="0" FontSize="26" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,6,0,0" />
+                                        <TextBlock x:Name="NetworkMetricInterfacesDetailTextBlock" Text="سجلات الديمو" FontSize="9.5" Foreground="{StaticResource MutedBrush}" />
+                                    </StackPanel>
+                                    <Border Height="3" Background="#A61919" VerticalAlignment="Top" HorizontalAlignment="Stretch" IsHitTestVisible="False" />
+                                </Grid>
+                            </Border>
+                            <Border MinHeight="98" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="0" Margin="4" Grid.Column="1">
+                                <Grid>
+                                    <StackPanel Margin="11,10,11,9">
+                                        <TextBlock x:Name="NetworkMetricRunningLabelTextBlock" Text="متصلة في السيناريو (ديمو)" FontSize="10.5" Foreground="{StaticResource MutedBrush}" />
+                                        <TextBlock x:Name="OnlineCountTextBlock" Text="0" FontSize="26" FontWeight="Bold" Foreground="#16865A" Margin="0,6,0,0" />
+                                        <TextBlock x:Name="NetworkMetricRunningDetailTextBlock" Text="ليست قراءة مباشرة" FontSize="9.5" Foreground="{StaticResource MutedBrush}" />
+                                    </StackPanel>
+                                    <Border Height="3" Background="#A61919" VerticalAlignment="Top" HorizontalAlignment="Stretch" IsHitTestVisible="False" />
+                                </Grid>
+                            </Border>
+                            <Border MinHeight="98" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="0" Margin="4" Grid.Column="2">
+                                <Grid>
+                                    <StackPanel Margin="11,10,11,9">
+                                        <TextBlock x:Name="NetworkMetricInactiveLabelTextBlock" Text="تنبيهات تجريبية" FontSize="10.5" Foreground="{StaticResource MutedBrush}" />
+                                        <TextBlock x:Name="AlertCountTextBlock" Text="0" FontSize="26" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,6,0,0" />
+                                        <TextBlock x:Name="NetworkMetricInactiveDetailTextBlock" Text="تحتاج متابعة في الديمو" FontSize="9.5" Foreground="{StaticResource MutedBrush}" />
+                                    </StackPanel>
+                                    <Border Height="3" Background="#A61919" VerticalAlignment="Top" HorizontalAlignment="Stretch" IsHitTestVisible="False" />
+                                </Grid>
+                            </Border>
+                            <Border MinHeight="98" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="0" Margin="4" Grid.Column="3">
+                                <Grid>
+                                    <StackPanel Margin="11,10,11,9">
+                                        <TextBlock x:Name="NetworkMetricCpuLabelTextBlock" Text="مهام مفتوحة (ديمو)" FontSize="10.5" Foreground="{StaticResource MutedBrush}" />
+                                        <TextBlock x:Name="TaskCountTextBlock" Text="0" FontSize="26" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,6,0,0" />
+                                        <TextBlock x:Name="NetworkMetricCpuDetailTextBlock" Text="قائمة الصيانة التجريبية" FontSize="9.5" Foreground="{StaticResource MutedBrush}" />
+                                    </StackPanel>
+                                    <Border Height="3" Background="#A61919" VerticalAlignment="Top" HorizontalAlignment="Stretch" IsHitTestVisible="False" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                        <Border Background="{StaticResource PrimaryLightBrush}" CornerRadius="9" Padding="11" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock x:Name="NetworkDataModeHeadingTextBlock" Text="حالة مصدر البيانات" FontSize="12" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" />
+                                <TextBlock x:Name="StatusTextBlock" Text="البيانات محلية تجريبية. لم يتم الاتصال براوتر أو جهاز حقيقي." FontSize="11" Foreground="{StaticResource PrimaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                <TextBlock x:Name="LastCheckTextBlock" Text="لم تُنفذ محاكاة في هذه الجلسة." FontSize="10" Foreground="{StaticResource PrimaryBrush}" TextWrapping="Wrap" Margin="0,5,0,0" />
+                                <TextBlock x:Name="RouterSystemSummaryTextBlock" Text="لا يوجد اتصال فعّال بالراوتر. استخدم زر الاتصال في رأس التطبيق." FontSize="10.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
+                            </StackPanel>
+                        </Border>
+                        <WrapPanel Margin="0,0,0,12">
+                            <Button Content="المتصلون والاستهلاك" Style="{StaticResource SecondaryButton}" Click="OpenClientsButton_Click" Margin="0,0,8,7" />
+                            <Button Content="التحليلات" Style="{StaticResource SecondaryButton}" Click="OpenAnalyticsButton_Click" Margin="0,0,8,7" />
+                        </WrapPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="الواجهات">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="8,8,8,12">
+                        <TextBlock Text="واجهات الراوتر" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,0,0,3" />
+                        <TextBlock Text="بعد نجاح الاتصال، يعرض الجدول حالة الواجهة وعدادات الاستقبال والإرسال المقروءة من RouterOS." FontSize="11" FontWeight="Normal" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,12" />
+                        <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,10">
+                            <StackPanel Margin="0">
+                                <TextBlock Text="يُملأ الجدول بعد نجاح الاتصال من تبويب «الاتصال». تعرض القيم عدّادات الواجهات المقروءة فعليًا من الراوتر." FontSize="11" FontWeight="Normal" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,10" />
+                                <DataGrid x:Name="RouterInterfacesDataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" MinHeight="120" MaxHeight="290" Visibility="Collapsed" Margin="0,10,0,0">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="اسم الواجهة" Binding="{Binding Name}" Width="1.1*" />
+                                        <DataGridTextColumn Header="النوع" Binding="{Binding Type}" Width="0.8*" />
+                                        <DataGridTextColumn Header="Running" Binding="{Binding Running}" Width="0.7*" />
+                                        <DataGridTextColumn Header="Disabled" Binding="{Binding Disabled}" Width="0.7*" />
+                                        <DataGridTextColumn Header="RX bytes" Binding="{Binding RxBytes}" Width="1*" />
+                                        <DataGridTextColumn Header="TX bytes" Binding="{Binding TxBytes}" Width="1*" />
+                                        <DataGridTextColumn Header="Link downs" Binding="{Binding LinkDowns}" Width="0.8*" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="حركة المرور">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="8,8,8,12">
+                        <Border x:Name="RouterTrafficPanel" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="12" Margin="0,0,0,10">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="180" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="حركة المرور الفعلية حسب الواجهة" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                                        <TextBlock Text="تُحسب سرعة الاستقبال والإرسال من فرق عدادات RouterOS الحقيقية كل خمس ثوانٍ." FontSize="10.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="الواجهة المختارة للرسم" FontSize="10" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,4" />
+                                        <ComboBox x:Name="TrafficInterfaceComboBox" Padding="6" SelectionChanged="TrafficInterfaceComboBox_SelectionChanged" />
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock x:Name="TrafficSamplingStatusTextBlock" Text="اتصل براوتر RouterOS لجمع عينات فعلية. يحتاج الرسم إلى عينات زمنية متتابعة." FontSize="10.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,8,0,8" />
+                                <Canvas x:Name="TrafficHistoryCanvas" Height="190" MinHeight="160" Background="#F8FAFC" SizeChanged="TrafficHistoryCanvas_SizeChanged" />
+                                <WrapPanel Margin="0,8,0,8">
+                                    <TextBlock Text="● RX استقبال" Foreground="#2563EB" FontSize="10.5" Margin="0,0,16,0" />
+                                    <TextBlock Text="● TX إرسال" Foreground="#DC2626" FontSize="10.5" />
+                                </WrapPanel>
+                                <DataGrid x:Name="RouterTrafficDataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" MinHeight="100" MaxHeight="220">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="الواجهة" Binding="{Binding Name}" Width="0.9*" />
+                                        <DataGridTextColumn Header="النوع" Binding="{Binding Type}" Width="0.8*" />
+                                        <DataGridTextColumn Header="حالة الوصلة" Binding="{Binding RunningText}" Width="0.9*" />
+                                        <DataGridTextColumn Header="RX Mbps" Binding="{Binding ReceiveRate}" Width="0.9*" />
+                                        <DataGridTextColumn Header="TX Mbps" Binding="{Binding TransmitRate}" Width="0.9*" />
+                                        <DataGridTextColumn Header="RX bytes" Binding="{Binding RxBytes}" Width="1.1*" />
+                                        <DataGridTextColumn Header="TX bytes" Binding="{Binding TxBytes}" Width="1.1*" />
+                                        <DataGridTextColumn Header="Link downs" Binding="{Binding LinkDowns}" Width="0.8*" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <TextBlock Text="يبدأ التاريخ عند الاتصال ولا يُعرض على أنه تاريخ سابق. سرعة المرور مشتقة من فرق عدادات bytes مقروءة من الراوتر، وليست بيانات محاكاة." FontSize="10" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,8,0,0" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="الأجهزة المكتشفة">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="8,8,8,12">
+                        <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,10">
+                            <StackPanel>
+                                <TextBlock Text="الأجهزة التي رصدها الراوتر فعليًا" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                                <TextBlock x:Name="RouterDiscoverySummaryTextBlock" Text="تظهر النتائج بعد نجاح الاتصال وجلب بيانات الراوتر." FontSize="11" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,5,0,10" />
+                                <TextBlock Text="الجيران المكتشفون — MNDP / LLDP / CDP" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5" />
+                                <TextBlock Text="هذه قائمة الجيران الذين أعلنوا عن أنفسهم ضمن نطاق الطبقة الثانية؛ لا تمثل بالضرورة كل الأجهزة خلف راوترات أخرى." FontSize="10" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,6" />
+                                <DataGrid x:Name="RouterNeighborsDataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" MinHeight="70" MaxHeight="220" Visibility="Collapsed">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="الواجهة" Binding="{Binding InterfaceName}" Width="0.8*" />
+                                        <DataGridTextColumn Header="العنوان" Binding="{Binding Address}" Width="1*" />
+                                        <DataGridTextColumn Header="MAC" Binding="{Binding MacAddress}" Width="1.2*" />
+                                        <DataGridTextColumn Header="الهوية" Binding="{Binding Identity}" Width="1.1*" />
+                                        <DataGridTextColumn Header="الطراز" Binding="{Binding Board}" Width="1.1*" />
+                                        <DataGridTextColumn Header="الإصدار" Binding="{Binding Version}" Width="0.9*" />
+                                        <DataGridTextColumn Header="بروتوكول الاكتشاف" Binding="{Binding DiscoveredBy}" Width="1.1*" />
+                                        <DataGridTextColumn Header="عمر السجل" Binding="{Binding Age}" Width="0.8*" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <TextBlock Text="سجلات ARP — عناوين IP وMAC شوهدت على الوصلات المباشرة" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,12,0,5" />
+                                <TextBlock Text="ARP ليس اكتشافًا كاملًا للشبكة؛ يعرض الخرائط التي يعرفها الراوتر بين IP وMAC، وقد يكون فارغًا إذا لم يمر مرور مناسب." FontSize="10" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,6" />
+                                <DataGrid x:Name="RouterArpDataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" MinHeight="70" MaxHeight="220" Visibility="Collapsed">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="IP" Binding="{Binding Address}" Width="1*" />
+                                        <DataGridTextColumn Header="MAC" Binding="{Binding MacAddress}" Width="1.3*" />
+                                        <DataGridTextColumn Header="الواجهة" Binding="{Binding InterfaceName}" Width="1*" />
+                                        <DataGridTextColumn Header="نوع السجل" Binding="{Binding State}" Width="1.1*" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="خريطة الاكتشاف" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                    <StackPanel Margin="8,8,8,12">
+                        <TextBlock Text="خريطة اكتشاف الشبكة" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,3" />
+                        <TextBlock Text="تُرسم العقد من جداول الراوتر الحقيقية. الخطوط المتقطعة تعني أن الراوتر رصد العنوان عبر مصدر معيّن؛ ولا تثبت وحدها اتصالًا ماديًا مباشرًا بين الأجهزة." FontSize="11" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,10" />
+                        <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="12">
+                            <StackPanel>
+                                <TextBlock x:Name="RouterMapSummaryTextBlock" Text="اتصل بالراوتر من زر الاتصال في رأس التطبيق لعرض الاكتشافات الفعلية." FontSize="11.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="620">
+                                    <Canvas x:Name="NetworkTopologyCanvas" Width="780" Height="180" Background="#F8FAFC" />
+                                </ScrollViewer>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="المحاكاة التجريبية">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="8,8,8,12">
+                        <TextBlock Text="المحاكاة التجريبية" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,0,0,3" />
+                        <TextBlock Text="هذه الخريطة وسيناريوهات الأعطال محاكاة محلية، وليست طوبولوجيا مكتشفة من الراوتر." FontSize="11" FontWeight="Normal" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,12" />
+                        <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="12" Padding="14" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="محاكي أعطال محلي (لا يغيّر الراوتر)" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                                <TextBlock Text="اختر جهازًا أو اضغط على عقدة في الخريطة، ثم جرّب عطلًا أو الاستعادة. ستتغير سجلات الديمو والتنبيهات المشتركة بين الشاشات." FontSize="11" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,5,0,12" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="9" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="الجهاز" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,5" />
+                                        <ComboBox x:Name="SimulatorDeviceComboBox" Padding="7" DisplayMemberPath="Name" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="السيناريو" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,5" />
+                                        <ComboBox x:Name="SimulatorScenarioComboBox" Padding="7" />
+                                    </StackPanel>
+                                </Grid>
+                                <WrapPanel Margin="0,11,0,0">
+                                    <Button Content="تنفيذ السيناريو" Style="{StaticResource PrimaryButton}" Click="RunScenarioButton_Click" Margin="0,0,8,7" />
+                                    <Button Content="استعادة الاتصال" Style="{StaticResource SecondaryButton}" Click="RestoreDeviceButton_Click" Margin="0,0,8,7" />
+                                    <Button Content="فتح المراقبة" Style="{StaticResource SecondaryButton}" Click="OpenMonitoringButton_Click" Margin="0,0,0,7" />
+                                </WrapPanel>
+                                <TextBlock x:Name="SimulatorResultTextBlock" Text="لم يتم تغيير أي جهاز بعد. هذه المحاكاة لا ترسل أوامر إلى الشبكة." FontSize="11" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Text="تنبيه: الحالات التي تغيّرها من المحاكي محفوظة في ذاكرة الديمو أثناء تشغيل التطبيق فقط. لا يوجد اتصال أو تحكم فعلي بأجهزة الشبكة." FontSize="10.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="2,0,2,12" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="التنبيهات والصيانة">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="8,8,8,12">
+                        <TextBlock Text="التنبيهات والصيانة" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,0,0,3" />
+                        <TextBlock Text="هذه السجلات جزء من سيناريو الديمو الحالي، وليست تنبيهات أو مهام مستخرجة تلقائيًا من الراوتر." FontSize="11" FontWeight="Normal" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,12" />
+                        <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="12" Padding="14" Margin="0,0,0,12">
+                            <StackPanel>
+                                <DockPanel>
+                                    <TextBlock Text="تنبيهات الديمو والمحاكاة" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                                    <Button DockPanel.Dock="Left" Content="عرض الكل" Style="{StaticResource SecondaryButton}" Click="OpenMonitoringButton_Click" Padding="8,4" />
+                                </DockPanel>
+                                <ItemsControl x:Name="AlertsItemsControl" ItemsSource="{Binding Alerts}" Margin="0,10,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,7">
+                                                <StackPanel>
+                                                    <DockPanel>
+                                                        <Border DockPanel.Dock="Left" Background="{StaticResource PrimaryLightBrush}" CornerRadius="5" Padding="6,3" Margin="8,0,0,0">
+                                                            <TextBlock Text="{Binding Severity}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" />
+                                                        </Border>
+                                                        <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                                    </DockPanel>
+                                                    <TextBlock Text="{Binding DeviceName}" FontSize="10.5" FontWeight="SemiBold" Margin="0,5,0,0" />
+                                                    <TextBlock Text="{Binding SiteName}" FontSize="10" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,2,0,0" />
+                                                    <DockPanel Margin="0,7,0,0">
+                                                        <TextBlock Text="{Binding Age}" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
+                                                        <Button DockPanel.Dock="Left" Content="فتح التنبيه" Tag="{Binding Id}" Style="{StaticResource SecondaryButton}" Click="OpenAlertButton_Click" Padding="8,4" />
+                                                    </DockPanel>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="12" Padding="14" Margin="0,0,0,12">
+                            <StackPanel>
+                                <DockPanel>
+                                    <TextBlock Text="ملخص المواقع التجريبية" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                                    <Button DockPanel.Dock="Left" Content="تفاصيل المواقع والأجهزة" Style="{StaticResource SecondaryButton}" Click="OpenDevicesButton_Click" Padding="8,4" />
+                                </DockPanel>
+                                <ItemsControl ItemsSource="{Binding SiteSummaries}" Margin="0,10,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,7">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="Bold" />
+                                                        <TextBlock Text="{Binding Area}" FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0" />
+                                                        <TextBlock Text="{Binding HealthLabel}" FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0" TextWrapping="Wrap" />
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                                                        <TextBlock Text="{Binding DeviceCount}" FontSize="20" FontWeight="Bold" TextAlignment="Center" />
+                                                        <TextBlock Text="جهاز" FontSize="9.5" Foreground="{StaticResource MutedBrush}" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="12" Padding="14" Margin="0,0,0,12">
+                            <StackPanel>
+                                <DockPanel>
+                                    <TextBlock Text="مهام الصيانة (الديمو)" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                                    <Button DockPanel.Dock="Left" Content="فتح الصيانة" Style="{StaticResource PrimaryButton}" Click="OpenMaintenanceButton_Click" Padding="8,4" />
+                                </DockPanel>
+                                <ItemsControl x:Name="TasksItemsControl" ItemsSource="{Binding Tasks}" Margin="0,10,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,7">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                                        <TextBlock Text="{Binding DeviceName}" FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" />
+                                                        <TextBlock Text="{Binding SiteName}" FontSize="10" Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0" />
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
+                                                        <TextBlock Text="{Binding Priority}" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" />
+                                                        <TextBlock Text="{Binding Status}" FontSize="10" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

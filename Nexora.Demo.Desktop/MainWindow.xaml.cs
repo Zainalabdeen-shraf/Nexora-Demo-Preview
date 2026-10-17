@@ -1,12 +1,14 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using System.Text.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Shell;
 
 using System.Globalization;
 using Nexora.Demo.Desktop.Features.Cards.Models;
@@ -18,7 +20,13 @@ using Nexora.Demo.Desktop.Features.Sales.Views;
 using Nexora.Demo.Desktop.Features.Shared;
 using Nexora.Demo.Desktop.Features.Reports.Views;
 using Nexora.Demo.Desktop.Features.Networks.Views;
+
+using Nexora.Demo.Desktop.Features.NetworkOperations.Views;
+using Nexora.Demo.Desktop.Features.NetworkOperations.Models;
+using Nexora.Demo.Desktop.Features.Settings.Views;
+using Nexora.Demo.Desktop.Features.Settings.Services;
 using Nexora.Demo.Desktop.Features.Packages.Views;
+using Nexora.Demo.Desktop.Features.NetworkOperations.Connections;
 namespace Nexora.Demo.Desktop;
 
 public partial class MainWindow : Window
@@ -51,14 +59,17 @@ public partial class MainWindow : Window
         ["printing"] = ["تصميم القالب", "قائمة الطباعة"],
         ["networks"] = ["مدير المستخدمين", "الهوتسبوت", ],
         ["reports"] = ["مركز التقارير"],
-        ["settings"] = ["إعدادات النظام", "الموقع والهوية", "النسخ الاحتياطي", "الصيانة"]
+        ["network-center"] = ["نظرة عامة", "المواقع والأجهزة", "المتصلون", "المراقبة", "الصيانة", "التحليلات"],
+        ["settings"] = ["إعدادات النظام", "الشاشات والمظهر", "الموقع والهوية", "النسخ الاحتياطي"]
     };
     private string _currentSection = "dashboard";
-    private DemoAccountSystem _selectedCardSystem = DemoAccountSystem.UserManager;
+    private DemoAccountSystem _selectedCardSystem = DemoAccountSystem.HotSpot;
     private readonly DemoCardIssuanceService _demoCardIssuanceService = new();
     private readonly DemoSalesService _demoSalesService = new();
     private readonly Dictionary<string, UserControl> _featureViewCache = new(StringComparer.Ordinal);
     private string _sectionBeforeLocationEdit = "dashboard";
+    private string _tabBeforeLocationEdit = "إعدادات النظام";
+    private bool _locationEditWasOnboarding;
     private string _networkDisplayName = "مساحة الشبكة";
     private string? _createdTrialPhone;
     private string? _createdTrialPassword;
@@ -67,10 +78,14 @@ public partial class MainWindow : Window
     private string? _savedLocationSummary;
     private string? _currentAccountKey;
     private bool _locationRequiredForCurrentAccount;
+    private RouterConnectionProfile? _savedRouterProfile;
+    private bool _routerConnectionRequestInProgress;
 
     public MainWindow()
     {
         InitializeComponent();
+        StateChanged += (_, _) => UpdateWorkspaceWindowControls();
+        ApplyShellDisplayPreferences();
         SystemPasswordBox.Password = DemoPassword;
         TrialPasswordBox.Password = DemoTrialPassword;
         GovernorateComboBox.ItemsSource = _directorates.Keys.OrderBy(x => x).ToList();
@@ -162,27 +177,256 @@ public partial class MainWindow : Window
     private void OpenRegistrationLinkButton_Click(object sender, RoutedEventArgs e)
     {
         try { Process.Start(new ProcessStartInfo { FileName = NetworkRegistrationUrl, UseShellExecute = true }); }
-        catch (Exception ex) { MessageBox.Show("تعذر فتح رابط التسجيل. " + ex.Message, "Nexora", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        catch (Exception ex) { MessageBox.Show("تعذر فتح رابط التسجيل. " + ex.Message, "تاب كارد", MessageBoxButton.OK, MessageBoxImage.Warning); }
     }
 
+
+    private void ConfigureWorkspaceWindowChrome()
+    {
+        // Custom title bar is enabled only for the authenticated workspace.
+        WindowState = WindowState.Normal;
+        WindowChrome.SetWindowChrome(this, new WindowChrome
+        {
+            CaptionHeight = 50,
+            ResizeBorderThickness = new Thickness(6),
+            GlassFrameThickness = new Thickness(0),
+            CornerRadius = new CornerRadius(0),
+            UseAeroCaptionButtons = false
+        });
+        WindowStyle = WindowStyle.None;
+        ResizeMode = ResizeMode.CanResize;
+        UpdateWorkspaceWindowControls();
+    }
+
+    private void RestoreLoginWindowChrome()
+    {
+        WindowState = WindowState.Normal;
+        WindowChrome.SetWindowChrome(this, null);
+        WindowStyle = WindowStyle.SingleBorderWindow;
+        ResizeMode = ResizeMode.CanResize;
+    }
+
+    private void UpdateWorkspaceWindowControls()
+    {
+        if (WindowMaximizeRestoreButton is not null)
+            WindowMaximizeRestoreButton.Content = WindowState == WindowState.Maximized ? "❐" : "□";
+    }
+
+    private void LoadSavedRouterConnectionProfile()
+    {
+        _savedRouterProfile = null;
+        if (string.IsNullOrWhiteSpace(_currentAccountKey))
+        {
+            RefreshRouterConnectionHeaderStatus();
+            return;
+        }
+
+        try
+        {
+            _savedRouterProfile = RouterConnectionProfileStore.Load(_currentAccountKey);
+            if (_savedRouterProfile is not null)
+                RouterConnectionDialogStatusTextBlock.Text = "تم تحميل بيانات الاتصال المحفوظة من Windows. اضغط اختبار الاتصال لاستخدامها.";
+        }
+        catch (Exception)
+        {
+            _savedRouterProfile = null;
+            RouterConnectionDialogStatusTextBlock.Text = "تعذر قراءة بيانات الاتصال المحفوظة من Windows. يمكنك إدخال البيانات واختبارها من جديد.";
+        }
+        RefreshRouterConnectionHeaderStatus();
+    }
+
+    private void RefreshRouterConnectionHeaderStatus()
+    {
+        if (RouterConnectionHeaderStatusTextBlock is null) return;
+        if (RouterConnectionSession.CurrentSnapshot is { } snapshot)
+        {
+            RouterConnectionHeaderStatusTextBlock.Text = "متصل · " + snapshot.Identity;
+            RouterConnectionHeaderStatusTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(187, 247, 208));
+        }
+        else if (_savedRouterProfile is not null)
+        {
+            RouterConnectionHeaderStatusTextBlock.Text = "اتصال محفوظ";
+            RouterConnectionHeaderStatusTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(254, 202, 202));
+        }
+        else
+        {
+            RouterConnectionHeaderStatusTextBlock.Text = "غير متصل";
+            RouterConnectionHeaderStatusTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(254, 202, 202));
+        }
+    }
+
+    private void OpenRouterConnectionOverlay_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_currentAccountKey)) return;
+        LoadSavedRouterConnectionProfile();
+
+        var active = RouterConnectionSession.CurrentOptions;
+        if (active is not null)
+        {
+            RouterConnectionAddressTextBox.Text = active.BaseAddress.GetLeftPart(UriPartial.Authority);
+            RouterConnectionUsernameTextBox.Text = active.Username;
+            RouterConnectionPasswordBox.Password = active.Password;
+            SaveRouterConnectionCheckBox.IsChecked = _savedRouterProfile is not null;
+        }
+        else if (_savedRouterProfile is not null)
+        {
+            RouterConnectionAddressTextBox.Text = _savedRouterProfile.Address;
+            RouterConnectionUsernameTextBox.Text = _savedRouterProfile.Username;
+            RouterConnectionPasswordBox.Password = _savedRouterProfile.Password;
+            SaveRouterConnectionCheckBox.IsChecked = true;
+        }
+        else
+        {
+            RouterConnectionAddressTextBox.Clear();
+            RouterConnectionUsernameTextBox.Clear();
+            RouterConnectionPasswordBox.Clear();
+            SaveRouterConnectionCheckBox.IsChecked = true;
+            RouterConnectionDialogStatusTextBlock.Text = "أدخل عنوان HTTPS وحساب القراءة. ستُستخدم هذه البيانات للاختبار ولن تُحفظ إلا بعد نجاحه.";
+        }
+
+        RefreshRouterConnectionHeaderStatus();
+        RouterConnectionOverlay.Visibility = Visibility.Visible;
+        RouterConnectionAddressTextBox.Focus();
+    }
+
+    private void CloseRouterConnectionOverlay_Click(object sender, RoutedEventArgs e)
+    {
+        RouterConnectionOverlay.Visibility = Visibility.Collapsed;
+        RefreshRouterConnectionHeaderStatus();
+    }
+
+    private async void ConnectRouterButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_routerConnectionRequestInProgress) return;
+        if (string.IsNullOrWhiteSpace(_currentAccountKey))
+        {
+            RouterConnectionDialogStatusTextBlock.Text = "افتح مساحة الشبكة أولًا.";
+            return;
+        }
+
+        _routerConnectionRequestInProgress = true;
+        ConnectRouterButton.IsEnabled = false;
+        RouterConnectionDialogStatusTextBlock.Text = "جارٍ اختبار HTTPS وقراءة هوية الراوتر والموارد والواجهات والجيران وARP...";
+        try
+        {
+            var options = RouterOsConnectionOptions.Create(
+                RouterConnectionAddressTextBox.Text,
+                RouterConnectionUsernameTextBox.Text,
+                RouterConnectionPasswordBox.Password);
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            using var client = new RouterOsRestClient(options);
+            var snapshot = await client.ReadDiagnosticsAsync(timeout.Token);
+
+            // Publish the active connection only after a successful real read.
+            RouterConnectionSession.SetConnected(options, snapshot);
+            var normalizedAddress = options.BaseAddress.GetLeftPart(UriPartial.Authority);
+            if (SaveRouterConnectionCheckBox.IsChecked == true)
+            {
+                var profile = new RouterConnectionProfile(normalizedAddress, options.Username, options.Password, DateTimeOffset.Now);
+                RouterConnectionProfileStore.Save(_currentAccountKey, profile);
+                _savedRouterProfile = profile;
+            }
+            else
+            {
+                RouterConnectionProfileStore.Delete(_currentAccountKey);
+                _savedRouterProfile = null;
+            }
+
+            RouterConnectionDialogStatusTextBlock.Text = $"نجح الاتصال بالراوتر «{snapshot.Identity}» وقراءة {snapshot.Interfaces.Count:N0} واجهة عند {snapshot.CollectedAt:HH:mm:ss}.";
+            RefreshRouterConnectionHeaderStatus();
+            RouterConnectionOverlay.Visibility = Visibility.Collapsed;
+        }
+        catch (RouterOsConnectionException ex)
+        {
+            RouterConnectionDialogStatusTextBlock.Text = ex.UserMessage;
+        }
+        catch (ArgumentException ex)
+        {
+            RouterConnectionDialogStatusTextBlock.Text = ex.Message;
+        }
+        catch (OperationCanceledException)
+        {
+            RouterConnectionDialogStatusTextBlock.Text = "انتهت مهلة اختبار الاتصال. تحقق من العنوان وإمكانية الوصول إلى الراوتر.";
+        }
+        catch (HttpRequestException)
+        {
+            RouterConnectionDialogStatusTextBlock.Text = "تعذر إنشاء اتصال HTTPS موثوق. تحقق من الشبكة وخدمة HTTPS وشهادة TLS.";
+        }
+        catch (Exception ex)
+        {
+            // A successful read can precede a local credential-store error; keep the live session and explain the save failure.
+            if (RouterConnectionSession.CurrentSnapshot is { } live)
+            {
+                RouterConnectionDialogStatusTextBlock.Text = $"الاتصال بالراوتر «{live.Identity}» ناجح، لكن تعذر حفظ بيانات الاعتماد محليًا. {ex.Message}";
+                RefreshRouterConnectionHeaderStatus();
+            }
+            else
+            {
+                RouterConnectionDialogStatusTextBlock.Text = "تعذر إكمال الاتصال أو حفظ الإعداد. لم تُرسل أوامر تغيير إلى الراوتر.";
+            }
+        }
+        finally
+        {
+            _routerConnectionRequestInProgress = false;
+            ConnectRouterButton.IsEnabled = true;
+        }
+    }
+
+    private void DisconnectRouterButton_Click(object sender, RoutedEventArgs e)
+    {
+        RouterConnectionSession.Disconnect();
+        RouterConnectionDialogStatusTextBlock.Text = _savedRouterProfile is null
+            ? "تم قطع الاتصال. لا توجد بيانات اتصال محفوظة."
+            : "تم قطع الاتصال. بيانات الاتصال محفوظة ويمكن استخدامها مجددًا.";
+        RefreshRouterConnectionHeaderStatus();
+    }
+
+    private void ClearSavedRouterConnectionButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_currentAccountKey)) return;
+        try
+        {
+            RouterConnectionProfileStore.Delete(_currentAccountKey);
+            _savedRouterProfile = null;
+            RouterConnectionDialogStatusTextBlock.Text = "حُذفت بيانات الاتصال المحفوظة من Windows. الاتصال الحالي لم يُقطع.";
+            RefreshRouterConnectionHeaderStatus();
+        }
+        catch (Exception)
+        {
+            RouterConnectionDialogStatusTextBlock.Text = "تعذر حذف بيانات الاتصال المحفوظة من Windows.";
+        }
+    }
+
+    private void WindowCloseButton_Click(object sender, RoutedEventArgs e) => Close();
+    private void WindowMinimizeButton_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+    private void WindowMaximizeRestoreButton_Click(object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+    }
     private void OpenWorkspace(string header, string accountKey, bool requireLocation)
     {
         _currentAccountKey = accountKey;
+        LoadSavedRouterConnectionProfile();
         _locationRequiredForCurrentAccount = requireLocation;
         LoadSavedLocation(accountKey);
         SidebarNetworkTextBlock.Text = _networkDisplayName;
-        Title = "Nexora | إدارة شبكات الإنترنت";
+        Title = "تاب كارد | إدارة شبكات الإنترنت";
         LoginView.Visibility = Visibility.Collapsed;
         WorkspaceView.Visibility = Visibility.Visible;
+        ConfigureWorkspaceWindowChrome();
         MaxWidth = double.PositiveInfinity;
         MaxHeight = double.PositiveInfinity;
         var workArea = SystemParameters.WorkArea;
         MinWidth = Math.Min(1050, Math.Max(560, workArea.Width - 48));
         MinHeight = Math.Min(680, Math.Max(420, workArea.Height - 48));
-        Width = Math.Min(1400, workArea.Width);
-        Height = Math.Min(900, workArea.Height);
-        WindowState = WindowState.Maximized;
 
+        // Keep the workspace inside the usable desktop area (above the taskbar).
+        // Use Normal state with explicit work-area bounds to avoid inconsistent custom maximize sizing.
+        WindowState = WindowState.Normal;
+        Left = workArea.Left + 4;
+        Top = workArea.Top + 4;
+        Width = Math.Min(1400, Math.Max(560, workArea.Width - 8));
+        Height = Math.Min(900, Math.Max(420, workArea.Height - 8));
         LocationBadgeTextBlock.Visibility = requireLocation ? Visibility.Visible : Visibility.Collapsed;
         LocationBadgeTextBlock.Text = _locationSaved ? (_savedLocationSummary ?? "الموقع مكتمل") : "أكمل موقع الشبكة";
         WorkspaceView.IsEnabled = !(requireLocation && !_locationSaved);
@@ -191,6 +435,9 @@ public partial class MainWindow : Window
 
         if (requireLocation && !_locationSaved)
         {
+            _locationEditWasOnboarding = true;
+            _sectionBeforeLocationEdit = "dashboard";
+            _tabBeforeLocationEdit = string.Empty;
             _currentSection = "dashboard";
             PageTitleTextBlock.Text = "الرئيسية";
             PageSubtitleTextBlock.Text = "أكمل موقع شبكتك لبدء العمل";
@@ -201,7 +448,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        NavigateTo("dashboard");
+        NavigateTo(DemoSystemSettingsStore.Current.StartupSection);
     }
 
     private void GovernorateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -247,17 +494,37 @@ public partial class MainWindow : Window
 
         _locationSaved = true;
         _savedLocationSummary = $"{governorate} · {directorate} · {area}";
+        if (_featureViewCache.TryGetValue("settings|الموقع والهوية", out var cachedIdentity) && cachedIdentity is WorkspaceIdentityView identityView)
+            identityView.UpdateSummary(_networkDisplayName, _locationSaved, _savedLocationSummary);
         LocationBadgeTextBlock.Text = _savedLocationSummary;
         LocationBadgeTextBlock.Visibility = _locationRequiredForCurrentAccount ? Visibility.Visible : Visibility.Collapsed;
         WorkspaceView.IsEnabled = true;
         LocationModalOverlay.Visibility = Visibility.Collapsed;
         CancelLocationEditButton.Visibility = Visibility.Collapsed;
-        NavigateTo(_locationRequiredForCurrentAccount ? "dashboard" : _sectionBeforeLocationEdit);
+        var wasOnboarding = _locationEditWasOnboarding;
+        _locationEditWasOnboarding = false;
+        if (wasOnboarding)
+            NavigateTo(DemoSystemSettingsStore.Current.StartupSection);
+        else
+            ReturnFromLocationEdit();
+    }
+
+    private void ReturnFromLocationEdit()
+    {
+        NavigateTo(_sectionBeforeLocationEdit);
+        if (_sectionBeforeLocationEdit != "dashboard" &&
+            _sectionTabs.TryGetValue(_sectionBeforeLocationEdit, out var availableTabs) &&
+            availableTabs.Contains(_tabBeforeLocationEdit))
+        {
+            ActivateSectionTab(_tabBeforeLocationEdit);
+        }
     }
 
     private void ShowLocationModal()
     {
         _sectionBeforeLocationEdit = _currentSection;
+        _tabBeforeLocationEdit = SectionContentTitleTextBlock.Text;
+        _locationEditWasOnboarding = _locationRequiredForCurrentAccount && !_locationSaved;
         LocationStatusTextBlock.Text = string.Empty;
         CancelLocationEditButton.Visibility = (_locationSaved || !_locationRequiredForCurrentAccount) ? Visibility.Visible : Visibility.Collapsed;
         var workArea = SystemParameters.WorkArea;
@@ -274,7 +541,7 @@ public partial class MainWindow : Window
         if (!_locationSaved && _locationRequiredForCurrentAccount) return;
         LocationModalOverlay.Visibility = Visibility.Collapsed;
         WorkspaceView.IsEnabled = true;
-        NavigateTo(_sectionBeforeLocationEdit);
+        ReturnFromLocationEdit();
     }
 
     private void NavigationButton_Click(object sender, RoutedEventArgs e)
@@ -325,16 +592,33 @@ public partial class MainWindow : Window
             "dashboard" => "الرئيسية",
             "network-users" => "مستخدمو الشبكة",
             "cards" => "الكروت والدفعات",
-            "packages" => "الباقات",
+            "packages" => "إدارة الباقات",
             "sales" => "المبيعات ونقاط البيع",
             "printing" => "الطباعة والتصميم",
             "networks" => "الشبكات ومصادر المصادقة",
+            "network-center" => "مركز الشبكة",
             "reports" => "مركز التقارير",
-            "settings" => "الإعدادات والصيانة",
-            _ => "Nexora"
+            "settings" => "إعدادات النظام",
+            _ => "تاب كارد"
+        };
+        PageTitleIconTextBlock.Text = key switch
+        {
+            "dashboard" => "\uE80F",
+            "network-users" => "\uE77B",
+            "cards" => "\uE8C7",
+            "packages" => "\uE8D4",
+            "sales" => "\uE7BF",
+            "printing" => "\uE749",
+            "networks" => "\uE701",
+            "network-center" => "\uE968",
+            "reports" => "\uE9D2",
+            "settings" => "\uE713",
+            _ => "\uE80F"
         };
         PageSubtitleTextBlock.Text = key switch
         {
+            "network-center" => "متابعة المواقع والأجهزة والتنبيهات ومهام الصيانة.",
+            "settings" => "تهيئة خيارات النظام والواجهة والهوية وإدارة النسخ الاحتياطية المحلية.",
             "dashboard" => "نظرة موحدة على الكروت والمبيعات ومصادر المصادقة",
             "cards" => "إصدار الكروت وإدارة الدفعات",
             _ => "كل وظيفة في مكانها، مع ربط واضح بين الإصدار والإدارة والتقارير"
@@ -356,10 +640,10 @@ public partial class MainWindow : Window
                 Tag = tab,
                 Style = (Style)FindResource("SectionTabButtonStyle"),
                 Margin = new Thickness(0),
-                Padding = new Thickness(16, 0, 16, 0),
+                Padding = new Thickness(12, 0, 12, 0),
                 MinWidth = 0,
-                Height = 38,
-                FontSize = 12.5,
+                Height = 34,
+                FontSize = 12,
                 BorderThickness = new Thickness(0),
                 BorderBrush = Brushes.Transparent,
                 Background = Brushes.Transparent,
@@ -374,7 +658,7 @@ public partial class MainWindow : Window
         StringComparison.Ordinal);
 
     if (!isSelected)
-        btn.Background = new SolidColorBrush(Color.FromRgb(232, 234, 238));
+        btn.Background = new SolidColorBrush(Color.FromRgb(252, 237, 239));
 };
 
 btn.MouseLeave += (_, _) =>
@@ -397,16 +681,60 @@ btn.MouseLeave += (_, _) =>
 };
 SectionTabsPanel.Children.Add(btn);
             }
+            ApplyShellDisplayPreferences();
             ActivateSectionTab(tabs[0]);
         }
 
+    private void ApplyShellDisplayPreferences()
+    {
+        var compact = DemoSystemSettingsStore.Current.NavigationDensity == "مدمجة";
+        foreach (var button in SidebarItemsPanel.Children.OfType<Button>())
+        {
+            button.Height = compact ? 31 : 35;
+            button.Margin = compact ? new Thickness(0) : new Thickness(0, 1, 0, 1);
+            button.Padding = compact ? new Thickness(7, 2, 7, 2) : new Thickness(8, 3, 8, 3);
+            if (button.Content is Panel panel)
+            {
+                foreach (var label in panel.Children.OfType<TextBlock>())
+                {
+                    if (Grid.GetColumn(label) == 1)
+                        label.FontSize = compact ? 11.5 : 13;
+                    else
+                        label.FontSize = compact ? 14.5 : 16;
+                }
+            }
+        }
+
+        foreach (var button in SectionTabsPanel.Children.OfType<Button>())
+        {
+            button.Height = compact ? 32 : 38;
+            button.FontSize = compact ? 11.5 : 12.5;
+            button.Padding = compact ? new Thickness(12, 0, 12, 0) : new Thickness(16, 0, 16, 0);
+        }
+    }
+
     private void UpdateSidebarSelection(string sectionKey)
     {
+        var activeBackground = Brushes.White;
+        var activeForeground = (Brush)FindResource("PrimaryBrush");
+        var activeBorder = new SolidColorBrush(Color.FromRgb(246, 195, 199));
+
         foreach (var button in SidebarItemsPanel.Children.OfType<Button>())
         {
             var selected = string.Equals(button.Tag?.ToString(), sectionKey, StringComparison.Ordinal);
-            button.Background = selected ? (Brush)FindResource("PrimaryDarkBrush") : Brushes.Transparent;
-            button.Foreground = Brushes.White;
+
+            button.Background = selected ? activeBackground : Brushes.Transparent;
+            button.Foreground = selected ? activeForeground : Brushes.White;
+            button.BorderBrush = selected ? activeBorder : Brushes.Transparent;
+            button.BorderThickness = new Thickness(1);
+
+            if (button.Content is Panel contentPanel)
+            {
+                foreach (var text in contentPanel.Children.OfType<TextBlock>())
+                {
+                    text.Foreground = selected ? activeForeground : Brushes.White;
+                }
+            }
         }
     }
 
@@ -439,21 +767,73 @@ SectionTabsPanel.Children.Add(btn);
 
             ActivateSectionTab(tabName);
         }
-
+        else if (_currentSection == "packages")
+        {
+            ActivateSectionTab("كتالوج الباقات");
+        }
     }
     private void SectionTabButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button button || button.Tag is not string tab) return;
         ActivateSectionTab(tab);
-        if (_currentSection == "settings" && tab == "الموقع والهوية") ShowLocationModal();
     }
 
     private void ActivateSectionTab(string tab)
     {
         SectionContentTitleTextBlock.Text = tab;
+        var unifiedIssuanceLayout = _currentSection == "cards" && string.Equals(tab, "إصدار الكروت", StringComparison.Ordinal);
+        SectionTabsScrollViewer.Visibility = unifiedIssuanceLayout ? Visibility.Collapsed : Visibility.Visible;
+        PageSubtitleTextBlock.FontSize = unifiedIssuanceLayout ? 10.5 : 11.5;
+        if (unifiedIssuanceLayout)
+        {
+            PageTitleTextBlock.Text = "إصدار الكروت";
+            PageSubtitleTextBlock.Text = "إنشاء دفعة جديدة ومعاينة الكرت والطباعة من شاشة واحدة";
+            PageTitleIconTextBlock.Text = "\uE8C7";
+        }
+        else
+        {
+            PageTitleTextBlock.Text = _currentSection switch
+            {
+                "dashboard" => "الرئيسية",
+                "network-users" => "مستخدمو الشبكة",
+                "cards" => "الكروت والدفعات",
+                "packages" => "إدارة الباقات",
+                "sales" => "المبيعات ونقاط البيع",
+                "printing" => "الطباعة والتصميم",
+                "networks" => "الشبكات ومصادر المصادقة",
+                "network-center" => "مركز الشبكة",
+                "reports" => "مركز التقارير",
+                "settings" => "الإعدادات والصيانة",
+                _ => "تاب كارد"
+            };
+            PageTitleIconTextBlock.Text = _currentSection switch
+            {
+                "dashboard" => "\uE80F",
+                "network-users" => "\uE77B",
+                "cards" => "\uE8C7",
+                "packages" => "\uE8D4",
+                "sales" => "\uE7BF",
+                "printing" => "\uE749",
+                "networks" => "\uE701",
+                "network-center" => "\uE968",
+                "reports" => "\uE9D2",
+                "settings" => "\uE713",
+                _ => "\uE80F"
+            };
+            PageSubtitleTextBlock.Text = _currentSection switch
+            {
+                "network-center" => "متابعة المواقع والأجهزة والتنبيهات ومهام الصيانة",
+                "dashboard" => "نظرة موحدة على الكروت والمبيعات ومصادر المصادقة",
+                "cards" => "إصدار الكروت وإدارة الدفعات",
+                _ => "كل وظيفة في مكانها، مع ربط واضح بين الإصدار والإدارة والتقارير"
+            };
+        }
         SectionContentDescriptionTextBlock.Text = GetSectionDescription(_currentSection, tab);
+        SectionTabsScrollViewer.Visibility = _currentSection == "packages" ? Visibility.Collapsed : Visibility.Visible;
         SectionPlaceholderTextBlock.Text = GetSectionPlaceholder(_currentSection, tab);
         RenderFeatureContent(tab);
+        if (SectionFeatureContentHost.Content is INetworkOperationsRefreshable refreshable)
+            refreshable.RefreshFromSharedState();
 
         if (SectionFeatureContentHost.Content is GeneratedCardsView cardsView)
         {
@@ -498,7 +878,7 @@ foreach (var child in SectionTabsPanel.Children.OfType<Button>())
 
         var featureOwnsWorkspace = SectionFeatureContentHost.Content is
             CardIssuanceView or IssuanceWorkspaceView or GeneratedCardsView or CardBatchesView or CardBatchesView or PendingCardsView or ImportCardsView or
-            PackageManagementView or SalesReportView or SalesTransactionsView or SalesPointsView or PrintQueueView or TemplateDesignerView or ReportsCenterView or NetworkSourcesView;
+            PackageManagementView or SalesReportView or SalesTransactionsView or SalesPointsView or PrintQueueView or TemplateDesignerView or ReportsCenterView or NetworkSourcesView or NetworkCenterView or NetworkSitesDevicesView or NetworkClientsView or NetworkMonitoringView or NetworkMaintenanceView or NetworkAnalyticsView or SystemSettingsView or ScreenAppearanceSettingsView or WorkspaceIdentityView or BackupSettingsView;
         var compactIssuanceWorkspace = SectionFeatureContentHost.Content is IssuanceWorkspaceView;
         SectionContentBorder.Padding = compactIssuanceWorkspace ? new Thickness(6) : new Thickness(14);
         SectionTabsScrollViewer.Margin = compactIssuanceWorkspace
@@ -520,6 +900,7 @@ foreach (var child in SectionTabsPanel.Children.OfType<Button>())
         var cardSystemKey = _selectedCardSystem == DemoAccountSystem.HotSpot ? "hotspot" : "user-manager";
         var cacheKey = _currentSection switch
         {
+            "network-center" => $"network-center|{tab}",
             "network-users" => $"network-users|{cardSystemKey}|accounts",
             "cards" when tab == "إصدار الكروت" => $"cards|{cardSystemKey}|issuance",
             "cards" when tab == "إدارة الكروت" => $"cards|{cardSystemKey}|cards-list",
@@ -570,7 +951,7 @@ foreach (var child in SectionTabsPanel.Children.OfType<Button>())
                 SectionPlaceholderTextBlock.Text = "تعذر تحميل هذه الشاشة. بقي النظام مفتوحًا، وسُجلت تفاصيل المشكلة للتشخيص.";
                 MessageBox.Show(
                     $"تعذر فتح شاشة «{tab}». لم يتم إغلاق النظام.\nتفاصيل الخطأ محفوظة في:\n{logPath}",
-                    "Nexora", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    "تاب كارد", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
         }
@@ -589,6 +970,43 @@ foreach (var child in SectionTabsPanel.Children.OfType<Button>())
     }
     private UserControl? CreateFeatureView(string section, string tab)
     {
+        if (section == "settings")
+        {
+            if (tab == "إعدادات النظام") return new SystemSettingsView();
+            if (tab == "الشاشات والمظهر")
+            {
+                var appearanceView = new ScreenAppearanceSettingsView();
+                appearanceView.PreferencesApplied += (_, _) => ApplyShellDisplayPreferences();
+                return appearanceView;
+            }
+            if (tab == "الموقع والهوية")
+            {
+                var identityView = new WorkspaceIdentityView(_networkDisplayName, _locationSaved, _savedLocationSummary);
+                identityView.EditLocationRequested += (_, _) => ShowLocationModal();
+                return identityView;
+            }
+            if (tab == "النسخ الاحتياطي") return new BackupSettingsView();
+        }
+
+        if (section == "network-center")
+        {
+            UserControl networkView = tab switch
+            {
+                "المواقع والأجهزة" => new NetworkSitesDevicesView(),
+                "المتصلون" => new NetworkClientsView(),
+                "المراقبة" => new NetworkMonitoringView(),
+                "الصيانة" => new NetworkMaintenanceView(),
+                "التحليلات" => new NetworkAnalyticsView(),
+                _ => new NetworkCenterView()
+            };
+
+            if (networkView is INetworkOperationsNavigationSource navigationSource)
+            {
+                navigationSource.NavigationRequested += (_, args) => ActivateSectionTab(args.TabName);
+            }
+
+            return networkView;
+        }
         if (section == "network-users")
         {
             var view = new GeneratedCardsView(
@@ -850,11 +1268,28 @@ foreach (var child in SectionTabsPanel.Children.OfType<Button>())
             _ => "إدارة موحدة لحسابات الدخول مع إمكانية التصفية حسب المصدر والحالة والدفعة."
         },
         "cards" => "إصدار الكروت ومتابعة الدفعات والمخزون في مساحة واحدة.",
-        "packages" => "كتالوج تجاري موحّد وربط تقني مستقل لكل جهة إصدار.",
+        "packages" => "تعريف باقات الاتصال التجارية وربطها بإعدادات المصدر.",
         "sales" => "معاملات البيع وتوزيع المبيعات وفق السجلات المتاحة.",
         "printing" => tab == "تصميم القالب" ? "تصميم قوالب الكروت وإدارة ظهور الحقول وحفظ إعدادات القالب محليًا." : "إدارة قائمة الكروت ومراجعة المعاينة وإرسال مهمة الطباعة.",
         "networks" => "إعداد مصادر المصادقة وربط وظائفها بوحدات Nexora.",
         "reports" => "التقارير التجارية والإدارية والتشغيلية مجمّعة حسب مصدرها.",
+        "network-center" => tab switch
+        {
+            "نظرة عامة" => "ملخص تشغيل موحد للأجهزة والمواقع والتنبيهات والمهام المفتوحة.",
+            "المواقع والأجهزة" => "حصر الأجهزة بحسب الدور والموقع وعلاقة الاتصال؛ الحالات التمثيلية موضحة داخل الشاشة.",
+            "المتصلون" => "عرض جلسات HotSpot وPPPoE منفصلة عن روابط CPE والأجهزة النهائية.",
+            "المراقبة" => "مراجعة التنبيهات التجريبية وربطها بإجراء صيانة واضح.",
+            "الصيانة" => "إدارة مهام الفحص والمتابعة المرتبطة بالأجهزة والتنبيهات.",
+            _ => "تحليل بيانات السيناريو التجريبي حسب الفترة والموقع، دون الادعاء بوجود قياس مباشر."
+        },
+        "settings" => tab switch
+        {
+            "إعدادات النظام" => "تحديد صفحة البداية وتفضيلات الإجراءات والبيانات المحلية.",
+            "الشاشات والمظهر" => "تطبيق كثافة مريحة أو مدمجة على القائمة الجانبية وتبويبات الأقسام.",
+            "الموقع والهوية" => "مراجعة اسم مساحة الشبكة وموقعها وتحديث المعلومات المحفوظة محليًا.",
+            "النسخ الاحتياطي" => "إنشاء حزمة محلية من ملفات بيانات الديمو المحفوظة ومراجعة سجل النسخ.",
+            _ => "إعدادات النظام والواجهة."
+        },
         _ => $"{tab} ضمن إدارة Nexora."
     };
 
@@ -862,8 +1297,8 @@ foreach (var child in SectionTabsPanel.Children.OfType<Button>())
     {
         ("settings", "الموقع والهوية") => "إدارة معلومات الشبكة وموقعها والعناصر المرتبطة بمساحة العمل.",
         ("settings", "النسخ الاحتياطي") => "مراجعة خيارات الاحتفاظ بنسخة احتياطية من بيانات التطبيق.",
-        ("settings", "الصيانة") => "أدوات الصيانة والتحقق من بيانات النظام.",
-        ("settings", _) => "إعدادات مساحة العمل والصلاحيات والمظهر.",
+        ("settings", "الشاشات والمظهر") => "ضبط كثافة التنقل وطريقة عرض عناصر الواجهة.",
+        ("settings", _) => "إعدادات النظام والواجهة والبيانات المحلية.",
         ("networks", "مصادر المصادقة") => "إدارة مصادر المصادقة وطرق الربط المستخدمة لحسابات الشبكة.",
         ("networks", "صفحات الدخول") => "إدارة مظهر ومحتوى صفحات الدخول بحسب خدمة الشبكة.",
         _ => "اختر وظيفة من التبويبات لفتح مساحة العمل المرتبطة بها."
@@ -916,20 +1351,24 @@ foreach (var child in SectionTabsPanel.Children.OfType<Button>())
 
     private void SignOutButton_Click(object sender, RoutedEventArgs e)
     {
+        RouterConnectionSession.Disconnect();
+        _savedRouterProfile = null;
         LocationModalOverlay.Visibility = Visibility.Collapsed;
         WorkspaceView.IsEnabled = true;
         WorkspaceView.Visibility = Visibility.Collapsed;
         LoginView.Visibility = Visibility.Visible;
         _currentAccountKey = null;
         _locationRequiredForCurrentAccount = false;
+        _locationEditWasOnboarding = false;
         _locationSaved = false;
         _savedLocationSummary = null;
         LocationBadgeTextBlock.Visibility = Visibility.Collapsed;
+        RestoreLoginWindowChrome();
         WindowState = WindowState.Normal;
         MinWidth = 520; MinHeight = 480; MaxWidth = 920; MaxHeight = 820;
         Width = Math.Min(660, SystemParameters.WorkArea.Width - 40);
         Height = Math.Min(630, SystemParameters.WorkArea.Height - 40);
-        Title = "Nexora | كروت الشبكات";
+        Title = "تاب كارد | كروت الشبكات";
         Left = Math.Max(0, (SystemParameters.WorkArea.Width - Width) / 2);
         Top = Math.Max(0, (SystemParameters.WorkArea.Height - Height) / 2);
         NetworkCodeTextBox.Text = DemoNetworkCode;

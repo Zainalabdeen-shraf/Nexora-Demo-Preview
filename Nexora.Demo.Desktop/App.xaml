@@ -1,25 +1,71 @@
 <Application x:Class="Nexora.Demo.Desktop.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" StartupUri="MainWindow.xaml">
  <Application.Resources>
-  <SolidColorBrush x:Key="PrimaryBrush" Color="#A01818"/><SolidColorBrush x:Key="PrimaryDarkBrush" Color="#760D0D"/><SolidColorBrush x:Key="PrimaryLightBrush" Color="#F9EDED"/>
-  <SolidColorBrush x:Key="AppBgBrush" Color="#F4F5F7"/><SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF"/><SolidColorBrush x:Key="BorderBrushSoft" Color="#DEE1E6"/>
-  <SolidColorBrush x:Key="TextBrush" Color="#20242A"/><SolidColorBrush x:Key="MutedBrush" Color="#6D7480"/><SolidColorBrush x:Key="SuccessBrush" Color="#16845B"/><SolidColorBrush x:Key="WarningBrush" Color="#B66B00"/><SolidColorBrush x:Key="DangerBrush" Color="#B42318"/>
-  <Style TargetType="TextBlock"><Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/><Setter Property="TextOptions.TextFormattingMode" Value="Display"/></Style>
-  <Style TargetType="TextBox"><Setter Property="Height" Value="38"/><Setter Property="Padding" Value="10,5"/><Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="13"/><Setter Property="Background" Value="White"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/><Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
-  <Style TargetType="PasswordBox"><Setter Property="Height" Value="38"/><Setter Property="Padding" Value="10,5"/><Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="13"/><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
-  <Style x:Key="PrimaryButton" TargetType="Button"><Setter Property="Height" Value="40"/><Setter Property="Padding" Value="14,0"/><Setter Property="Background" Value="{StaticResource PrimaryBrush}"/><Setter Property="Foreground" Value="White"/><Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Cursor" Value="Hand"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}" TextElement.FontWeight="{TemplateBinding FontWeight}"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bd" Property="Background" Value="{StaticResource PrimaryDarkBrush}"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter TargetName="bd" Property="Opacity" Value="0.5"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
-  <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}"><Setter Property="Background" Value="White"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/><Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/><Setter Property="Height" Value="38"/></Style>
-      <Style x:Key="SidebarNavButtonStyle" TargetType="Button">
-   <Setter Property="Height" Value="45"/><Setter Property="Margin" Value="0,2"/><Setter Property="Padding" Value="13,0"/>
-   <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="White"/><Setter Property="BorderThickness" Value="0"/>
-   <Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="13"/><Setter Property="FontWeight" Value="SemiBold"/>
+  <LinearGradientBrush x:Key="HeaderGradientBrush" StartPoint="0,0" EndPoint="1,0">
+   <GradientStop Color="#C72433" Offset="0"/>
+   <GradientStop Color="#B91B2A" Offset="0.55"/>
+   <GradientStop Color="#97111B" Offset="1"/>
+  </LinearGradientBrush>
+  <LinearGradientBrush x:Key="SalesBarBrush" StartPoint="0,0" EndPoint="0,1">
+   <GradientStop Color="#F04B55" Offset="0"/>
+   <GradientStop Color="#BD1B2A" Offset="1"/>
+  </LinearGradientBrush>
+  <DropShadowEffect x:Key="CardShadowEffect" BlurRadius="12" ShadowDepth="2" Opacity="0.10" Color="#26344A"/>
+  <SolidColorBrush x:Key="PrimaryBrush" Color="#BF1B2A"/><SolidColorBrush x:Key="PrimaryDarkBrush" Color="#8F101A"/><SolidColorBrush x:Key="PrimaryLightBrush" Color="#FCEBED"/><SolidColorBrush x:Key="PrimaryBorderBrush" Color="#F0B8BE"/>
+  <SolidColorBrush x:Key="AppBgBrush" Color="#F4F6F9"/><SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF"/><SolidColorBrush x:Key="BorderBrushSoft" Color="#DDE3EB"/>
+  <SolidColorBrush x:Key="TextBrush" Color="#17243A"/><SolidColorBrush x:Key="MutedBrush" Color="#687990"/><SolidColorBrush x:Key="SuccessBrush" Color="#14845D"/><SolidColorBrush x:Key="WarningBrush" Color="#A96500"/><SolidColorBrush x:Key="DangerBrush" Color="#B42318"/>
+  <!-- TabCard Design System v1: shared shape and spacing tokens -->
+  <CornerRadius x:Key="RadiusSmall">6</CornerRadius>
+  <CornerRadius x:Key="RadiusControl">8</CornerRadius>
+  <CornerRadius x:Key="RadiusCard">12</CornerRadius>
+  <Thickness x:Key="DashboardCardPadding">14</Thickness>
+  <Style TargetType="TextBlock"><Setter Property="FontFamily" Value="Tahoma"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/><Setter Property="TextOptions.TextFormattingMode" Value="Display"/></Style>
+  <Style TargetType="TextBox"><Setter Property="Height" Value="38"/><Setter Property="Padding" Value="10,5"/><Setter Property="FontFamily" Value="Tahoma"/><Setter Property="FontSize" Value="13"/><Setter Property="Background" Value="White"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/><Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
+  <Style TargetType="PasswordBox"><Setter Property="Height" Value="38"/><Setter Property="Padding" Value="10,5"/><Setter Property="FontFamily" Value="Tahoma"/><Setter Property="FontSize" Value="13"/><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
+  <Style x:Key="PrimaryButton" TargetType="Button">
+   <Setter Property="Height" Value="40"/><Setter Property="Padding" Value="14,0"/>
+   <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/><Setter Property="Foreground" Value="White"/>
+   <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/><Setter Property="BorderThickness" Value="1"/>
+   <Setter Property="FontFamily" Value="Tahoma"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Cursor" Value="Hand"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+    <Border x:Name="PrimaryChrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource RadiusControl}" Padding="{TemplateBinding Padding}" Effect="{StaticResource CardShadowEffect}">
+     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}" TextElement.FontWeight="{TemplateBinding FontWeight}"/>
+    </Border>
+    <ControlTemplate.Triggers>
+     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="PrimaryChrome" Property="Background" Value="{StaticResource PrimaryDarkBrush}"/><Setter TargetName="PrimaryChrome" Property="BorderBrush" Value="{StaticResource PrimaryDarkBrush}"/></Trigger>
+     <Trigger Property="IsPressed" Value="True"><Setter TargetName="PrimaryChrome" Property="Opacity" Value="0.88"/></Trigger>
+     <Trigger Property="IsEnabled" Value="False"><Setter TargetName="PrimaryChrome" Property="Opacity" Value="0.5"/></Trigger>
+    </ControlTemplate.Triggers>
+   </ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <Style x:Key="SecondaryButton" TargetType="Button">
+   <Setter Property="Height" Value="38"/><Setter Property="Padding" Value="14,0"/>
+   <Setter Property="Background" Value="White"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+   <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/><Setter Property="BorderThickness" Value="1"/>
+   <Setter Property="FontFamily" Value="Tahoma"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Cursor" Value="Hand"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+    <Border x:Name="SecondaryChrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource RadiusControl}" Padding="{TemplateBinding Padding}" Effect="{StaticResource CardShadowEffect}">
+     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}" TextElement.FontWeight="{TemplateBinding FontWeight}"/>
+    </Border>
+    <ControlTemplate.Triggers>
+     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="SecondaryChrome" Property="Background" Value="{StaticResource PrimaryLightBrush}"/><Setter TargetName="SecondaryChrome" Property="BorderBrush" Value="{StaticResource PrimaryBorderBrush}"/></Trigger>
+     <Trigger Property="IsPressed" Value="True"><Setter TargetName="SecondaryChrome" Property="Background" Value="{StaticResource PrimaryLightBrush}"/></Trigger>
+     <Trigger Property="IsEnabled" Value="False"><Setter TargetName="SecondaryChrome" Property="Opacity" Value="0.5"/></Trigger>
+    </ControlTemplate.Triggers>
+   </ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <Style x:Key="SidebarNavButtonStyle" TargetType="Button">
+   <Setter Property="Height" Value="35"/><Setter Property="Margin" Value="0,1"/><Setter Property="Padding" Value="10,0"/>
+   <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="White"/>
+   <Setter Property="BorderBrush" Value="Transparent"/><Setter Property="BorderThickness" Value="1"/>
+   <Setter Property="FontFamily" Value="Tahoma"/><Setter Property="FontSize" Value="12.5"/><Setter Property="FontWeight" Value="SemiBold"/>
    <Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="VerticalContentAlignment" Value="Center"/><Setter Property="Cursor" Value="Hand"/>
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
-    <Border x:Name="SidebarButtonBorder" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+    <Border x:Name="SidebarButtonBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource RadiusControl}" Padding="{TemplateBinding Padding}">
      <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" RecognizesAccessKey="True"/>
     </Border>
     <ControlTemplate.Triggers>
-     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="SidebarButtonBorder" Property="Background" Value="#C84B53"/></Trigger>
-     <Trigger Property="IsPressed" Value="True"><Setter TargetName="SidebarButtonBorder" Property="Background" Value="#91232B"/></Trigger>
+     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="SidebarButtonBorder" Property="BorderBrush" Value="{StaticResource PrimaryBorderBrush}"/></Trigger>
+     <Trigger Property="IsPressed" Value="True"><Setter TargetName="SidebarButtonBorder" Property="Opacity" Value="0.85"/></Trigger>
      <Trigger Property="IsEnabled" Value="False"><Setter TargetName="SidebarButtonBorder" Property="Opacity" Value="0.55"/></Trigger>
     </ControlTemplate.Triggers>
    </ControlTemplate></Setter.Value></Setter>
@@ -29,32 +75,57 @@
    <Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="4,5"/><Setter Property="Margin" Value="0,0,0,5"/>
    <Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Cursor" Value="Hand"/>
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
-    <Border x:Name="StatusRowBorder" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+    <Border x:Name="StatusRowBorder" Background="{TemplateBinding Background}" CornerRadius="{StaticResource RadiusSmall}" Padding="{TemplateBinding Padding}">
      <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
     </Border>
     <ControlTemplate.Triggers>
-     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="StatusRowBorder" Property="Background" Value="#F9EDED"/></Trigger>
-     <Trigger Property="IsPressed" Value="True"><Setter TargetName="StatusRowBorder" Property="Background" Value="#F4D6D9"/></Trigger>
+     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="StatusRowBorder" Property="Background" Value="{StaticResource PrimaryLightBrush}"/></Trigger>
+     <Trigger Property="IsPressed" Value="True"><Setter TargetName="StatusRowBorder" Property="Background" Value="{StaticResource PrimaryBorderBrush}"/></Trigger>
     </ControlTemplate.Triggers>
    </ControlTemplate></Setter.Value></Setter>
   </Style>
   <Style x:Key="DashboardMetricButtonStyle" TargetType="Button">
-   <Setter Property="Background" Value="White"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-   <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/><Setter Property="BorderThickness" Value="1"/>
-   <Setter Property="Padding" Value="16"/><Setter Property="Cursor" Value="Hand"/>
+   <Setter Property="Height" Value="120"/><Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+   <Setter Property="Foreground" Value="{StaticResource TextBrush}"/><Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/>
+   <Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="16,13"/><Setter Property="Cursor" Value="Hand"/>
    <Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="VerticalContentAlignment" Value="Stretch"/>
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
-    <Border x:Name="MetricBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="12" Padding="{TemplateBinding Padding}">
-     <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Stretch" TextElement.Foreground="{TemplateBinding Foreground}"/>
-    </Border>
+    <Grid>
+     <Border x:Name="MetricBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource RadiusCard}" Effect="{StaticResource CardShadowEffect}"/>
+     <Border Height="4" VerticalAlignment="Top" Background="{StaticResource PrimaryBrush}" CornerRadius="11,11,0,0"/>
+     <ContentPresenter Margin="0,4,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" TextElement.Foreground="{TemplateBinding Foreground}"/>
+    </Grid>
     <ControlTemplate.Triggers>
-     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="MetricBorder" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/><Setter TargetName="MetricBorder" Property="Background" Value="#FFFAFA"/></Trigger>
+     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="MetricBorder" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/><Setter TargetName="MetricBorder" Property="Background" Value="#FFFBFB"/></Trigger>
      <Trigger Property="IsPressed" Value="True"><Setter TargetName="MetricBorder" Property="Background" Value="{StaticResource PrimaryLightBrush}"/></Trigger>
     </ControlTemplate.Triggers>
    </ControlTemplate></Setter.Value></Setter>
   </Style>
+  <!-- TabCard Design System v1: shared typography and reusable component styles -->
+  <Style x:Key="WorkspacePageTitleStyle" TargetType="TextBlock">
+   <Setter Property="FontFamily" Value="Tahoma"/><Setter Property="FontSize" Value="28"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+  </Style>
+  <Style x:Key="WorkspacePageSubtitleStyle" TargetType="TextBlock">
+   <Setter Property="FontFamily" Value="Tahoma"/><Setter Property="FontSize" Value="12.5"/><Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
+  </Style>
+  <Style x:Key="DashboardPanelStyle" TargetType="Border">
+   <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/><Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="{StaticResource RadiusCard}"/><Setter Property="Padding" Value="{StaticResource DashboardCardPadding}"/><Setter Property="Effect" Value="{StaticResource CardShadowEffect}"/>
+  </Style>
+  <Style x:Key="DashboardCardHeadingStyle" TargetType="TextBlock">
+   <Setter Property="FontFamily" Value="Tahoma"/><Setter Property="FontSize" Value="18.5"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+  </Style>
+  <Style x:Key="DashboardMetricValueStyle" TargetType="TextBlock">
+   <Setter Property="FontFamily" Value="Tahoma"/><Setter Property="FontSize" Value="29"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+  </Style>
+  <Style x:Key="DashboardCaptionStyle" TargetType="TextBlock">
+   <Setter Property="FontFamily" Value="Tahoma"/><Setter Property="FontSize" Value="11"/><Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
+  </Style>
+  <Style x:Key="WindowChromeButtonStyle" TargetType="Button">
+   <Setter Property="Width" Value="38"/><Setter Property="Height" Value="34"/><Setter Property="Margin" Value="2,0"/><Setter Property="Padding" Value="0"/><Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="White"/><Setter Property="BorderBrush" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="FontFamily" Value="Tahoma"/><Setter Property="FontSize" Value="18"/><Setter Property="Cursor" Value="Hand"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="ChromeButtonBorder" Background="{TemplateBinding Background}" CornerRadius="{StaticResource RadiusControl}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}" TextElement.FontSize="{TemplateBinding FontSize}"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ChromeButtonBorder" Property="Background" Value="#30FFFFFF"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="ChromeButtonBorder" Property="Background" Value="#55FFFFFF"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter TargetName="ChromeButtonBorder" Property="Opacity" Value="0.45"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+  </Style>
   <Style x:Key="FieldLabel" TargetType="TextBlock"><Setter Property="FontSize" Value="12"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Margin" Value="0,0,0,5"/></Style>
-  <Style TargetType="ComboBox"><Setter Property="Height" Value="38"/><Setter Property="Padding" Value="8,4"/><Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="13"/></Style>
-  <Style TargetType="DataGrid"><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="GridLinesVisibility" Value="Horizontal"/><Setter Property="HorizontalGridLinesBrush" Value="#EEF0F3"/><Setter Property="AlternatingRowBackground" Value="#FAFBFC"/><Setter Property="CanUserAddRows" Value="False"/><Setter Property="IsReadOnly" Value="True"/><Setter Property="AutoGenerateColumns" Value="False"/><Setter Property="RowHeight" Value="36"/><Setter Property="ColumnHeaderHeight" Value="40"/><Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="12"/></Style>
+  <Style TargetType="ComboBox"><Setter Property="Height" Value="38"/><Setter Property="Padding" Value="8,4"/><Setter Property="FontFamily" Value="Tahoma"/><Setter Property="FontSize" Value="13"/></Style>
+  <Style TargetType="DataGrid"><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="GridLinesVisibility" Value="Horizontal"/><Setter Property="HorizontalGridLinesBrush" Value="#EEF0F3"/><Setter Property="AlternatingRowBackground" Value="#FAFBFC"/><Setter Property="CanUserAddRows" Value="False"/><Setter Property="IsReadOnly" Value="True"/><Setter Property="AutoGenerateColumns" Value="False"/><Setter Property="RowHeight" Value="38"/><Setter Property="ColumnHeaderHeight" Value="42"/><Setter Property="FontFamily" Value="Tahoma"/><Setter Property="FontSize" Value="12"/></Style>
  </Application.Resources>
 </Application>

@@ -1,0 +1,43 @@
+<UserControl x:Class="Nexora.Demo.Desktop.Features.NetworkOperations.Views.NetworkClientsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FlowDirection="RightToLeft" Background="{StaticResource AppBgBrush}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="2">
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
+                <StackPanel><TextBlock Text="CLIENTS &amp; USAGE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/><TextBlock Text="المتصلون والاستهلاك" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,5,0,0"/><TextBlock Text="تمييز جلسات المشتركين عن روابط أجهزة الاستقبال والأجهزة النهائية المكتشفة." FontSize="11.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/></StackPanel>
+            </Border>
+            <Grid Margin="0,0,0,12"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="12"><StackPanel><TextBlock Text="سجلات المتصلين" FontSize="10.5" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="ClientsTotalTextBlock" Text="12" FontSize="22" FontWeight="Bold" Margin="0,5,0,0"/></StackPanel></Border>
+                <Border Grid.Column="2" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="12"><StackPanel><TextBlock Text="جلسات نشطة (عرض)" FontSize="10.5" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="ActiveSessionsTextBlock" Text="7" FontSize="22" FontWeight="Bold" Foreground="#16865A" Margin="0,5,0,0"/></StackPanel></Border>
+                <Border Grid.Column="4" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="12"><StackPanel><TextBlock Text="الاستهلاك المسجل (عرض)" FontSize="10.5" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="TotalUsageTextBlock" Text="190 GB" FontSize="22" FontWeight="Bold" Margin="0,5,0,0"/></StackPanel></Border>
+            </Grid>
+            <Border Background="{StaticResource PrimaryLightBrush}" CornerRadius="8" Padding="10" Margin="0,0,0,12"><TextBlock Text="قد لا يرى الراوتر الرئيسي الجوالات خلف راوتر منزلي يستخدم NAT. تعرض هذه الصفحة طبقة مصدر البيانات لكل سجل، ولا تفترض أن كل سجل يمثل جوالًا مستقلًا." FontSize="11" Foreground="{StaticResource PrimaryBrush}" TextWrapping="Wrap"/></Border>
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="12" Padding="14" Margin="0,0,0,12">
+                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="1.5*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <TextBox x:Name="ClientSearchTextBox" Grid.Column="0" Padding="8" ToolTip="اسم المشترك أو الجهاز أو العنوان" TextChanged="ClientFilters_Changed"/>
+                    <ComboBox x:Name="ClientLayerFilterComboBox" Grid.Column="2" Padding="7" SelectionChanged="ClientFilters_Changed"/>
+                    <ComboBox x:Name="ClientSiteFilterComboBox" Grid.Column="4" Padding="7" SelectionChanged="ClientFilters_Changed"/>
+                </Grid>
+            </Border>
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="12" Padding="10">
+                <StackPanel><DockPanel Margin="4,2,4,10"><TextBlock Text="المشتركون والأجهزة" FontSize="15" FontWeight="Bold"/><TextBlock x:Name="ClientRowsCountTextBlock" DockPanel.Dock="Left" Text="12 سجلًا" FontSize="11" Foreground="{StaticResource MutedBrush}"/></DockPanel>
+                    <DataGrid x:Name="ClientsDataGrid" ItemsSource="{Binding VisibleClients}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionChanged="ClientsDataGrid_SelectionChanged" MinHeight="300" MaxHeight="460" HeadersVisibility="Column" GridLinesVisibility="Horizontal">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="الاسم" Binding="{Binding Name}" Width="1.1*"/>
+                            <DataGridTextColumn Header="طبقة المصدر" Binding="{Binding Layer}" Width="1.2*"/>
+                            <DataGridTextColumn Header="الجهاز المرتبط" Binding="{Binding DeviceName}" Width="1*"/>
+                            <DataGridTextColumn Header="الموقع" Binding="{Binding SiteName}" Width="1*"/>
+                            <DataGridTextColumn Header="IP" Binding="{Binding IpAddress}" Width="1*"/>
+                            <DataGridTextColumn Header="تنزيل GB" Binding="{Binding DownloadGb}" Width="0.7*"/>
+                            <DataGridTextColumn Header="الحالة" Binding="{Binding Status}" Width="1.2*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+            <Border x:Name="ClientDetailsPanel" Visibility="Collapsed" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="12" Padding="14" Margin="0,12,0,0">
+                <StackPanel><TextBlock Text="تفاصيل السجل المحدد" FontSize="15" FontWeight="Bold"/><TextBlock x:Name="ClientDetailsTextBlock" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,12"/><Button Content="فتح حصر الأجهزة" Style="{StaticResource SecondaryButton}" Click="OpenDevicesButton_Click" HorizontalAlignment="Right"/></StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,33 @@
+<UserControl x:Class="Nexora.Demo.Desktop.Features.Settings.Views.ScreenAppearanceSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FlowDirection="RightToLeft" Background="{StaticResource AppBgBrush}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="2">
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="SCREEN &amp; APPEARANCE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/>
+                    <TextBlock Text="الشاشات والمظهر" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,5,0,0"/>
+                    <TextBlock Text="اضبط كثافة التنقل لتناسب مساحة الشاشة. التغيير يُطبّق على القائمة الجانبية وتبويبات الأقسام الحالية." FontSize="11.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="كثافة عناصر التنقل" FontSize="15" FontWeight="Bold"/>
+                    <TextBlock Text="المريحة مناسبة للمس، والمدمجة تعرض عناصر أكثر في نفس المساحة." FontSize="11" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,10"/>
+                    <ComboBox x:Name="DensityComboBox" Padding="8" SelectionChanged="DensityComboBox_SelectionChanged" Margin="0,0,0,14"/>
+                    <TextBlock Text="معاينة التنقل" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <Border Background="{StaticResource AppBgBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="12">
+                        <StackPanel x:Name="DensityPreviewPanel">
+                            <Border x:Name="PreviewItemOne" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="7" Padding="10,7" Margin="0,0,0,6"><TextBlock Text="مركز الشبكة" FontSize="12" FontWeight="SemiBold"/></Border>
+                            <Border x:Name="PreviewItemTwo" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="7" Padding="10,7"><TextBlock Text="الشاشات والمظهر" FontSize="12"/></Border>
+                        </StackPanel>
+                    </Border>
+                    <Button Content="تطبيق وحفظ المظهر" Style="{StaticResource PrimaryButton}" Click="ApplyAppearanceButton_Click" HorizontalAlignment="Right" Margin="0,14,0,0"/>
+                    <TextBlock x:Name="AppearanceStatusTextBlock" FontSize="11" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                </StackPanel>
+            </Border>
+            <Border Background="{StaticResource PrimaryLightBrush}" CornerRadius="8" Padding="10"><TextBlock Text="الوضع اللوني الحالي فاتح. لم نضف مفتاحًا لوضع داكن غير مطبق؛ تفضيل الكثافة هنا يعمل فعليًا على القائمة والتبويبات." FontSize="11" Foreground="{StaticResource PrimaryBrush}" TextWrapping="Wrap"/></Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
