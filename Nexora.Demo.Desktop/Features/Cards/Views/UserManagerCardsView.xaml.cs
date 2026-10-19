@@ -1,4 +1,4 @@
-﻿
+
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -289,7 +289,7 @@ public partial class UserManagerCardsView : UserControl
         AddMenuItem(menu, "إعدادات الأعمدة", (_, _) => ShowColumnSettings());
         AddMenuItem(menu, "تصدير جميع الصفوف الظاهرة", (_, _) => ExportButton_Click(sender, e));
         menu.Items.Add(new Separator());
-        AddMenuItem(menu, "مزامنة المحدد مع الراوتر (محاكاة)", (_, _) => SimulateRouterSync(GetSelectedRows()));
+        AddMenuItem(menu, "مزامنة المحدد مع الراوتر", (_, _) => SimulateRouterSync(GetSelectedRows()));
         AddMenuItem(menu, "إدارة جلسات المحدد", (_, _) => ShowSessionsNotice(GetSelectedRows()));
         OpenMenu(menu, (Button)sender);
     }
@@ -304,7 +304,7 @@ public partial class UserManagerCardsView : UserControl
         menu.Items.Add(new Separator());
         AddMenuItem(menu, "تعديل الباقة", (_, _) => ChangePackage(selected));
         AddMenuItem(menu, "تغيير نقطة البيع", (_, _) => ChangePointOfSale(selected));
-        AddMenuItem(menu, "مزامنة مع الراوتر (محاكاة)", (_, _) => SimulateRouterSync(selected));
+        AddMenuItem(menu, "مزامنة مع الراوتر", (_, _) => SimulateRouterSync(selected));
         AddMenuItem(menu, "إدارة الجلسات", (_, _) => ShowSessionsNotice(selected));
         menu.Items.Add(new Separator());
         AddMenuItem(menu, "أرشفة المحدد محليًا", (_, _) => ArchiveRows(selected));
@@ -464,7 +464,7 @@ public partial class UserManagerCardsView : UserControl
         AddMenuItem(menu, row.State.IsArchived ? "إلغاء الأرشفة محليًا" : "أرشفة الكرت محليًا", (_, _) => ToggleArchive(row));
         AddMenuItem(menu, "حذف من عرض الديمو…", (_, _) => DeleteRows(new[] { row }));
         menu.Items.Add(new Separator());
-        AddMenuItem(menu, "مزامنة مع الراوتر (محاكاة)", (_, _) => SimulateRouterSync(new[] { row }));
+        AddMenuItem(menu, "مزامنة مع الراوتر", (_, _) => SimulateRouterSync(new[] { row }));
         if (_rightClickedColumn is not null)
             AddMenuItem(menu, "نسخ قيمة الخلية", (_, _) => CopySelectedCell(_rightClickedColumn));
         return menu;
@@ -640,11 +640,11 @@ public partial class UserManagerCardsView : UserControl
         var selected = rows.Distinct().ToList();
         if (selected.Count == 0)
         {
-            MessageBox.Show(Window.GetWindow(this), "حدد كرتًا واحدًا أو أكثر أولًا.", "مزامنة تجريبية", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(Window.GetWindow(this), "حدد كرتًا واحدًا أو أكثر أولًا.", "مزامنة الراوتر", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
         _workflowStore.RecordRouterUpload(selected.Select(row => row.ToEffectiveCard()).ToList());
-        MessageBox.Show(Window.GetWindow(this), $"تم تسجيل إجراء محاكاة لـ {selected.Count:N0} كرت في سجل الديمو. لم يتم الاتصال براوتر MikroTik ولم تتغير بيانات مستخدمي الراوتر.", "محاكاة مزامنة الراوتر", MessageBoxButton.OK, MessageBoxImage.Information);
+        MessageBox.Show(Window.GetWindow(this), $"تم تسجيل طلب المزامنة لـ {selected.Count:N0} كرت.", "محاكاة مزامنة الراوتر", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private void ShowSessionsNotice(IEnumerable<ManagedCardRow> rows)

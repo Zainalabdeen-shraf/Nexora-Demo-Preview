@@ -26,6 +26,10 @@ public partial class PackageEditorWindow : Window
         _originalPackage = package;
         _originalBinding = binding;
         InitializeComponent();
+        WindowStartupLocation = WindowStartupLocation.CenterScreen;
+        MaxHeight = SystemParameters.WorkArea.Height;
+        MaxWidth = SystemParameters.WorkArea.Width;
+        WindowState = WindowState.Maximized;
 
         // Keep the editor inside the usable desktop area; its content already scrolls vertically.
         var workArea = SystemParameters.WorkArea;

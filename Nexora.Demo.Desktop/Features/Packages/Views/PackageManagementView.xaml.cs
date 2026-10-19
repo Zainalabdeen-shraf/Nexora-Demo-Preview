@@ -128,7 +128,234 @@ public partial class PackageManagementView : UserControl
         if (PackagesDataGrid.SelectedItem is PackageManagementRow row) LoadPackageRow(row);
     }
 
-    private void EditSelectedPackage_Click(object sender, RoutedEventArgs e)
+    private void RowActionsButton_Click(object sender, RoutedEventArgs e)
+{
+    if (sender is Button button && button.ContextMenu is ContextMenu menu)
+    {
+        menu.PlacementTarget = button;
+        menu.DataContext = button.DataContext;
+        menu.IsOpen = true;
+    }
+}
+
+private PackageManagementRow? GetPackageRowFromAction(object sender)
+{
+    if (sender is FrameworkElement element &&
+        element.DataContext is PackageManagementRow directRow)
+    {
+        return directRow;
+    }
+
+    if (sender is MenuItem menuItem)
+    {
+        var contextMenu = menuItem.Parent as ContextMenu;
+        if (contextMenu?.DataContext is PackageManagementRow contextRow)
+            return contextRow;
+
+        if (contextMenu?.PlacementTarget is FrameworkElement target &&
+            target.DataContext is PackageManagementRow targetRow)
+        {
+            return targetRow;
+        }
+    }
+
+    return PackagesDataGrid.SelectedItem as PackageManagementRow;
+}
+
+private static void SetFreshIdentifier(object target, string propertyName)
+{
+    var property = target.GetType().GetProperty(propertyName);
+    if (property == null || !property.CanWrite)
+        throw new InvalidOperationException($"تعذر إنشاء معرّف جديد للحقل {propertyName}.");
+
+    var type = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+    object value = type == typeof(Guid)
+        ? Guid.NewGuid()
+        : type == typeof(string)
+            ? Guid.NewGuid().ToString("N")
+            : Convert.ChangeType(Guid.NewGuid().ToString("N"), type, System.Globalization.CultureInfo.InvariantCulture);
+    property.SetValue(target, value);
+}
+
+private void CopyRowPackage_Click(object sender, RoutedEventArgs e)
+{
+    var row = GetPackageRowFromAction(sender);
+    if (row == null) return;
+
+    if (MessageBox.Show($"إنشاء نسخة مستقلة من الباقة «{row.Package.Name}» ضمن النظام الحالي؟",
+        "نسخ الباقة", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+
+    try
+    {
+        var catalog = DemoPackageStore.Load();
+        var source = catalog.Packages.FirstOrDefault(p => p.Id == row.Package.Id);
+        if (source == null) throw new InvalidOperationException("لم تعد الباقة موجودة في السجل.");
+
+        var clone = source.Copy();
+        SetFreshIdentifier(clone, "Id");
+
+        var baseName = $"{source.Name} - نسخة";
+        var name = baseName;
+        var suffix = 2;
+        while (catalog.Packages.Any(p => string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase)))
+            name = $"{baseName} ({suffix++})";
+
+        clone.Name = name;
+        clone.IsArchived = false;
+        catalog.Packages.Add(clone);
+
+        var sourceBinding = catalog.Bindings.FirstOrDefault(
+            b => b.PackageId == source.Id && b.ProviderKey == _providerKey);
+
+        if (sourceBinding != null)
+        {
+            var bindingClone = sourceBinding.Copy();
+            SetFreshIdentifier(bindingClone, "Id");
+            bindingClone.PackageId = clone.Id;
+            bindingClone.ProviderKey = _providerKey;
+            bindingClone.CreatedAt = DateTimeOffset.Now;
+            bindingClone.UpdatedAt = DateTimeOffset.Now;
+            catalog.Bindings.Add(bindingClone);
+        }
+
+        DemoPackageStore.Save(catalog);
+        RefreshPackages(clone.Id);
+        MessageBox.Show("تم نسخ تعريف الباقة وإعدادات النظام الحالي فقط.",
+            "نسخ الباقة", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show($"تعذر نسخ الباقة:\n{ex.Message}", "تعذر النسخ",
+            MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+}
+
+
+private void ArchiveRowPackage_Click(object sender, RoutedEventArgs e)
+{
+    var row = GetPackageRowFromAction(sender);
+    if (row == null) return;
+
+    if (MessageBox.Show($"أرشفة الباقة «{row.Package.Name}» في النظام الحالي؟",
+        "أرشفة الباقة", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+
+    try
+    {
+        var catalog = DemoPackageStore.Load();
+        var package = catalog.Packages.FirstOrDefault(p => p.Id == row.Package.Id);
+        if (package == null) throw new InvalidOperationException("لم تعد الباقة موجودة في السجل.");
+
+        var currentBinding = catalog.Bindings.FirstOrDefault(
+            b => b.PackageId == package.Id && b.ProviderKey == _providerKey);
+
+        var otherProviderBindings = catalog.Bindings.Where(
+            b => b.PackageId == package.Id && b.ProviderKey != _providerKey).ToList();
+
+        if (otherProviderBindings.Count > 0)
+        {
+            if (currentBinding == null)
+                throw new InvalidOperationException(
+                    "هذه الباقة غير مرتبطة بالنظام الحالي. لم تُؤرشف حتى لا يتأثر النظام الآخر.");
+
+            var archivedCopy = package.Copy();
+            SetFreshIdentifier(archivedCopy, "Id");
+
+            var baseName = $"{package.Name} - مؤرشفة";
+            var archivedName = baseName;
+            var suffix = 2;
+            while (catalog.Packages.Any(p => string.Equals(
+                p.Name, archivedName, StringComparison.OrdinalIgnoreCase)))
+                archivedName = $"{baseName} ({suffix++})";
+
+            archivedCopy.Name = archivedName;
+            archivedCopy.IsArchived = true;
+            archivedCopy.CreatedAt = DateTimeOffset.Now;
+            archivedCopy.UpdatedAt = DateTimeOffset.Now;
+            catalog.Packages.Add(archivedCopy);
+
+            currentBinding.PackageId = archivedCopy.Id;
+            currentBinding.IsEnabled = false;
+            currentBinding.UpdatedAt = DateTimeOffset.Now;
+        }
+        else
+        {
+            package.IsArchived = true;
+            package.UpdatedAt = DateTimeOffset.Now;
+            if (currentBinding != null)
+            {
+                currentBinding.IsEnabled = false;
+                currentBinding.UpdatedAt = DateTimeOffset.Now;
+            }
+        }
+
+        DemoPackageStore.Save(catalog);
+        RefreshPackages();
+        SetStatus("تمت الأرشفة دون تغيير ارتباطات النظام الآخر.", false);
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show($"تعذرت أرشفة الباقة:\n{ex.Message}", "تعذر الأرشفة",
+            MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+}
+
+private void EditRowPackage_Click(object sender, RoutedEventArgs e)
+{
+    var row = GetPackageRowFromAction(sender);
+    if (row is null)
+    {
+        SetStatus("اختر باقة صالحة لتعديلها.", true);
+        return;
+    }
+
+    PackagesDataGrid.SelectedItem = row;
+    PackagesDataGrid.ScrollIntoView(row);
+    LoadPackageRow(row);
+}
+
+private void ToggleRowBinding_Click(object sender, RoutedEventArgs e)
+{
+    var row = GetPackageRowFromAction(sender);
+    if (row is null)
+    {
+        SetStatus("تعذر تحديد الباقة المطلوبة.", true);
+        return;
+    }
+
+    PackagesDataGrid.SelectedItem = row;
+    ToggleBinding_Click(sender, e);
+}
+private void EditIcon_Click(object sender, RoutedEventArgs e)
+{
+    var row = GetPackageRowFromAction(sender);
+    if (row == null)
+    {
+        MessageBox.Show("تعذر تحديد الباقة من صف الإجراءات.", "تعديل الباقة",
+            MessageBoxButton.OK, MessageBoxImage.Warning);
+        return;
+    }
+
+    PackagesDataGrid.SelectedItem = row;
+    PackagesDataGrid.ScrollIntoView(row);
+    EditSelectedPackage_Click(sender, e);
+}
+private void EditPackageRowIcon_Click(object sender, RoutedEventArgs e)
+{
+    if (sender is not FrameworkElement element ||
+        element.DataContext is not PackageManagementRow row)
+    {
+        SetStatus("تعذر تحديد الباقة من صف الإجراءات.", true);
+        return;
+    }
+
+    PackagesDataGrid.SelectedItem = row;
+    PackagesDataGrid.CurrentItem = row;
+    PackagesDataGrid.ScrollIntoView(row);
+
+    PackageTabs.SelectedItem = CreatePackageTab;
+    LoadPackageRow(row);
+}
+private void EditSelectedPackage_Click(object sender, RoutedEventArgs e)
     {
         if (PackagesDataGrid.SelectedItem is PackageManagementRow row) LoadPackageRow(row);
         else SetStatus("اختر باقة من الجدول أولًا.", true);
@@ -198,15 +425,25 @@ public partial class PackageManagementView : UserControl
         SelectTag(UserManagerSharedOverrideComboBox, binding.UserManagerSharedOverride);
 
         var days = binding.AccessDays ?? new List<string>();
-        if (days.Count == 7 && !binding.UseSchedule) SelectTag(DaysPolicyComboBox, "all");
-        else if (days.Count == 5 && days.Contains("الأحد") && days.Contains("الخميس")) SelectTag(DaysPolicyComboBox, "workdays");
-        else SelectTag(DaysPolicyComboBox, "custom");
+        if (days.Count == 7 && !binding.UseSchedule)
+            SelectTag(DaysPolicyComboBox, "all");
+        else
+            SelectTag(DaysPolicyComboBox, "custom");
+
+        SaturdayCheckBox.IsChecked = days.Contains("السبت");
+        SundayCheckBox.IsChecked = days.Contains("الأحد");
+        MondayCheckBox.IsChecked = days.Contains("الإثنين");
+        TuesdayCheckBox.IsChecked = days.Contains("الثلاثاء");
+        WednesdayCheckBox.IsChecked = days.Contains("الأربعاء");
+        ThursdayCheckBox.IsChecked = days.Contains("الخميس");
+        FridayCheckBox.IsChecked = days.Contains("الجمعة");
         var customPeriod = binding.AccessFrom != "00:00" || binding.AccessUntil != "23:59";
         SelectTag(PeriodPolicyComboBox, customPeriod ? "custom" : "full-day");
         AccessFromTextBox.Text = string.IsNullOrWhiteSpace(binding.AccessFrom) ? "08:00" : binding.AccessFrom;
         AccessUntilTextBox.Text = string.IsNullOrWhiteSpace(binding.AccessUntil) ? "18:00" : binding.AccessUntil;
         _loadingForm = false;
         ApplyControlStates();
+        UpdatePackageEditorMode();
         SetStatus(row.Binding is null
             ? "تعريف تجاري محفوظ؛ سيُنشأ له ربط جديد عند حفظه في النظام الحالي."
             : "تم تحميل إعدادات الباقة المحددة للتعديل.", false);
@@ -244,6 +481,13 @@ public partial class PackageManagementView : UserControl
         SelectTag(UserManagerStartsWhenComboBox, "first-auth");
         SelectTag(UserManagerSharedOverrideComboBox, "off");
         SelectTag(DaysPolicyComboBox, "all");
+        SaturdayCheckBox.IsChecked = false;
+        SundayCheckBox.IsChecked = false;
+        MondayCheckBox.IsChecked = false;
+        TuesdayCheckBox.IsChecked = false;
+        WednesdayCheckBox.IsChecked = false;
+        ThursdayCheckBox.IsChecked = false;
+        FridayCheckBox.IsChecked = false;
         SelectTag(PeriodPolicyComboBox, "full-day");
         AccessFromTextBox.Text = "08:00";
         AccessUntilTextBox.Text = "18:00";
@@ -252,6 +496,7 @@ public partial class PackageManagementView : UserControl
         _suppressSelection = false;
         _loadingForm = false;
         ApplyControlStates();
+        UpdatePackageEditorMode();
     }
 
     private void LimitOption_Changed(object sender, RoutedEventArgs e) => ApplyControlStates();
@@ -270,6 +515,32 @@ public partial class PackageManagementView : UserControl
         if (CommissionValueTextBox is not null) CommissionValueTextBox.IsEnabled = CommissionEnabledCheckBox.IsChecked == true;
         if (AccessTimeFieldsPanel is not null)
             AccessTimeFieldsPanel.Visibility = SelectedTag(PeriodPolicyComboBox, "full-day") == "custom" ? Visibility.Visible : Visibility.Collapsed;
+        if (CustomDaysPanel is not null)
+            CustomDaysPanel.Visibility = SelectedTag(DaysPolicyComboBox, "all") == "custom" ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private List<string> GetSelectedAccessDays()
+    {
+        var days = new List<string>();
+        if (SaturdayCheckBox.IsChecked == true) days.Add("السبت");
+        if (SundayCheckBox.IsChecked == true) days.Add("الأحد");
+        if (MondayCheckBox.IsChecked == true) days.Add("الإثنين");
+        if (TuesdayCheckBox.IsChecked == true) days.Add("الثلاثاء");
+        if (WednesdayCheckBox.IsChecked == true) days.Add("الأربعاء");
+        if (ThursdayCheckBox.IsChecked == true) days.Add("الخميس");
+        if (FridayCheckBox.IsChecked == true) days.Add("الجمعة");
+        return days;
+    }
+
+    private void UpdatePackageEditorMode()
+    {
+        var editing = _editingPackage is not null;
+        if (SavePackageButton is not null)
+            SavePackageButton.Content = editing ? "حفظ التعديلات" : "حفظ الباقة";
+        if (SaveAndNewButton is not null)
+            SaveAndNewButton.IsEnabled = !editing;
+        if (CreatePackageTab is not null)
+            CreatePackageTab.Header = editing ? "تعديل الباقة" : "باقة جديدة";
     }
 
     private void SavePackageButton_Click(object sender, RoutedEventArgs e) => SavePackage(addAnother: false);
@@ -313,14 +584,30 @@ public partial class PackageManagementView : UserControl
 
             var catalogPackage = _editingPackage is null ? null : catalog.Packages.FirstOrDefault(p => p.Id == _editingPackage.Id);
             if (_editingPackage is not null && catalogPackage is null)
-            { SetStatus("لم يعد تعريف الباقة المحدد موجودًا في البيانات المحفوظة. حدّث الجدول ثم أعد المحاولة.", true); return; }
+            {
+                SetStatus("لم يعد تعريف الباقة المحدد موجودًا في البيانات المحفوظة. حدّث الجدول ثم أعد المحاولة.", true);
+                return;
+            }
+
+            var isolateSharedDefinition = _editingPackage is not null &&
+                catalogPackage is not null &&
+                catalog.Bindings.Any(b => b.PackageId == catalogPackage.Id && b.ProviderKey != _providerKey);
+
             var package = catalogPackage?.Copy() ?? new DemoServicePackage();
-            var creatingDefinition = catalogPackage is null;
+            var creatingDefinition = catalogPackage is null || isolateSharedDefinition;
+
             if (creatingDefinition)
             {
                 package.Id = Guid.NewGuid().ToString("N");
                 package.CreatedAt = DateTimeOffset.Now;
                 package.IsArchived = false;
+            }
+
+            if (isolateSharedDefinition && catalogPackage is not null)
+            {
+                // انقل ارتباط النظام الجاري تعديله إلى تعريف مستقل، واترك النظام الآخر على تعريفه الأصلي.
+                catalog.Bindings.RemoveAll(b =>
+                    b.PackageId == catalogPackage.Id && b.ProviderKey == _providerKey);
             }
             package.Name = name;
             package.ValidityDays = validityDays;
@@ -380,14 +667,15 @@ public partial class PackageManagementView : UserControl
             var dayPolicy = SelectedTag(DaysPolicyComboBox, "all");
             var periodPolicy = SelectedTag(PeriodPolicyComboBox, "full-day");
             var allDays = new List<string> { "السبت", "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة" };
-            var workDays = new List<string> { "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس" };
-            binding.AccessDays = dayPolicy switch
+            if (dayPolicy == "custom" && GetSelectedAccessDays().Count == 0)
             {
-                "workdays" => workDays,
-                "custom" when _editingBinding?.AccessDays is { Count: > 0 } currentDays => new List<string>(currentDays),
-                "custom" => workDays,
-                _ => allDays
-            };
+                SetStatus("اختر يومًا واحدًا على الأقل، أو اختر كل الأيام.", true);
+                return;
+            }
+
+            binding.AccessDays = dayPolicy == "custom"
+                ? GetSelectedAccessDays()
+                : allDays;
             binding.UseSchedule = dayPolicy != "all" || periodPolicy == "custom";
             binding.AccessFrom = periodPolicy == "custom" ? AccessFromTextBox.Text.Trim() : "00:00";
             binding.AccessUntil = periodPolicy == "custom" ? AccessUntilTextBox.Text.Trim() : "23:59";
@@ -405,6 +693,22 @@ public partial class PackageManagementView : UserControl
                 var bindingIndex = catalog.Bindings.FindIndex(b => b.Id == binding.Id && b.ProviderKey == _providerKey);
                 if (bindingIndex < 0) throw new InvalidOperationException("تعذر العثور على ربط الباقة الحالي.");
                 catalog.Bindings[bindingIndex] = binding;
+            }
+
+            if (_editingPackage is not null)
+            {
+                var confirmation = MessageBox.Show(
+                    "هل تريد حفظ التعديلات على الباقة المحددة؟ سيتم تحديث الباقة الحالية ولن تُنشأ باقة جديدة.",
+                    "تأكيد تعديل الباقة",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question,
+                    MessageBoxResult.No);
+
+                if (confirmation != MessageBoxResult.Yes)
+                {
+                    SetStatus("تم إلغاء الحفظ؛ لم تتغير البيانات المحفوظة.", false);
+                    return;
+                }
             }
 
             DemoPackageStore.Save(catalog);

@@ -147,7 +147,7 @@ public partial class PendingCardsView : UserControl
             _workflowStore.RecordRouterUpload(selected);
 
             SetStatus(
-                $"تم تسجيل طلب المزامنة التجريبي لـ {selected.Count:N0} كرت. لم يتم الاتصال براوتر حقيقي.",
+                $"تم تسجيل طلب المزامنة لـ {selected.Count:N0} كرت.",
                 false);
 
             RefreshRows();

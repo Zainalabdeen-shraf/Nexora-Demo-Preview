@@ -54,7 +54,7 @@ public partial class MainWindow : Window
     private readonly Dictionary<string, string[]> _sectionTabs = new(StringComparer.Ordinal)
     {
         ["network-users"] = ["كل الحسابات", "النشطون الآن", "غير النشطين"],        ["cards"] = ["إصدار الكروت", "إدارة الكروت", "إدارة الدفعات", "المعلقات", "استيراد الكروت"],
-        ["packages"] = ["كتالوج الباقات"],      
+        ["packages"] = ["كتالوج الباقات"],
         ["sales"] = ["ملخص المبيعات", "معاملات البيع", "نقاط البيع"],
         ["printing"] = ["تصميم القالب", "قائمة الطباعة"],
         ["networks"] = ["مدير المستخدمين", "الهوتسبوت", ],
@@ -605,7 +605,7 @@ public partial class MainWindow : Window
         {
             "dashboard" => "\uE80F",
             "network-users" => "\uE77B",
-            "cards" => "\uE8C7",
+            "cards" => "\uE8A5",
             "packages" => "\uE8D4",
             "sales" => "\uE7BF",
             "printing" => "\uE749",
@@ -621,8 +621,9 @@ public partial class MainWindow : Window
             "settings" => "تهيئة خيارات النظام والواجهة والهوية وإدارة النسخ الاحتياطية المحلية.",
             "dashboard" => "نظرة موحدة على الكروت والمبيعات ومصادر المصادقة",
             "cards" => "إصدار الكروت وإدارة الدفعات",
-            _ => "كل وظيفة في مكانها، مع ربط واضح بين الإصدار والإدارة والتقارير"
+            _ => string.Empty
         };
+        PageSubtitleTextBlock.Visibility = (key == "network-users" || key == "dashboard" || key == "cards" || key == "network-center") ? Visibility.Collapsed : Visibility.Visible;
         UpdateSidebarSelection(key);
         if (key == "dashboard")
         {
@@ -780,6 +781,8 @@ SectionTabsPanel.Children.Add(btn);
 
     private void ActivateSectionTab(string tab)
     {
+        if (_currentSection == "cards" && PageTitleTextBlock.Text != "الكروت والدفعات")
+            PageTitleTextBlock.Text = "الكروت والدفعات";
         SectionContentTitleTextBlock.Text = tab;
         var unifiedIssuanceLayout = _currentSection == "cards" && string.Equals(tab, "إصدار الكروت", StringComparison.Ordinal);
         SectionTabsScrollViewer.Visibility = unifiedIssuanceLayout ? Visibility.Collapsed : Visibility.Visible;
@@ -810,7 +813,7 @@ SectionTabsPanel.Children.Add(btn);
             {
                 "dashboard" => "\uE80F",
                 "network-users" => "\uE77B",
-                "cards" => "\uE8C7",
+                "cards" => "\uE8A5",
                 "packages" => "\uE8D4",
                 "sales" => "\uE7BF",
                 "printing" => "\uE749",
@@ -825,11 +828,12 @@ SectionTabsPanel.Children.Add(btn);
                 "network-center" => "متابعة المواقع والأجهزة والتنبيهات ومهام الصيانة",
                 "dashboard" => "نظرة موحدة على الكروت والمبيعات ومصادر المصادقة",
                 "cards" => "إصدار الكروت وإدارة الدفعات",
-                _ => "كل وظيفة في مكانها، مع ربط واضح بين الإصدار والإدارة والتقارير"
+                _ => string.Empty
             };
+            PageSubtitleTextBlock.Visibility = (_currentSection == "dashboard" || _currentSection == "cards" || _currentSection == "network-center" || _currentSection == "network-users") ? Visibility.Collapsed : Visibility.Visible;
         }
         SectionContentDescriptionTextBlock.Text = GetSectionDescription(_currentSection, tab);
-        SectionTabsScrollViewer.Visibility = _currentSection == "packages" ? Visibility.Collapsed : Visibility.Visible;
+        SectionTabsScrollViewer.Visibility = (_currentSection == "packages" || _currentSection == "network-users") ? Visibility.Collapsed : Visibility.Visible;
         SectionPlaceholderTextBlock.Text = GetSectionPlaceholder(_currentSection, tab);
         RenderFeatureContent(tab);
         if (SectionFeatureContentHost.Content is INetworkOperationsRefreshable refreshable)
@@ -877,14 +881,14 @@ foreach (var child in SectionTabsPanel.Children.OfType<Button>())
     }
 
         var featureOwnsWorkspace = SectionFeatureContentHost.Content is
-            CardIssuanceView or IssuanceWorkspaceView or GeneratedCardsView or CardBatchesView or CardBatchesView or PendingCardsView or ImportCardsView or
+            CardIssuanceView or IssuanceWorkspaceView or GeneratedCardsView or NetworkUsersView or CardBatchesView or PendingCardsView or ImportCardsView or
             PackageManagementView or SalesReportView or SalesTransactionsView or SalesPointsView or PrintQueueView or TemplateDesignerView or ReportsCenterView or NetworkSourcesView or NetworkCenterView or NetworkSitesDevicesView or NetworkClientsView or NetworkMonitoringView or NetworkMaintenanceView or NetworkAnalyticsView or SystemSettingsView or ScreenAppearanceSettingsView or WorkspaceIdentityView or BackupSettingsView;
         var compactIssuanceWorkspace = SectionFeatureContentHost.Content is IssuanceWorkspaceView;
         SectionContentBorder.Padding = compactIssuanceWorkspace ? new Thickness(6) : new Thickness(14);
         SectionTabsScrollViewer.Margin = compactIssuanceWorkspace
             ? new Thickness(0, 0, 0, 6)
             : new Thickness(0, 0, 0, 12);
-        var isCardWorkspace = _currentSection == "cards";
+        var isCardWorkspace = _currentSection == "cards" || _currentSection == "network-users";
         SectionContentBorder.Background = isCardWorkspace ? (Brush)FindResource("AppBgBrush") : Brushes.White;
         SectionContentBorder.BorderBrush = isCardWorkspace ? Brushes.Transparent : (Brush)FindResource("BorderBrushSoft");
         SectionContentBorder.BorderThickness = isCardWorkspace ? new Thickness(0) : new Thickness(1);
@@ -1009,19 +1013,7 @@ foreach (var child in SectionTabsPanel.Children.OfType<Button>())
         }
         if (section == "network-users")
         {
-            var view = new GeneratedCardsView(
-                _demoCardIssuanceService,
-                _selectedCardSystem);
-
-            view.NavigationRequested += FeatureView_NavigationRequested;
-
-            view.SetSystemFilter(
-                _selectedCardSystem == DemoAccountSystem.HotSpot
-                    ? "hotspot"
-                    : "user-manager");
-
-            view.SetSystemFilterControlVisible(false);
-
+            var view = new NetworkUsersView(_demoCardIssuanceService, _selectedCardSystem);
             return view;
         }
 
@@ -1153,8 +1145,15 @@ foreach (var child in SectionTabsPanel.Children.OfType<Button>())
             NavigateTo(e.SectionKey);
             ActivateSectionTab(e.TabName);
         }
-
-        if (e.ContextKind == "card" && SectionFeatureContentHost.Content is GeneratedCardsView cardsView)
+        if (e.ContextKind == "card" && SectionFeatureContentHost.Content is NetworkUsersView networkUsersView)
+        {
+            if (!string.IsNullOrWhiteSpace(e.SystemKey)) networkUsersView.SetSystemFilter(e.SystemKey);
+            networkUsersView.SetBatchFilter("all");
+            networkUsersView.SetActivityFilter("all");
+            networkUsersView.SetStatusFilter("all");
+            networkUsersView.OpenCardDetails(e.ContextValue ?? string.Empty);
+        }
+        else if (e.ContextKind == "card" && SectionFeatureContentHost.Content is GeneratedCardsView cardsView)
         {
             if (!string.IsNullOrWhiteSpace(e.SystemKey)) cardsView.SetSystemFilter(e.SystemKey);
             cardsView.SetBatchFilter("all");
@@ -1171,6 +1170,13 @@ foreach (var child in SectionTabsPanel.Children.OfType<Button>())
         {
             batchesView.FocusBatch(e.ContextValue ?? string.Empty);
             if (!string.IsNullOrWhiteSpace(e.SystemKey)) batchesView.SetSystemFilter(e.SystemKey);
+        }
+        else if (e.ContextKind == "batch" && SectionFeatureContentHost.Content is NetworkUsersView usersInBatchView)
+        {
+            if (!string.IsNullOrWhiteSpace(e.SystemKey)) usersInBatchView.SetSystemFilter(e.SystemKey);
+            usersInBatchView.SetActivityFilter("all");
+            usersInBatchView.SetStatusFilter("all");
+            usersInBatchView.SetBatchFilter(e.ContextValue ?? "all");
         }
         else if (e.ContextKind == "batch" && SectionFeatureContentHost.Content is GeneratedCardsView cardsInBatchView)
         {
