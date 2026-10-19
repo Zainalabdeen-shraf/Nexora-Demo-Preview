@@ -21,8 +21,8 @@
 
             <Border Background="#FFF9F9" BorderBrush="#F0D7D9" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,9">
                 <DockPanel>
-                    <TextBlock Text="بيانات محلية تجريبية" FontWeight="SemiBold" FontSize="10.5" Foreground="{StaticResource PrimaryBrush}" DockPanel.Dock="Right" Margin="0,0,0,0" />
-                    <TextBlock x:Name="SalesScenarioTextBlock" Text="تعرض اللوحة سجل المبيعات التجريبي؛ قيمة البيع المسجلة لا تعني أن المبلغ تم تحصيله فعليًا." FontSize="10.5" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="10,0,0,0" />
+                    <TextBlock Text="ملخص المبيعات" FontWeight="SemiBold" FontSize="10.5" Foreground="{StaticResource PrimaryBrush}" DockPanel.Dock="Right" Margin="0,0,0,0" />
+                    <TextBlock x:Name="SalesScenarioTextBlock" Text="يعرض التقرير عمليات البيع المسجلة وقيمها وحالاتها." FontSize="10.5" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="10,0,0,0" />
                 </DockPanel>
             </Border>
 

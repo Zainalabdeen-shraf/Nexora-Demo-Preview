@@ -334,3 +334,5 @@ public sealed class RouterOsRestClient : IDisposable
         if (_ownsHttpClient) _httpClient.Dispose();
     }
 }
+
+

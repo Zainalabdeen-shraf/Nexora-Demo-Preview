@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using Nexora.Demo.Desktop.Features.Cards.Services;
 using Nexora.Demo.Desktop.Features.Shared;
@@ -716,7 +716,7 @@ private void RefreshUserManagerDiagnosticsButton_Click(
     RoutedEventArgs e)
 {
     UserManagerDiagnosticsStatusTextBlock.Text =
-        $"تم تحديث عرض التشخيص التجريبي في {DateTime.Now:HH:mm:ss}. " +
+        $"تم تحديث عرض التشخيص في {DateTime.Now:HH:mm:ss}. " +
         "لم يُرسل أي طلب إلى راوتر أو خادم RADIUS.";
 }
 

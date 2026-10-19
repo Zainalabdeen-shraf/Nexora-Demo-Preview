@@ -7,6 +7,7 @@ using System.Windows.Shapes;
 using Nexora.Demo.Desktop.Features.NetworkOperations.Connections;
 using Nexora.Demo.Desktop.Features.NetworkOperations.DemoData;
 using Nexora.Demo.Desktop.Features.NetworkOperations.Models;
+using Nexora.Demo.Desktop.Features.NetworkOperations.Monitoring;
 
 namespace Nexora.Demo.Desktop.Features.NetworkOperations.Views;
 
@@ -26,6 +27,7 @@ public partial class NetworkCenterView : UserControl,
     public event EventHandler<NetworkOperationsNavigationRequestedEventArgs>? NavigationRequested;
 
     public ObservableCollection<NetworkAlertDemo> Alerts => NetworkOperationsDemoStore.Alerts;
+    public ObservableCollection<NetworkInterfaceIncident> InterfaceIncidents => NetworkInterfaceIncidentStore.Incidents;
     public ObservableCollection<NetworkMaintenanceTaskDemo> Tasks => NetworkOperationsDemoStore.MaintenanceTasks;
     public ObservableCollection<NetworkSiteSummaryRow> SiteSummaries { get; } = new();
 
@@ -473,3 +475,4 @@ private void RefreshButton_Click(object sender, RoutedEventArgs e)
     private void NavigateTo(string tabName) => NavigationRequested?.Invoke(
         this, new NetworkOperationsNavigationRequestedEventArgs(tabName));
 }
+

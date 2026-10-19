@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Nexora.Demo.Desktop.Features.Printing.Views.TemplateDesignerView"
+<UserControl x:Class="Nexora.Demo.Desktop.Features.Printing.Views.TemplateDesignerView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              FlowDirection="RightToLeft"
@@ -142,7 +142,7 @@
                     </UniformGrid>
                     <StackPanel Grid.Row="3" Margin="0,4,0,0">
                         <Button Content="تعديل قائمة العناصر…" Style="{StaticResource SecondaryButton}" Height="32" Click="OpenElementsButton_Click" />
-                        <TextBlock x:Name="TemplateStatusTextBlock" Text="قالب تجريبي — احفظ للاحتفاظ بالتغييرات." FontSize="9.2" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        <TextBlock x:Name="TemplateStatusTextBlock" Text="القالب الحالي" FontSize="9.2" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />
                     </StackPanel>
                 </Grid>
             </Border>
@@ -195,7 +195,7 @@
                                         <TextBlock x:Name="PreviewTimeTextBlock" Canvas.Left="221" Canvas.Top="58" Width="96" Height="16" Text="الوقت: 1 س 0 د" FontSize="13" Foreground="#343941" />
                                         <TextBlock x:Name="PreviewValidityTextBlock" Canvas.Left="98" Canvas.Top="58" Width="118" Height="16" Text="الصلاحية: 7 أيام" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" />
                                         <TextBlock x:Name="PreviewPriceTextBlock" Canvas.Left="320" Canvas.Top="58" Width="124" Height="16" Text="السعر: 100 ريال" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" />
-                                        <TextBlock x:Name="PreviewPackageTextBlock" Canvas.Left="98" Canvas.Top="77" Width="170" Height="16" Text="الباقة: باقة تجريبية" FontSize="13.5" Foreground="#343941" />
+                                        <TextBlock x:Name="PreviewPackageTextBlock" Canvas.Left="98" Canvas.Top="77" Width="170" Height="16" Text="الباقة: باقة أساسية" FontSize="13.5" Foreground="#343941" />
                                         <TextBlock x:Name="PreviewDownloadTextBlock" Canvas.Left="276" Canvas.Top="77" Width="174" Height="16" Text="التحميل: 500 ميجابايت" FontSize="13.5" Foreground="#343941" />
                                         <TextBlock x:Name="PreviewPointOfSaleTextBlock" Canvas.Left="98" Canvas.Top="95" Width="145" Height="12" Text="نقطة البيع: الرئيسية" FontSize="8.5" Foreground="#777D86" Visibility="Collapsed" />
                                         <TextBlock x:Name="PreviewBatchTextBlock" Canvas.Left="249" Canvas.Top="95" Width="160" Height="12" Text="رقم الدفعة: B-0001" FontSize="8.5" Foreground="#777D86" Visibility="Collapsed" />

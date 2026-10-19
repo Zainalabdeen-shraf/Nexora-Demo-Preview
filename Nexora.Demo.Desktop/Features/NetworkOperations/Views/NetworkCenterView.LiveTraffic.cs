@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using Nexora.Demo.Desktop.Features.NetworkOperations.Connections;
+using Nexora.Demo.Desktop.Features.NetworkOperations.Monitoring;
 
 namespace Nexora.Demo.Desktop.Features.NetworkOperations.Views;
 
@@ -30,6 +31,15 @@ public partial class NetworkCenterView
 {
     private sealed record TrafficCounter(long? RxBytes, long? TxBytes, DateTimeOffset CollectedAt);
     private sealed record TrafficPoint(DateTimeOffset CollectedAt, double ReceiveMbps, double TransmitMbps);
+
+    private sealed class InterfaceHealthCounter
+    {
+        public int ConsecutiveDownSamples { get; set; }
+        public int ConsecutiveUpSamples { get; set; }
+        public DateTimeOffset? FirstDownAt { get; set; }
+    }
+
+    private readonly Dictionary<string, InterfaceHealthCounter> _interfaceHealthCounters = new(StringComparer.OrdinalIgnoreCase);
 
     public ObservableCollection<RouterTrafficRow> LiveTrafficRows { get; } = new();
 
@@ -59,6 +69,7 @@ public partial class NetworkCenterView
             LiveTrafficRows.Add(CreateTrafficRow(item, null, null));
         }
 
+        ProcessInterfaceHealthSamples(snapshot.Interfaces, snapshot.CollectedAt);
         RouterTrafficDataGrid.ItemsSource = LiveTrafficRows;
         _settingTrafficInterface = true;
         var names = snapshot.Interfaces.Select(item => item.Name).Where(name => !string.IsNullOrWhiteSpace(name)).ToList();
@@ -102,6 +113,7 @@ public partial class NetworkCenterView
         _liveTrafficClient = null;
         _previousTrafficCounters.Clear();
         _trafficHistory.Clear();
+        _interfaceHealthCounters.Clear();
 
         if (clearDisplay)
         {
@@ -144,21 +156,25 @@ public partial class NetworkCenterView
         }
         catch (OperationCanceledException)
         {
+            MarkInterfaceIncidentReadFailed("انتهت مهلة قراءة الواجهات.");
             TrafficSamplingStatusTextBlock.Text =
                 $"انتهت مهلة قراءة الواجهات عند {DateTimeOffset.Now:HH:mm:ss}. ستبقى آخر عينة معروضة إلى أن تنجح قراءة جديدة.";
         }
         catch (RouterOsConnectionException ex)
         {
+            MarkInterfaceIncidentReadFailed(ex.UserMessage);
             TrafficSamplingStatusTextBlock.Text =
                 $"تعذر تحديث عينات المرور عند {DateTimeOffset.Now:HH:mm:ss}: {ex.UserMessage} آخر عينة محفوظة في الذاكرة لم تتغير.";
         }
         catch (HttpRequestException)
         {
+            MarkInterfaceIncidentReadFailed("انقطع اتصال HTTPS بالراوتر.");
             TrafficSamplingStatusTextBlock.Text =
                 $"انقطع اتصال HTTPS عند {DateTimeOffset.Now:HH:mm:ss}. آخر عينة معروضة قديمة حتى تنجح قراءة جديدة.";
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            MarkInterfaceIncidentReadFailed(ex.Message);
             TrafficSamplingStatusTextBlock.Text =
                 $"حدث خطأ غير متوقع أثناء قراءة الواجهات عند {DateTimeOffset.Now:HH:mm:ss}. لم تُرسل أوامر تغيير.";
         }
@@ -170,6 +186,7 @@ public partial class NetworkCenterView
 
     private void ApplyLiveTrafficRead(IReadOnlyList<RouterOsInterfaceSnapshot> interfaces, DateTimeOffset collectedAt)
     {
+        ProcessInterfaceHealthSamples(interfaces, collectedAt);
         foreach (var item in interfaces)
         {
             double? receiveMbps = null;
@@ -358,6 +375,61 @@ public partial class NetworkCenterView
         TrafficHistoryCanvas.Children.Add(lastText);
     }
 
+    private void ProcessInterfaceHealthSamples(IReadOnlyList<RouterOsInterfaceSnapshot> interfaces, DateTimeOffset collectedAt)
+    {
+        foreach (var item in interfaces)
+        {
+            if (string.IsNullOrWhiteSpace(item.Name)) continue;
+            if (!_interfaceHealthCounters.TryGetValue(item.Name, out var counter))
+            {
+                counter = new InterfaceHealthCounter();
+                _interfaceHealthCounters[item.Name] = counter;
+            }
+
+            if (item.Disabled)
+            {
+                counter.ConsecutiveDownSamples = 0;
+                counter.ConsecutiveUpSamples = 0;
+                counter.FirstDownAt = null;
+                NetworkInterfaceIncidentStore.ObserveAdministrativelyDisabled(item.Name, collectedAt);
+                continue;
+            }
+
+            if (item.Running)
+            {
+                counter.ConsecutiveDownSamples = 0;
+                counter.FirstDownAt = null;
+                counter.ConsecutiveUpSamples++;
+                NetworkInterfaceIncidentStore.ObserveUp(item.Name, collectedAt, counter.ConsecutiveUpSamples);
+            }
+            else
+            {
+                counter.ConsecutiveUpSamples = 0;
+                if (counter.ConsecutiveDownSamples == 0) counter.FirstDownAt = collectedAt;
+                counter.ConsecutiveDownSamples++;
+                NetworkInterfaceIncidentStore.ObserveDown(item.Name, collectedAt, counter.ConsecutiveDownSamples, counter.FirstDownAt ?? collectedAt);
+            }
+        }
+
+        InterfaceIncidentsDataGrid.Items.Refresh();
+        var openCount = NetworkInterfaceIncidentStore.Incidents.Count(item => item.Status == "مفتوحة");
+        var readText = $"آخر معالجة لقراءة واجهات ناجحة: {collectedAt:yyyy-MM-dd HH:mm:ss} · {interfaces.Count:N0} واجهة · {openCount:N0} حادثة مفتوحة. يتوقف أخذ العينات عند مغادرة مركز الشبكة أو انقطاع الاتصال.";
+        InterfaceIncidentMonitorStatusTextBlock.Text = string.IsNullOrWhiteSpace(NetworkInterfaceIncidentStore.PersistenceError)
+            ? readText + " سجل الحوادث محفوظ محليًا."
+            : readText + " تحذير: " + NetworkInterfaceIncidentStore.PersistenceError;
+    }
+
+    private void MarkInterfaceIncidentReadFailed(string reason)
+    {
+        // A failed poll gives us no evidence for device state; break consecutive-sample streaks.
+        foreach (var counter in _interfaceHealthCounters.Values)
+        {
+            counter.ConsecutiveDownSamples = 0;
+            counter.ConsecutiveUpSamples = 0;
+            counter.FirstDownAt = null;
+        }
+        InterfaceIncidentMonitorStatusTextBlock.Text = $"تعذرت قراءة الواجهات عند {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}: {reason} الحوادث لم تُحدّث، وتبقى آخر قراءة ناجحة هي المرجع.";
+    }
     private void AddChartMessage(string text, double left, double top)
     {
         var message = new TextBlock

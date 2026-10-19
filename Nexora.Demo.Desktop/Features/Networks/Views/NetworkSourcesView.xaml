@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Nexora.Demo.Desktop.Features.Networks.Views.NetworkSourcesView"
+<UserControl x:Class="Nexora.Demo.Desktop.Features.Networks.Views.NetworkSourcesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              FlowDirection="RightToLeft"
@@ -415,7 +415,7 @@
 
             <TabItem Header="الجلسات والتشخيص">
                 <StackPanel Margin="14">
-                    <TextBlock Text="معاينة جلسات تجريبية"
+                    <TextBlock Text="معاينة الجلسات"
                                FontSize="16"
                                FontWeight="SemiBold"
                                Margin="0,0,0,8"/>
@@ -434,7 +434,7 @@
                                TextWrapping="Wrap"
                                Margin="0,10,0,12"/>
 
-                    <Button Content="تحديث التشخيص التجريبي"
+                    <Button Content="تحديث التشخيص"
                             Style="{StaticResource SecondaryButton}"
                             Click="RefreshUserManagerDiagnosticsButton_Click"
                             HorizontalAlignment="Right"/>
@@ -633,7 +633,7 @@
                                    FontWeight="SemiBold"
                                    Margin="0,0,0,5"/>
 
-                        <TextBlock Text="يمكن تحديد أكثر من طريقة. القائمة تمثل خيارات النموذج التجريبي."
+                        <TextBlock Text="يمكن تحديد أكثر من طريقة للمصادقة."
                                    FontSize="11"
                                    Foreground="{StaticResource MutedBrush}"
                                    TextWrapping="Wrap"
