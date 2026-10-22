@@ -577,7 +577,7 @@ public sealed record DemoCardWorkflowStatus(
     bool PrintQueued,
     string LastAction,
     DateTimeOffset UpdatedAt);
-    
+
 public sealed record DemoWorkflowActionRecord(
     string Id,
     string BatchId,

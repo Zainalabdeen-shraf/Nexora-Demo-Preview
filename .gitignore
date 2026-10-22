@@ -1,23 +1,18 @@
-# Visual Studio / .NET
-.vs/
-**/bin/
+﻿**/bin/
 **/obj/
-**/*.user
-**/*.suo
-*.userosscache
-*.sln.docstates
-
-# Generated publish output and local demo data
-artifacts/
-publish/
-release/
+**/.vs/
+**/TestResults/
+**/.nexora-backups/
+*.user
+*.suo
+*.bak
+*.bak-*
+*.backup
+*.backup-*
+*.failed-*
+*.old
+*.tmp
+*.log
 *.zip
 *.7z
 *.rar
-*.log
-
-# OS/editor
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/

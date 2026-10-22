@@ -651,41 +651,61 @@ public partial class MainWindow : Window
                 FlowDirection = FlowDirection.RightToLeft
             };
                         btn.Click += SectionTabButton_Click;
-            btn.MouseEnter += (_, _) =>
-{
-    var isSelected = string.Equals(
-        btn.Tag?.ToString(),
-        SectionContentTitleTextBlock.Text,
-        StringComparison.Ordinal);
-
-    if (!isSelected)
-        btn.Background = new SolidColorBrush(Color.FromRgb(252, 237, 239));
-};
-
-btn.MouseLeave += (_, _) =>
-{
-    var isSelected = string.Equals(
-        btn.Tag?.ToString(),
-        SectionContentTitleTextBlock.Text,
-        StringComparison.Ordinal);
-
-    btn.Background = isSelected
-        ? (Brush)FindResource("PrimaryBrush")
-        : Brushes.Transparent;
-
-    btn.Foreground = isSelected
-        ? (Brush)FindResource("SurfaceBrush")
-        : (Brush)FindResource("TextBrush");
-
-    btn.BorderBrush = Brushes.Transparent;
-    btn.BorderThickness = new Thickness(0);
-};
-SectionTabsPanel.Children.Add(btn);
-            }
+                        btn.Click += (_, _) => RefreshSectionTabButtonStyles();
+            btn.MouseEnter += (_, _) => RefreshSectionTabButtonStyles();
+            btn.MouseLeave += (_, _) => RefreshSectionTabButtonStyles();
+            SectionTabsPanel.Children.Add(btn);
+                        }
             ApplyShellDisplayPreferences();
             ActivateSectionTab(tabs[0]);
+            RefreshSectionTabButtonStyles();
         }
 
+private void RefreshSectionTabButtonStyles()
+{
+    if (SectionTabsPanel is null || SectionContentTitleTextBlock is null)
+        return;
+
+    var activeBackground = (Brush)FindResource("PrimaryLightBrush");
+    var activeForeground = (Brush)FindResource("PrimaryBrush");
+    var inactiveForeground = (Brush)FindResource("TextBrush");
+    var inactiveBorder = (Brush)FindResource("BorderBrushSoft");
+
+    var hoverBackground =
+        new SolidColorBrush(Color.FromRgb(255, 244, 245));
+
+    var hoverBorder =
+        new SolidColorBrush(Color.FromRgb(240, 184, 190));
+
+    foreach (var button in SectionTabsPanel.Children.OfType<Button>())
+    {
+        var isSelected = string.Equals(
+            button.Tag?.ToString(),
+            SectionContentTitleTextBlock.Text,
+            StringComparison.Ordinal);
+
+        var isHovered = button.IsMouseOver && !isSelected;
+
+        button.Background = isSelected
+            ? activeBackground
+            : isHovered ? hoverBackground : Brushes.White;
+
+        button.Foreground = isSelected
+            ? activeForeground
+            : inactiveForeground;
+
+        button.BorderBrush = isSelected
+            ? activeForeground
+            : isHovered ? hoverBorder : inactiveBorder;
+
+        button.BorderThickness = new Thickness(1);
+        button.FontWeight = isSelected
+            ? FontWeights.SemiBold
+            : FontWeights.Normal;
+
+        button.Cursor = System.Windows.Input.Cursors.Hand;
+    }
+}
     private void ApplyShellDisplayPreferences()
     {
         var compact = DemoSystemSettingsStore.Current.NavigationDensity == "مدمجة";
@@ -836,6 +856,15 @@ SectionTabsPanel.Children.Add(btn);
         SectionTabsScrollViewer.Visibility = (_currentSection == "packages" || _currentSection == "network-users") ? Visibility.Collapsed : Visibility.Visible;
         SectionPlaceholderTextBlock.Text = GetSectionPlaceholder(_currentSection, tab);
         RenderFeatureContent(tab);
+        if (string.Equals(_currentSection, "cards", StringComparison.Ordinal) &&
+            string.Equals(tab, "إصدار الكروت", StringComparison.Ordinal))
+        {
+            PageTitleTextBlock.FontSize = 19;
+        }
+        else
+        {
+            PageTitleTextBlock.ClearValue(System.Windows.Controls.TextBlock.FontSizeProperty);
+        }
         if (SectionFeatureContentHost.Content is INetworkOperationsRefreshable refreshable)
             refreshable.RefreshFromSharedState();
 
@@ -881,7 +910,7 @@ foreach (var child in SectionTabsPanel.Children.OfType<Button>())
     }
 
         var featureOwnsWorkspace = SectionFeatureContentHost.Content is
-            CardIssuanceView or IssuanceWorkspaceView or GeneratedCardsView or NetworkUsersView or CardBatchesView or PendingCardsView or ImportCardsView or
+            CardIssuanceView or IssuanceWorkspaceView or CardManagementView or GeneratedCardsView or NetworkUsersView or CardBatchesView or PendingCardsView or ImportCardsView or
             PackageManagementView or SalesReportView or SalesTransactionsView or SalesPointsView or PrintQueueView or TemplateDesignerView or ReportsCenterView or NetworkSourcesView or NetworkCenterView or NetworkSitesDevicesView or NetworkClientsView or NetworkMonitoringView or NetworkMaintenanceView or NetworkAnalyticsView or SystemSettingsView or ScreenAppearanceSettingsView or WorkspaceIdentityView or BackupSettingsView;
         var compactIssuanceWorkspace = SectionFeatureContentHost.Content is IssuanceWorkspaceView;
         SectionContentBorder.Padding = compactIssuanceWorkspace ? new Thickness(6) : new Thickness(14);
@@ -1026,9 +1055,8 @@ foreach (var child in SectionTabsPanel.Children.OfType<Button>())
 
         if (section == "cards" && tab == "إدارة الكروت")
         {
-            var view = new GeneratedCardsView(_demoCardIssuanceService, _selectedCardSystem);
+            var view = new CardManagementView(_demoCardIssuanceService, _selectedCardSystem);
             view.NavigationRequested += FeatureView_NavigationRequested;
-            view.SetSystemFilter(_selectedCardSystem == DemoAccountSystem.HotSpot ? "hotspot" : "user-manager");
             return view;
         }
 

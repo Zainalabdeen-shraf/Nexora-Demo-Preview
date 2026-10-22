@@ -10,4 +10,8 @@
     <Resource Include="Assets\Brand\cards-network-logo.png" />
     <Resource Include="Assets\Brand\nexora-network-card-mark.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Watch Include="**\*.xaml"
+           Exclude="**\bin\**;**\obj\**" />
+</ItemGroup>
 </Project>

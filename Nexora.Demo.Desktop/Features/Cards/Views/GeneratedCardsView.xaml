@@ -4,24 +4,21 @@
              FlowDirection="RightToLeft"
              Background="#F4F6FB"
              SnapsToDevicePixels="True">
-    <!-- TabCardManagementWorkflowV1: compact card list with batch/system filtering and selection workflows. -->
-    <!-- TabCardBatchWorkflowV1: view-local styles only. -->
     <UserControl.Resources>
         <SolidColorBrush x:Key="BatchInk" Color="#202B45"/>
         <SolidColorBrush x:Key="BatchMuted" Color="#68758D"/>
-        <SolidColorBrush x:Key="BatchAccent" Color="#E9254D"/>
-        <SolidColorBrush x:Key="BatchAccentSoft" Color="#FFF0F3"/>
         <SolidColorBrush x:Key="BatchLine" Color="#E8DDE4"/>
+
         <Style x:Key="BatchPanel" TargetType="Border">
             <Setter Property="Background" Value="#FFFFFF"/>
             <Setter Property="BorderBrush" Value="{StaticResource BatchLine}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="10"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="12"/>
         </Style>
         <Style x:Key="BatchTextBox" TargetType="TextBox">
-            <Setter Property="Height" Value="35"/>
-            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="10,4"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Background" Value="#F8FAFD"/>
             <Setter Property="BorderBrush" Value="#C9D2E1"/>
@@ -30,8 +27,8 @@
             <Setter Property="FontSize" Value="12"/>
         </Style>
         <Style x:Key="BatchComboBox" TargetType="ComboBox">
-            <Setter Property="Height" Value="35"/>
-            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="8,3"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Background" Value="#F8FAFD"/>
             <Setter Property="BorderBrush" Value="#C9D2E1"/>
@@ -41,59 +38,53 @@
         </Style>
         <Style x:Key="BatchPrimaryButton" TargetType="Button">
             <Setter Property="Height" Value="36"/>
-            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="Padding" Value="14,0"/>
             <Setter Property="Background" Value="#E9254D"/>
             <Setter Property="BorderBrush" Value="#E9254D"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Margin" Value="3,0"/>
         </Style>
         <Style x:Key="BatchSecondaryButton" TargetType="Button">
-            <Setter Property="Height" Value="35"/>
-            <Setter Property="Padding" Value="9,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="12,0"/>
             <Setter Property="Background" Value="#FFF0F3"/>
             <Setter Property="BorderBrush" Value="#F3B8C5"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Foreground" Value="#C9183D"/>
-            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Margin" Value="3,0"/>
         </Style>
-        <Style TargetType="DataGrid">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BatchLine}"/>
+
+        <!-- أزرار الأيقونات التشغيلية الملونة والتفاعلية -->
+        <!-- أزرار الأيقونات التشغيلية الملونة والتفاعلية -->
+        <Style x:Key="RowIconButton" TargetType="Button">
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Margin" Value="2,0"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
-            <Setter Property="HorizontalGridLinesBrush" Value="#EDEFF5"/>
-            <Setter Property="VerticalGridLinesBrush" Value="#F1F2F6"/>
-            <Setter Property="CanUserAddRows" Value="False"/>
-            <Setter Property="CanUserDeleteRows" Value="False"/>
-            <Setter Property="IsReadOnly" Value="True"/>
-            <Setter Property="RowHeight" Value="36"/>
-            <Setter Property="ColumnHeaderHeight" Value="38"/>
-            <Setter Property="FontSize" Value="11.5"/>
-            <Setter Property="EnableRowVirtualization" Value="True"/>
-            <Setter Property="EnableColumnVirtualization" Value="True"/>
-            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
-            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
-        </Style>
-        <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#FFF1F4"/>
-            <Setter Property="Foreground" Value="#263550"/>
-            <Setter Property="FontSize" Value="11.5"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="BorderBrush" Value="#EADDE4"/>
-            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </UserControl.Resources>
 
-    <Grid Margin="3">
+    <Grid Margin="6">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="8"/>
@@ -104,32 +95,34 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- الهيدر والعنوان المخصص للطابور المعلق -->
         <Border Grid.Row="0" Style="{StaticResource BatchPanel}">
             <DockPanel LastChildFill="True">
-                <Border DockPanel.Dock="Left" Background="#FFF0F3" BorderBrush="#F3B8C5" BorderThickness="1" CornerRadius="8" Padding="9,5">
-                    <TextBlock Text="إدارة الحسابات" Foreground="#C9183D" FontSize="10.5" FontWeight="SemiBold"/>
+                <Border DockPanel.Dock="Left" Background="#FFF0F3" BorderBrush="#F3B8C5" BorderThickness="1" CornerRadius="6" Padding="10,6" VerticalAlignment="Center">
+                    <TextBlock Text="الطابور المحلي المعلق" Foreground="#C9183D" FontSize="11" FontWeight="Bold"/>
                 </Border>
-                <StackPanel>
-                    <TextBlock Text="إدارة الكروت" FontSize="20" FontWeight="Bold" Foreground="{StaticResource BatchInk}"/>
-                    <TextBlock x:Name="CardsScopeTextBlock" Text="تصفّح الحسابات حسب النظام والدفعة والحالة، وحدد العناصر لتنفيذ الإجراء." FontSize="11.5" Foreground="{StaticResource BatchMuted}" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                <StackPanel Margin="12,0,0,0">
+                    <TextBlock Text="إدارة وتجهيز الكروت غير المزامنة" FontSize="19" FontWeight="Bold" Foreground="{StaticResource BatchInk}"/>
+                    <TextBlock x:Name="CardsScopeTextBlock" Text="مراجعة وتجهيز الكروت المحلية قبل مزامنتها مع الراوتر، طباعتها، أو تحويلها للبيع الإلكتروني." FontSize="11.5" Foreground="{StaticResource BatchMuted}" Margin="0,3,0,0"/>
                 </StackPanel>
             </DockPanel>
         </Border>
 
-        <Border Grid.Row="2" Style="{StaticResource BatchPanel}" Padding="8">
+        <!-- شريط البحث والفلاتر -->
+        <Border Grid.Row="2" Style="{StaticResource BatchPanel}" Padding="10">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.6*"/><ColumnDefinition Width="7"/>
-                    <ColumnDefinition Width="1.05*"/><ColumnDefinition Width="7"/>
-                    <ColumnDefinition Width="1.4*"/><ColumnDefinition Width="7"/>
-                    <ColumnDefinition Width="1.1*"/><ColumnDefinition Width="7"/>
+                    <ColumnDefinition Width="1.8*"/><ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="1.1*"/><ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="1.3*"/><ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="1.1*"/><ColumnDefinition Width="8"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBox x:Name="CardSearchTextBox" Grid.Column="0" Style="{StaticResource BatchTextBox}"
-                         ToolTip="بحث برقم الكرت أو اسم المستخدم أو رقم الدفعة أو الباقة"
+                         ToolTip="بحث برقم الكرت أو الدفعة أو الباقة"
                          TextChanged="CardSearchTextBox_TextChanged"/>
                 <ComboBox x:Name="CardSystemFilterComboBox" Grid.Column="2" Style="{StaticResource BatchComboBox}"
-                          SelectionChanged="CardFilter_SelectionChanged" ToolTip="اختيار الفئة" SelectedIndex="0">
+                          SelectionChanged="CardFilter_SelectionChanged" ToolTip="اختيار النظام" SelectedIndex="0">
                     <ComboBoxItem Content="مدير المستخدمين" Tag="user-manager"/>
                     <ComboBoxItem Content="الهوتسبوت" Tag="hotspot"/>
                     <ComboBoxItem Content="كل الأنظمة" Tag="all"/>
@@ -137,67 +130,152 @@
                 <ComboBox x:Name="CardBatchFilterComboBox" Grid.Column="4" Style="{StaticResource BatchComboBox}"
                           SelectionChanged="CardFilter_SelectionChanged" ToolTip="تصفية حسب الدفعة"/>
                 <ComboBox x:Name="CardStatusFilterComboBox" Grid.Column="6" Style="{StaticResource BatchComboBox}"
-                          SelectionChanged="CardFilter_SelectionChanged" ToolTip="تصفية حسب حالة الكرت" SelectedIndex="0">
+                          SelectionChanged="CardFilter_SelectionChanged" ToolTip="تصفية حسب حالة التحضير" SelectedIndex="0">
                     <ComboBoxItem Content="كل الحالات" Tag="all"/>
                     <ComboBoxItem Content="متاحة" Tag="متاحة"/>
                     <ComboBoxItem Content="قيد الاستخدام" Tag="قيد الاستخدام"/>
-                    <ComboBoxItem Content="منتهية" Tag="منتهية"/>
-                    <ComboBoxItem Content="موقوفة" Tag="موقوفة"/>
                 </ComboBox>
-                <Button Grid.Column="8" Content="تحديث" Style="{StaticResource BatchSecondaryButton}" Click="RefreshButton_Click"/>
+                <Button Grid.Column="8" Content="🔄 تحديث" Style="{StaticResource BatchSecondaryButton}" Click="RefreshButton_Click"/>
             </Grid>
         </Border>
 
+        <!-- جدول الكروت المعلقة بإنهاء دمج الاسم والرقم وأيقونات ملونة وإشارات حالة احترافية -->
         <Grid Grid.Row="4">
-            <DataGrid x:Name="GeneratedCardsGrid" FlowDirection="RightToLeft" AutoGenerateColumns="False" IsReadOnly="True"
-                      CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column"
-                      SelectionMode="Extended" SelectionUnit="FullRow" SelectionChanged="GeneratedCardsGrid_SelectionChanged"
-                      MouseDoubleClick="GeneratedCardsGrid_MouseDoubleClick" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                      ScrollViewer.VerticalScrollBarVisibility="Auto" EnableRowVirtualization="True" EnableColumnVirtualization="True"
-                      RowHeight="37" ColumnHeaderHeight="39" FontSize="11.5">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="رقم الدفعة" Binding="{Binding BatchId}" Width="1.55*"/>
-                    <DataGridTextColumn Header="رقم الكرت" Binding="{Binding CardNumber}" Width="1.1*"/>
-                    <DataGridTextColumn Header="اسم المستخدم" Binding="{Binding Username}" Width="1.1*"/>
-                    <DataGridTextColumn Header="الباقة" Binding="{Binding PackageName}" Width="1.45*"/>
-                    <DataGridTextColumn Header="الحالة" Binding="{Binding DemoStatus}" Width="0.9*"/>
-                    <DataGridTextColumn Header="تاريخ الإنشاء" Binding="{Binding CreatedAtLabel}" Width="1.15*"/>
-                </DataGrid.Columns>
-            </DataGrid>
+            <Border Style="{StaticResource BatchPanel}" Padding="0">
+                <DataGrid x:Name="GeneratedCardsGrid" FlowDirection="RightToLeft" AutoGenerateColumns="False" IsReadOnly="True"
+                          CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column"
+                          SelectionMode="Extended" SelectionUnit="FullRow" SelectionChanged="GeneratedCardsGrid_SelectionChanged"
+                          MouseDoubleClick="GeneratedCardsGrid_MouseDoubleClick" BorderThickness="0"
+                          RowHeight="42" ColumnHeaderHeight="40" FontSize="11.5">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="رقم الدفعة" Binding="{Binding BatchId}" Width="1.3*"/>
+
+                        <!-- تم إبقاء عمود رقم الكرت / اسم المستخدم فقط وحذف عمود اسم المستخدم الجانبي -->
+                        <DataGridTextColumn Header="رقم الكرت / اسم المستخدم" Binding="{Binding CardNumber}" Width="1.4*"/>
+
+                        <!-- عمود كلمة المرور בחالاتها الثلاث -->
+                        <DataGridTextColumn Header="كلمة المرور" Binding="{Binding Password}" Width="1.1*"/>
+                        <DataGridTextColumn Header="الباقة" Binding="{Binding PackageName}" Width="1.3*"/>
+
+                        <!-- عمود الحالة الملون التفاعلي (Status Badge) -->
+                       <!-- عمود حالة التحضير المتغير حياً حسب الإجراء -->
+                        <DataGridTemplateColumn Header="حالة التحضير الإجرائية" Width="1.5*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="12" Padding="10,4" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <!-- الحالة الافتراضية (متاحة) -->
+                                                <Setter Property="Background" Value="#ECFDF5"/>
+                                                <Style.Triggers>
+                                                    <!-- إذا تم النقر على مزامنة -->
+                                                    <DataTrigger Binding="{Binding DemoStatus}" Value="تمت المزامنة">
+                                                        <Setter Property="Background" Value="#EEF2FF"/>
+                                                    </DataTrigger>
+                                                    <!-- إذا تم النقر على طباعة -->
+                                                    <DataTrigger Binding="{Binding DemoStatus}" Value="جاهز للطباعة">
+                                                        <Setter Property="Background" Value="#FEF3C7"/>
+                                                    </DataTrigger>
+                                                    <!-- إذا تم النقر على بيع إلكتروني -->
+                                                    <DataTrigger Binding="{Binding DemoStatus}" Value="جاهز للبيع الإلكتروني">
+                                                        <Setter Property="Background" Value="#FFF1F2"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+
+                                        <TextBlock Text="{Binding DemoStatus}" FontWeight="SemiBold" FontSize="11" HorizontalAlignment="Center">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="#047857"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding DemoStatus}" Value="تمت المزامنة">
+                                                            <Setter Property="Foreground" Value="#4338CA"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding DemoStatus}" Value="جاهز للطباعة">
+                                                            <Setter Property="Foreground" Value="#B45309"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding DemoStatus}" Value="جاهز للبيع الإلكتروني">
+                                                            <Setter Property="Foreground" Value="#E11D48"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn Header="تاريخ الإنشاء" Binding="{Binding CreatedAtLabel}" Width="1.1*"/>
+
+                        <!-- عمود الأيقونات الملونة والتفاعلية مع الأزرار -->
+                        <DataGridTemplateColumn Header="إجراءات تشغيلية" Width="135">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <!-- أيقونة المزامنة الملونة بالكهرمان/الأزرق -->
+                                        <Button Style="{StaticResource RowIconButton}" ToolTip="مزامنة فورية للراوتر"
+                                                Background="#EEF2FF" BorderBrush="#C7D2FE" Click="RowSyncIcon_Click">
+                                            <TextBlock Text="⚡" FontSize="12" Foreground="#4338CA" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Button>
+
+                                        <!-- أيقونة الطباعة الملونة بالأخضر -->
+                                        <Button Style="{StaticResource RowIconButton}" ToolTip="طباعة الكرت"
+                                                Background="#ECFDF5" BorderBrush="#A7F3D0" Click="RowPrintIcon_Click">
+                                            <TextBlock Text="🖨️" FontSize="12" Foreground="#047857" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Button>
+
+                                        <!-- أيقونة البيع الإلكتروني الملونة بالوردي/الأحمر -->
+                                        <Button Style="{StaticResource RowIconButton}" ToolTip="تجهيز للبيع الإلكتروني"
+                                                Background="#FFF1F2" BorderBrush="#FECDD3" Click="RowSaleIcon_Click">
+                                            <TextBlock Text="🛒" FontSize="12" Foreground="#E11D48" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Button>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
             <Border x:Name="EmptyCardsPanel" Visibility="Collapsed" Background="#FDFDFF" BorderBrush="{StaticResource BatchLine}"
-                    BorderThickness="1" CornerRadius="12" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="440" Padding="24">
+                    BorderThickness="1" CornerRadius="10" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="400" Padding="20">
                 <StackPanel HorizontalAlignment="Center">
-                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8A5;" FontSize="31" Foreground="#D0D6E3" HorizontalAlignment="Center"/>
-                    <TextBlock Text="لا توجد كروت في هذه القائمة" FontSize="16" FontWeight="Bold" TextAlignment="Center" Foreground="{StaticResource BatchInk}" Margin="0,8,0,0"/>
-                    <TextBlock x:Name="EmptyCardsDescriptionTextBlock" Text="أنشئ دفعة أو غيّر جهة الإصدار والدفعة المحددة." Foreground="{StaticResource BatchMuted}"
-                               TextWrapping="Wrap" TextAlignment="Center" Margin="0,5,0,0"/>
+                    <TextBlock Text="🎉" FontSize="28" HorizontalAlignment="Center"/>
+                    <TextBlock Text="لا توجد كروت معلقة في الطابور" FontSize="15" FontWeight="Bold" TextAlignment="Center" Foreground="{StaticResource BatchInk}" Margin="0,6,0,0"/>
+                    <TextBlock x:Name="EmptyCardsDescriptionTextBlock" Text="تمت مزامنة أو معالجة جميع الكروت السابقة." Foreground="{StaticResource BatchMuted}"
+                               TextWrapping="Wrap" TextAlignment="Center" Margin="0,4,0,0" FontSize="11.5"/>
                 </StackPanel>
             </Border>
         </Grid>
 
-        <Border Grid.Row="6" Style="{StaticResource BatchPanel}" Padding="8">
+        <!-- شريط العمليات الجماعية السفلي -->
+        <Border Grid.Row="6" Style="{StaticResource BatchPanel}" Padding="10">
             <Grid>
-                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="6"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="8"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
                 <Grid Grid.Row="0">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                    <TextBlock x:Name="CardsCountSummaryTextBlock" Grid.Column="0" Text="جار تحديث السجلات..." FontSize="10.5"
-                               Foreground="{StaticResource BatchMuted}" VerticalAlignment="Center" TextWrapping="Wrap"/>
-                    <TextBlock x:Name="WorkflowStatusTextBlock" Grid.Column="2" Text="حدد كرتًا لعرض حالته." FontSize="10.5" Foreground="#C9183D" VerticalAlignment="Center" Margin="8,0"/>
-                    <Button Grid.Column="3" Content="تفاصيل الكرت" Style="{StaticResource BatchSecondaryButton}" Click="OpenSelectedCardDetailsButton_Click"/>
-                    <StackPanel Visibility="Collapsed">
-                        <TextBlock x:Name="VisibleCardsMetricTextBlock" Text="0"/>
-                        <TextBlock x:Name="VisibleBatchesMetricTextBlock" Text="0"/>
-                    </StackPanel>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="CardsCountSummaryTextBlock" Grid.Column="0" Text="جار تحديث السجلات..." FontSize="11"
+                               Foreground="{StaticResource BatchMuted}" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="WorkflowStatusTextBlock" Grid.Column="1" Text="حدد كرتًا لعرض حالته." FontSize="11" Foreground="#C9183D" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0"/>
+                    <Button Grid.Column="2" Content="📄 تفاصيل الكرت" Style="{StaticResource BatchSecondaryButton}" Click="OpenSelectedCardDetailsButton_Click"/>
                 </Grid>
-                <Grid Grid.Row="2">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                    <Button Grid.Column="0" Content="تحديد الظاهر" Style="{StaticResource BatchSecondaryButton}" Click="SelectAllVisibleCardsButton_Click"/>
-                    <Button Grid.Column="1" Content="إلغاء التحديد" Style="{StaticResource BatchSecondaryButton}" Click="ClearSelectedCardsButton_Click"/>
-                    <TextBlock Grid.Column="2" Text="تظهر حالة الربط والتحضير ضمن سجل إجراءات الكروت." FontSize="10" Foreground="{StaticResource BatchMuted}" VerticalAlignment="Center" Margin="6,0" TextWrapping="Wrap"/>
-                    <Button Grid.Column="3" Content="طلب مزامنة" Style="{StaticResource BatchSecondaryButton}" Click="UploadSelectedToRouterButton_Click"/>
-                    <Button Grid.Column="4" Content="طلب مزامنة وتجهيز الطباعة" Style="{StaticResource BatchSecondaryButton}" Click="UploadSelectedAndPrintButton_Click"/>
-                    <Button Grid.Column="5" Content="تجهيز للبيع الإلكتروني" Style="{StaticResource BatchPrimaryButton}" Click="PrepareSelectedForOnlineSaleButton_Click"/>
-                </Grid>
+
+                <WrapPanel Grid.Row="2" Orientation="Horizontal">
+                    <Button Content="☑️ تحديد الظاهر" Style="{StaticResource BatchSecondaryButton}" Click="SelectAllVisibleCardsButton_Click"/>
+                    <Button Content="❌ إلغاء التحديد" Style="{StaticResource BatchSecondaryButton}" Click="ClearSelectedCardsButton_Click"/>
+                    <Button Content="⚡ طلب مزامنة جماعية" Style="{StaticResource BatchSecondaryButton}" Click="UploadSelectedToRouterButton_Click"/>
+                    <Button Content="🖨️ طباعة المحددة" Style="{StaticResource BatchSecondaryButton}" Click="UploadSelectedAndPrintButton_Click"/>
+                    <Button Content="🛒 تجهيز للبيع الإلكتروني" Style="{StaticResource BatchPrimaryButton}" Click="PrepareSelectedForOnlineSaleButton_Click"/>
+                </WrapPanel>
             </Grid>
         </Border>
     </Grid>

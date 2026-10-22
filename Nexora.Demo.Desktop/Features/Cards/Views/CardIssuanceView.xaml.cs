@@ -1,3 +1,5 @@
+using System.IO;
+using System.Text.Json;
 using System.Globalization;
 
 using System.Windows;
@@ -33,6 +35,72 @@ public partial class CardIssuanceView : UserControl
     private readonly DemoAccountSystem _targetSystem;
 
     private readonly DemoCardWorkflowStore _workflowStore = new();
+    private string _designerTemplateName = "القالب الافتراضي";
+    private string _designerTemplateStyle = "classic";
+    private string _designerColorTheme = "red";
+    private readonly Dictionary<string, bool> _templateVisibleElements = CreateDefaultTemplateVisibility();
+
+    private static string TemplateDesignStoragePath => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "NexoraProductDemo", "templates", "tabcard-template-design.json");
+
+    private static Dictionary<string, bool> CreateDefaultTemplateVisibility() => new(StringComparer.Ordinal)
+    {
+        ["رمز الدخول"] = true, ["اسم المستخدم"] = true, ["كلمة المرور"] = true,
+        ["الصلاحية"] = true, ["الوقت"] = false, ["السعر"] = true, ["التحميل"] = false,
+        ["الباقة"] = true, ["الرقم التسلسلي"] = false, ["تاريخ الطباعة"] = false,
+        ["رقم الدفعة"] = false, ["نقطة البيع"] = false, ["معلومات إضافية"] = false,
+        ["كود المكافأة"] = false, ["رمز QR"] = true, ["الباركود"] = false,
+        ["شعار الشبكة"] = true, ["الشريط العلوي"] = true, ["الفاصل"] = true
+    };
+
+    private bool IsTemplateElementVisible(string key) =>
+        _templateVisibleElements.TryGetValue(key, out var visible) && visible;
+
+    private void LoadDesignerTemplateDefinition()
+    {
+        _templateVisibleElements.Clear();
+        foreach (var pair in CreateDefaultTemplateVisibility()) _templateVisibleElements[pair.Key] = pair.Value;
+        _designerTemplateName = "القالب الافتراضي";
+        _designerTemplateStyle = "classic";
+        _designerColorTheme = "red";
+
+        try
+        {
+            if (File.Exists(TemplateDesignStoragePath))
+            {
+                using var document = JsonDocument.Parse(File.ReadAllText(TemplateDesignStoragePath));
+                var root = document.RootElement;
+                if (root.TryGetProperty("TemplateName", out var name) && name.ValueKind == JsonValueKind.String &&
+                    !string.IsNullOrWhiteSpace(name.GetString()))
+                    _designerTemplateName = name.GetString()!.Trim();
+                if (root.TryGetProperty("TemplateStyle", out var style) && style.ValueKind == JsonValueKind.String)
+                    _designerTemplateStyle = style.GetString() ?? "classic";
+                if (root.TryGetProperty("ColorTheme", out var theme) && theme.ValueKind == JsonValueKind.String)
+                    _designerColorTheme = theme.GetString() ?? "red";
+                if (root.TryGetProperty("VisibleElements", out var visibleElements) && visibleElements.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var item in visibleElements.EnumerateObject())
+                        if (item.Value.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                            _templateVisibleElements[item.Name] = item.Value.GetBoolean();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            SetStatus("تعذر قراءة إعدادات القالب المحفوظ؛ ستُستخدم الحقول الافتراضية. " + ex.Message, true);
+        }
+
+        if (PrintTemplateComboBox is not null)
+        {
+            PrintTemplateComboBox.Items.Clear();
+            var currentTemplate = new ComboBoxItem { Content = _designerTemplateName, Tag = "designer" };
+            PrintTemplateComboBox.Items.Add(currentTemplate);
+            PrintTemplateComboBox.SelectedItem = currentTemplate;
+            PrintTemplateComboBox.ToolTip = "القالب المحفوظ من شاشة الطباعة والتصميم";
+        }
+    }
+
 
     private ListCollectionView? _recentBatchesView;
 
@@ -44,12 +112,7 @@ public partial class CardIssuanceView : UserControl
 
     private GeneratedDemoCard? _previewCard;
 
-    private string _quantityBeforeSingleCard = "20";
-
-    private bool _singleCardModeApplied;
-
     private bool _isSubscribed;
-    private bool _isSyncingPrintTemplateControls;
     private bool _isApplyingPreviousBatch;
 
     private string _printPaperSize = "A4";
@@ -58,7 +121,6 @@ public partial class CardIssuanceView : UserControl
 
     private bool _printCutMarks = true;
 
-    private static readonly CultureInfo UiCulture = CultureInfo.CurrentCulture;
 
 
 
@@ -67,24 +129,18 @@ public partial class CardIssuanceView : UserControl
     {
 
         InitializeComponent();
-        AdvancedSettingsPage.Visibility = Visibility.Collapsed;
+        LoadDesignerTemplateDefinition();
 
         _issuanceService = issuanceService;
 
         _targetSystem = targetSystem;
-        IssuanceSettingsHeadingTextBlock.Text = "معلومات الدفعة والباقة";
-        IssuanceModeSubtitleTextBlock.Visibility = Visibility.Collapsed;
         CardNumberPatternLabelTextBlock.Text = targetSystem == DemoAccountSystem.UserManager
-            ? "طول / نمط اسم المستخدم"
-            : "طول / نمط رقم الكرت";
+            ? "مستخدم اليوزر منجر"
+            : "مستخدم الهوتسبوت";
         PreviewSourceTypeTextBlock.Text = targetSystem == DemoAccountSystem.UserManager
             ? "مدير المستخدمين"
             : "نقطة الاتصال";
-        HotSpotSourceInfoBorder.Visibility = Visibility.Collapsed;
-        UserManagerSourceInfoBorder.Visibility = Visibility.Collapsed;
-        CardNumberLengthTextBox.ToolTip = targetSystem == DemoAccountSystem.UserManager
-            ? "في مدير المستخدمين، رقم الكرت هو اسم المستخدم؛ هذا الطول يحدد الاثنين."
-            : "هذا الطول يحدد طول رقم الكرت في نقطة الاتصال.";
+        CardNumberLengthTextBox.ToolTip = "يحدد طول ونمط المعرّف؛ اسم المستخدم ورقم الكرت متطابقان.";
 
         _recentBatchesView = new ListCollectionView(_issuanceService.Batches) { Filter = MatchRecentBatch };
 
@@ -92,30 +148,9 @@ public partial class CardIssuanceView : UserControl
 
 
 
-        TargetSystemBadgeTextBlock.Text = targetSystem == DemoAccountSystem.HotSpot
-
-            ? "نقطة الاتصال"
-
-            : "مدير المستخدمين";
-
-        IssuanceModeSubtitleTextBlock.Text = targetSystem == DemoAccountSystem.HotSpot
-
-            ? "أنشئ كروت نقطة الاتصال من باقة مرتبطة، وحدد بيانات الدخول والمشاركة."
-
-            : "أنشئ كروت مدير المستخدمين من باقة مرتبطة، وحدد الحساب والمجموعة وصيغة الدخول.";
-
         ManagerUserPanel.Visibility = targetSystem == DemoAccountSystem.UserManager
 
             ? Visibility.Visible : Visibility.Collapsed;
-
-        SharedUsersHelpTextBlock.Text = targetSystem == DemoAccountSystem.UserManager
-
-            ? "يحدد هذا الخيار عدد الجلسات المتزامنة المسموح بها للحساب وفق إعداد مدير المستخدمين."
-
-            : "يحدد هذا الخيار عدد الجلسات المتزامنة وفق ملف مستخدم نقطة الاتصال المرتبط.";
-
-
-
         try
 
         {
@@ -144,12 +179,9 @@ public partial class CardIssuanceView : UserControl
             CardPrefixTextBox.Text = targetSystem == DemoAccountSystem.HotSpot ? "HP-" : "UM-";
 
         ManagerUserPanel.Visibility = targetSystem == DemoAccountSystem.UserManager ? Visibility.Visible : Visibility.Collapsed;
-
-        UsernameSettingsPanel.Visibility = targetSystem == DemoAccountSystem.HotSpot ? Visibility.Visible : Visibility.Collapsed;
-
+        Grid.SetRow(PasswordGenerationPanel, 1);
+        Grid.SetRow(CredentialIdentityPanel, 2);
         PasswordModeLabelTextBlock.Text = targetSystem == DemoAccountSystem.UserManager ? "صيغة الكرت" : "صيغة الدخول";
-
-        ShowUsernameCheckBox.Visibility = targetSystem == DemoAccountSystem.UserManager ? Visibility.Collapsed : Visibility.Visible;
 
         UpdatePasswordControls();
 
@@ -193,6 +225,8 @@ public partial class CardIssuanceView : UserControl
 
         {
 
+            LoadDesignerTemplateDefinition();
+            ApplyPrintTemplate();
             RefreshPackageCatalog(preserveSelection: true);
 
             // Refreshing the package catalog updates its suggested profile; restore the user's per-system
@@ -277,21 +311,12 @@ public partial class CardIssuanceView : UserControl
 
     {
 
-        GenerationMode_Changed(this, new RoutedEventArgs());
-
         UpdatePasswordControls();
-        if (ReadTag(PasswordModeComboBox) == "Generated")
-            ShowAdvancedSettingsPage();
 
         BatchMode_Changed(this, new RoutedEventArgs());
 
-        PrintMode_Changed(this, new RoutedEventArgs());
-
-        SynchronizePrintTemplateControls(PrintTemplateComboBox, PreviewTemplateComboBox);
-
         ApplyPrintTemplate();
 
-        PreviewOptionChanged(this, new RoutedEventArgs());
 
     }
 
@@ -300,8 +325,6 @@ public partial class CardIssuanceView : UserControl
     private void GenerateBatchButton_Click(object sender, RoutedEventArgs e) => ExecuteBatchWorkflow("local");
 
     private void GenerateAndPrintButton_Click(object sender, RoutedEventArgs e) => ExecuteBatchWorkflow("upload-print");
-
-    private void UploadRouterButton_Click(object sender, RoutedEventArgs e) => ExecuteBatchWorkflow("upload");
 
     private void OnlineSaleButton_Click(object sender, RoutedEventArgs e) => ExecuteBatchWorkflow("online-sale");
 
@@ -315,7 +338,7 @@ public partial class CardIssuanceView : UserControl
 
         _lastGeneratedCards = [];
 
-        GenerateBatch(openPrintQueue: false);
+        GenerateBatch();
 
         if (string.IsNullOrWhiteSpace(_lastGeneratedBatchId) || _lastGeneratedCards.Count == 0)
 
@@ -340,16 +363,7 @@ public partial class CardIssuanceView : UserControl
             switch (action)
 
             {
-
-                case "upload":
-
-                    _workflowStore.RecordRouterUpload(_lastGeneratedCards);
-
-                    SetStatus($"تم إنشاء {_lastGeneratedCards.Count:N0} كرت وتسجيل طلب المزامنة للدفعة.", false);
-
-                    break;
-
-                case "upload-print":
+case "upload-print":
                     _workflowStore.QueuePrintSelection(_lastGeneratedCards);
                     SetStatus($"تم إنشاء {_lastGeneratedCards.Count:N0} كرت محليًا في الدفعة {_lastGeneratedBatchId}. ستظهر الأرقام في معاينة الطباعة المنفصلة.", false);
                     ShowLocalPrintPreview(_lastGeneratedCards);
@@ -415,7 +429,7 @@ public partial class CardIssuanceView : UserControl
 
 
 
-    private void GenerateBatch(bool openPrintQueue)
+    private void GenerateBatch()
 
     {
 
@@ -462,30 +476,9 @@ public partial class CardIssuanceView : UserControl
                 throw new InvalidOperationException("لم يعثر النظام على الكروت التي أُنشئت لهذه الدفعة.");
 
             _previewCard = _lastGeneratedCards[^1];
+            SetStatus($"تم إنشاء {countAdded:N0} كرت في الدفعة {batch.BatchId}.", false);
 
 
-
-            if (existingBatchId is null)
-
-                PreviewBatchTextBlock.Text = $"تم إنشاء الدفعة {batch.BatchId}؛ عدد الكروت {batch.Quantity:N0}.";
-
-            else
-
-                PreviewBatchTextBlock.Text = $"تمت إضافة {countAdded:N0} كرت إلى الدفعة {batch.BatchId}. إجماليها الآن {batch.Quantity:N0}.";
-
-
-
-            SetStatus(openPrintQueue
-
-                ? $"نجح تجهيز {countAdded:N0} كرت. ستنتقل إلى قائمة الطباعة للمراجعة؛ لم تُرسل الكروت إلى الراوتر ولم تتم طباعة فعلية."
-
-                : $"تم إنشاء {countAdded:N0} كرت في الدفعة {batch.BatchId}.",
-
-                false);
-
-
-
-            OpenGeneratedCardsButton.IsEnabled = true;
 
             OpenPrintQueueButton.IsEnabled = true;
 
@@ -498,13 +491,6 @@ public partial class CardIssuanceView : UserControl
             RefreshRecentBatchesEmptyState();
 
             UpdatePreview();
-
-
-
-            if (openPrintQueue)
-
-                NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("printing", "قائمة الطباعة"));
-
         }
 
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or FormatException or OverflowException)
@@ -530,26 +516,8 @@ public partial class CardIssuanceView : UserControl
     private CardIssuanceRequest BuildRequest()
 
     {
-
-        int quantity;
-
-        if (SingleCardModeRadioButton.IsChecked == true)
-
-        {
-
-            quantity = 1;
-
-        }
-
-        else if (!TryParseInteger(QuantityTextBox.Text, out quantity))
-
-        {
-
+        if (!TryParseInteger(QuantityTextBox.Text, out var quantity))
             throw new ArgumentException("أدخل عددًا صحيحًا للكروت.");
-
-        }
-
-
 
         if (quantity < 1)
             throw new ArgumentException("عدد الكروت يجب أن يكون أكبر من صفر.");
@@ -559,10 +527,6 @@ public partial class CardIssuanceView : UserControl
             throw new ArgumentException("أدخل الطول الكلي لرقم الكرت كعدد صحيح.");
 
         var usernameLength = cardNumberLength;
-
-        if (_targetSystem == DemoAccountSystem.HotSpot && !TryParseInteger(UsernameLengthTextBox.Text, out usernameLength))
-
-            throw new ArgumentException("أدخل طول اسم المستخدم كعدد صحيح.");
 
 
 
@@ -600,23 +564,12 @@ public partial class CardIssuanceView : UserControl
 
         var cardSet = ParseCardCharacterSet(ReadTag(CardNumberCharacterSetComboBox));
 
-        var numberMode = CardNumberGenerationMode.Random;
-
-        var usernameSet = _targetSystem == DemoAccountSystem.UserManager
-
-            ? (cardSet switch
-
-            {
-
-                CardNumberCharacterSet.AlphaNumeric => CredentialCharacterSet.AlphaNumeric,
-
-                CardNumberCharacterSet.LettersOnly => CredentialCharacterSet.LettersOnly,
-
-                _ => CredentialCharacterSet.NumericOnly
-
-            })
-
-            : ParseCredentialCharacterSet(ReadTag(UsernameCharacterSetComboBox));
+        var usernameSet = cardSet switch
+        {
+            CardNumberCharacterSet.AlphaNumeric => CredentialCharacterSet.AlphaNumeric,
+            CardNumberCharacterSet.LettersOnly => CredentialCharacterSet.LettersOnly,
+            _ => CredentialCharacterSet.NumericOnly
+        };
 
         var passwordSet = ParseCredentialCharacterSet(ReadTag(PasswordCharacterSetComboBox));
 
@@ -658,9 +611,9 @@ public partial class CardIssuanceView : UserControl
 
             cardSet,
 
-            numberMode,
+            CardNumberGenerationMode.Random,
 
-            SequenceStartTextBox.Text.Trim(),
+            "1",
 
             usernameLength,
 
@@ -874,47 +827,6 @@ public partial class CardIssuanceView : UserControl
 
     }
 
-
-
-    private void AdvancedSettingsButton_Click(object sender, RoutedEventArgs e) =>
-        SetAdvancedSettingsPageOpen(AdvancedSettingsPage.Visibility != Visibility.Visible);
-
-    private void AdvancedSettingsBackButton_Click(object sender, RoutedEventArgs e) =>
-        SetAdvancedSettingsPageOpen(false);
-
-    private void ShowAdvancedSettingsPage()
-    {
-        AdvancedSettingsPage.Visibility = Visibility.Collapsed;
-        IssuanceMainPage.Visibility = Visibility.Visible;
-    }
-
-    private void SetAdvancedSettingsPageOpen(bool isOpen)
-    {
-        AdvancedSettingsPage.Visibility = Visibility.Collapsed;
-        IssuanceMainPage.Visibility = Visibility.Visible;
-    }
-
-    private void GenerationMode_Changed(object sender, RoutedEventArgs e)
-    {
-        if (!IsLoaded || RandomGenerationRadioButton is null || SequentialGenerationRadioButton is null)
-            return;
-
-        if (SequentialGenerationRadioButton.IsChecked == true)
-            SequentialGenerationRadioButton.IsChecked = false;
-        RandomGenerationRadioButton.IsChecked = true;
-        SequentialGenerationRadioButton.IsEnabled = false;
-        SequentialGenerationRadioButton.Visibility = Visibility.Collapsed;
-        if (SequenceStartPanel is not null) SequenceStartPanel.Visibility = Visibility.Collapsed;
-        if (SequenceStartTextBox is not null) SequenceStartTextBox.Visibility = Visibility.Collapsed;
-        if (CardNumberCharacterSetComboBox is not null) CardNumberCharacterSetComboBox.IsEnabled = true;
-        _previewCard = null;
-        UpdatePreview();
-        PersistCurrentPreferences();
-    }
-
-
-
-
     private void PasswordModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
 
     {
@@ -927,76 +839,24 @@ public partial class CardIssuanceView : UserControl
 
         UpdatePasswordControls();
 
-        if (ReadTag(PasswordModeComboBox) == "Generated")
-            ShowAdvancedSettingsPage();
 
         UpdatePreview();
 
         PersistCurrentPreferences();
 
     }
-
-
-
     private void UpdatePasswordControls()
-
     {
-
-        if (PasswordModeComboBox is null || PasswordCharacterSetComboBox is null || PasswordLengthTextBox is null)
-
+        if (PasswordModeComboBox is null || PasswordCharacterSetComboBox is null || PasswordLengthTextBox is null || PasswordGenerationPanel is null)
             return;
 
         var generated = ReadTag(PasswordModeComboBox) == "Generated";
-
         PasswordCharacterSetComboBox.IsEnabled = generated;
-
         PasswordLengthTextBox.IsEnabled = generated;
-
-        if (PasswordGenerationPanel is not null)
-
-            PasswordGenerationPanel.Visibility = generated ? Visibility.Visible : Visibility.Collapsed;
-
+        PasswordGenerationPanel.Visibility = Visibility.Visible;
+        PasswordGenerationPanel.IsEnabled = generated;
+        PasswordGenerationPanel.Opacity = generated ? 1.0 : 0.7;
     }
-
-
-
-    private void PreviewOptionChanged(object sender, RoutedEventArgs e)
-
-    {
-
-        if (!IsLoaded || CardPreviewBorder is null ||
-
-            ShowCardNumberCheckBox is null || ShowUsernameCheckBox is null ||
-
-            ShowPasswordCheckBox is null || ShowPackageCheckBox is null ||
-
-            ShowPriceCheckBox is null || PreviewCardNumberTextBlock is null ||
-
-            PreviewUsernameTextBlock is null || PreviewPasswordTextBlock is null ||
-
-            PreviewPackageTextBlock is null || PackageComboBox is null)
-
-            return;
-
-
-
-        PreviewCardNumberTextBlock.Visibility = ShowCardNumberCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
-
-        PreviewUsernameTextBlock.Visibility = ShowUsernameCheckBox.IsChecked == true
-
-            ? Visibility.Visible : Visibility.Collapsed;
-
-        PreviewPasswordTextBlock.Visibility = ShowPasswordCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
-
-        var packageVisible = ShowPackageCheckBox.IsChecked == true || ShowPriceCheckBox.IsChecked == true;
-
-        PreviewPackageTextBlock.Visibility = packageVisible ? Visibility.Visible : Visibility.Collapsed;
-
-        UpdatePreview();
-
-    }
-
-
 
     private void UpdatePreview()
 
@@ -1016,35 +876,14 @@ public partial class CardIssuanceView : UserControl
 
         var bodyLength = Math.Max(1, totalLength - prefix.Length - suffix.Length);
 
-        var sequential = false;
-
-        var body = sequential
-
-            ? (string.IsNullOrWhiteSpace(SequenceStartTextBox.Text) ? "1" : SequenceStartTextBox.Text.Trim()).PadLeft(bodyLength, '0')
-
-            : new string('•', Math.Min(bodyLength, 16));
+        var body = new string('•', Math.Min(bodyLength, 16));
 
         PreviewCardNumberTextBlock.Text = _previewCard?.CardNumber ?? $"{prefix}{body}{suffix}";
 
 
 
-        var usernameLength = _targetSystem == DemoAccountSystem.UserManager
-
-            ? totalLength
-
-            : (TryParseInteger(UsernameLengthTextBox.Text, out var uLength) ? Math.Clamp(uLength, 1, 20) : 6);
-
-        var usernameSample = _previewCard?.Username ?? (_targetSystem == DemoAccountSystem.UserManager
-
-            ? $"{prefix}{new string('•', Math.Min(bodyLength, 16))}{suffix}"
-
-            : new string('•', Math.Min(usernameLength, 12)));
-
-        PreviewUsernameTextBlock.Text = _targetSystem == DemoAccountSystem.UserManager
-
-            ? $"اسم المستخدم ورقم الكرت: {usernameSample}"
-
-            : $"اسم المستخدم: {usernameSample}";
+        var usernameSample = _previewCard?.Username ?? $"{prefix}{new string('•', Math.Min(bodyLength, 16))}{suffix}";
+        PreviewUsernameTextBlock.Text = $"اسم المستخدم / رقم الكرت: {usernameSample}";
 
 
 
@@ -1068,41 +907,54 @@ public partial class CardIssuanceView : UserControl
 
         PreviewPasswordTextBlock.Text = $"كلمة المرور: {passwordText}";
 
-        PreviewTimeTextBlock.Text = $"الوقت: {_previewCard?.TimeLimit ?? package.TimeLimit}";
-        PreviewDataTextBlock.Text = $"التحميل: {_previewCard?.DataLimit ?? package.DataLimit}";
-        PreviewSpeedTextBlock.Text = $"السرعة: {_previewCard?.RateLimit ?? package.RateLimit}";
-        PreviewValidityTextBlock.Text = $"الصلاحية: {_previewCard?.PackageValidity ?? package.Validity}";
+        var templateParts = new List<string>();
+        if (IsTemplateElementVisible("الباقة"))
+            templateParts.Add(package.DisplayName.Split('—')[0].Trim());
+        if (IsTemplateElementVisible("السعر"))
+            templateParts.Add($"{package.PrintPrice:N0} ريال");
+        if (IsTemplateElementVisible("الصلاحية"))
+            templateParts.Add($"الصلاحية {package.Validity}");
+        if (IsTemplateElementVisible("الوقت"))
+            templateParts.Add($"الوقت {package.TimeLimit}");
+        if (IsTemplateElementVisible("التحميل"))
+            templateParts.Add($"البيانات {package.DataLimit}");
+        if (IsTemplateElementVisible("نقطة البيع"))
+            templateParts.Add($"نقطة البيع {PointOfSaleComboBox.Text}");
+        if (IsTemplateElementVisible("رقم الدفعة") && _previewCard is not null)
+            templateParts.Add($"الدفعة {_previewCard.BatchId}");
+        if (IsTemplateElementVisible("الرقم التسلسلي") && _previewCard is not null)
+            templateParts.Add($"م {_previewCard.CardNumber}");
+        if (IsTemplateElementVisible("تاريخ الطباعة"))
+            templateParts.Add(DateTime.Now.ToString("yyyy/MM/dd", CultureInfo.InvariantCulture));
+        if (IsTemplateElementVisible("معلومات إضافية") && !string.IsNullOrWhiteSpace(CommentTextBox.Text))
+            templateParts.Add(CommentTextBox.Text.Trim());
+        if (IsTemplateElementVisible("كود المكافأة"))
+            templateParts.Add("المكافأة");
 
-        var previewPrice = _previewCard?.UnitPriceLabel;
-        if (string.IsNullOrWhiteSpace(previewPrice))
-            previewPrice = $"{package.PrintPrice:N0} ريال";
-        PreviewPriceTextBlock.Text = $"السعر: {previewPrice}";
-
-        var packageParts = new List<string>();
-
-        if (ShowPackageCheckBox.IsChecked == true)
-
-            packageParts.Add(package.DisplayName.Split('—')[0].Trim());
-
-        if (ShowPriceCheckBox.IsChecked == true)
-
-            packageParts.Add($"{package.PrintPrice:N0} ريال");
-
-        PreviewPackageTextBlock.Text = string.Join(" · ", packageParts);
-
-        PreviewProfileTextBlock.Text = string.IsNullOrWhiteSpace(RouterProfileTextBox.Text) ? "ملف الاستخدام" : RouterProfileTextBox.Text.Trim();
-
-
-
-        PreviewCardNumberTextBlock.Visibility = ShowCardNumberCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
-
-        PreviewUsernameTextBlock.Visibility = ShowUsernameCheckBox.IsChecked == true
-
-            ? Visibility.Visible : Visibility.Collapsed;
-
-        PreviewPasswordTextBlock.Visibility = ShowPasswordCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
-
-        PreviewPackageTextBlock.Visibility = packageParts.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        PreviewPackageTextBlock.Text = string.Join(" · ", templateParts);
+        PreviewPackageTextBlock.Visibility = templateParts.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        PreviewCardNumberTextBlock.Visibility = IsTemplateElementVisible("رمز الدخول") ? Visibility.Visible : Visibility.Collapsed;
+        PreviewUsernameTextBlock.Visibility = IsTemplateElementVisible("اسم المستخدم") ? Visibility.Visible : Visibility.Collapsed;
+        PreviewPasswordTextBlock.Visibility = IsTemplateElementVisible("كلمة المرور") ? Visibility.Visible : Visibility.Collapsed;
+        PreviewCredentialsCaptionTextBlock.Visibility =
+            IsTemplateElementVisible("رمز الدخول") || IsTemplateElementVisible("اسم المستخدم") || IsTemplateElementVisible("كلمة المرور")
+                ? Visibility.Visible : Visibility.Collapsed;
+        var qrVisible = IsTemplateElementVisible("رمز QR");
+        var barcodeVisible = IsTemplateElementVisible("الباركود");
+        PreviewQrBorder.Visibility = qrVisible ? Visibility.Visible : Visibility.Collapsed;
+        PreviewBarcodeBorder.Visibility = barcodeVisible ? Visibility.Visible : Visibility.Collapsed;
+        if (PreviewQrBorder.Parent is Grid previewFieldsGrid && previewFieldsGrid.ColumnDefinitions.Count >= 5)
+        {
+            previewFieldsGrid.ColumnDefinitions[0].Width = qrVisible ? new GridLength(54) : new GridLength(0);
+            previewFieldsGrid.ColumnDefinitions[1].Width = qrVisible ? new GridLength(5) : new GridLength(0);
+            previewFieldsGrid.ColumnDefinitions[2].Width = barcodeVisible ? new GridLength(54) : new GridLength(0);
+            previewFieldsGrid.ColumnDefinitions[3].Width = barcodeVisible ? new GridLength(5) : new GridLength(0);
+        }
+        PreviewBrandPanel.Visibility = IsTemplateElementVisible("شعار الشبكة") ? Visibility.Visible : Visibility.Collapsed;
+        PreviewSourcePanel.Visibility = IsTemplateElementVisible("الشريط العلوي") ? Visibility.Visible : Visibility.Collapsed;
+        var dividerVisible = IsTemplateElementVisible("الفاصل");
+        PreviewHeaderDividerBorder.Visibility = dividerVisible ? Visibility.Visible : Visibility.Collapsed;
+        PreviewFooterDividerBorder.Visibility = dividerVisible ? Visibility.Visible : Visibility.Collapsed;
 
 
 
@@ -1113,293 +965,71 @@ public partial class CardIssuanceView : UserControl
             : (mode == "Empty" ? "بيانات دخول دون كلمة مرور" : "بيانات الدخول");
 
         PreviewBatchTextBlock.Text = _previewCard is null
-
-            ? $"معاينة متوقعة · صلاحية {package.Validity} · حد الوقت {package.TimeLimit} · {package.DataLimit} · {package.RateLimit}"
-
-            : $"عينة من الدفعة {_previewCard.BatchId} · صلاحية {package.Validity} · حد الوقت {package.TimeLimit} · {package.DataLimit}";
+            ? $"المعاينة تتبع عناصر القالب «{_designerTemplateName}»."
+            : $"عينة من الدفعة {_previewCard.BatchId} · القالب «{_designerTemplateName}».";
 
     }
 
 
 
     private void ApplyPrintTemplate()
-
     {
+        if (CardPreviewBorder is null) return;
 
-        if (CardPreviewBorder is null || PrintTemplateComboBox is null)
-
-            return;
-
-
-
-        var tag = ReadTag(PrintTemplateComboBox);
-
-        CardPreviewBorder.Height = 235;
-
-        CardPreviewBorder.MinHeight = 215;
-
-        CardPreviewBorder.MaxHeight = 250;
-
-        CardPreviewBorder.Padding = tag == "compact" ? new Thickness(8) : new Thickness(10);
-
-
-
-        if (tag == "compact")
-
+        // The saved Template Designer configuration supplies the current style and color theme.
+        if (string.Equals(_designerTemplateStyle, "dark", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(_designerColorTheme, "dark", StringComparison.OrdinalIgnoreCase))
         {
-
-            CardPreviewBorder.Background = new SolidColorBrush(Color.FromRgb(249, 237, 237));
-
+            CardPreviewBorder.Background = new SolidColorBrush(Color.FromRgb(55, 17, 24));
             CardPreviewBorder.BorderBrush = new SolidColorBrush(Color.FromRgb(160, 24, 24));
-
-            SetPreviewTextBrush(new SolidColorBrush(Color.FromRgb(32, 36, 42)), new SolidColorBrush(Color.FromRgb(109, 116, 128)));
-
+            SetPreviewTextBrush(Brushes.White, new SolidColorBrush(Color.FromRgb(245, 218, 222)));
         }
-
-        else
-
+        else if (string.Equals(_designerColorTheme, "white", StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(_designerTemplateStyle, "light", StringComparison.OrdinalIgnoreCase))
         {
-
-            // Reference design: white card face with TabCard's red accent, not a solid red card.
-
             CardPreviewBorder.Background = Brushes.White;
-
-            CardPreviewBorder.BorderBrush = new SolidColorBrush(Color.FromRgb(226, 199, 201));
-
-            SetPreviewTextBrush(new SolidColorBrush(Color.FromRgb(32, 36, 42)), new SolidColorBrush(Color.FromRgb(109, 116, 128)));
-
+            CardPreviewBorder.BorderBrush = new SolidColorBrush(Color.FromRgb(197, 27, 43));
+            SetPreviewTextBrush(new SolidColorBrush(Color.FromRgb(32, 36, 42)), new SolidColorBrush(Color.FromRgb(105, 112, 120)));
         }
-
+        else
+        {
+            CardPreviewBorder.Background = Brushes.White;
+            CardPreviewBorder.BorderBrush = new SolidColorBrush(Color.FromRgb(226, 199, 201));
+            SetPreviewTextBrush(new SolidColorBrush(Color.FromRgb(32, 36, 42)), new SolidColorBrush(Color.FromRgb(109, 116, 128)));
+        }
     }
-
 
 
     private void SetPreviewTextBrush(Brush primary, Brush secondary)
-
     {
-
         PreviewCredentialsCaptionTextBlock.Foreground = secondary;
-
         PreviewCardNumberTextBlock.Foreground = primary;
-
         PreviewUsernameTextBlock.Foreground = primary;
-
         PreviewPasswordTextBlock.Foreground = secondary;
-
         PreviewPackageTextBlock.Foreground = primary;
-
-        PreviewProfileTextBlock.Foreground = secondary;
-
-        PreviewTimeTextBlock.Foreground = primary;
-
-        PreviewDataTextBlock.Foreground = primary;
-
-        PreviewSpeedTextBlock.Foreground = primary;
-
-        PreviewValidityTextBlock.Foreground = primary;
-
-        PreviewPriceTextBlock.Foreground = primary;
-
+        PreviewBrandNameTextBlock.Foreground = primary;
+        PreviewBrandSubtitleTextBlock.Foreground = secondary;
+        PreviewCardTypeTextBlock.Foreground = primary;
+        PreviewSourceTypeTextBlock.Foreground = secondary;
+        PreviewHeaderDividerBorder.Background = secondary;
+        PreviewFooterDividerBorder.Background = secondary;
     }
 
-
-
-    private void PrintTemplateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-
-    {
-
-        if (!IsLoaded || _isSyncingPrintTemplateControls)
-
-            return;
-
-        SynchronizePrintTemplateControls(PrintTemplateComboBox, PreviewTemplateComboBox);
-
-        ApplyPrintTemplate();
-
-        UpdatePreview();
-
-        PersistCurrentPreferences();
-
-    }
-
-
-
-    private void PreviewTemplateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-
-    {
-
-        if (!IsLoaded || _isSyncingPrintTemplateControls)
-
-            return;
-
-        SynchronizePrintTemplateControls(PreviewTemplateComboBox, PrintTemplateComboBox);
-
-        ApplyPrintTemplate();
-
-        UpdatePreview();
-
-        PersistCurrentPreferences();
-
-    }
-
-
-
-    private void SynchronizePrintTemplateControls(ComboBox source, ComboBox target)
-
-    {
-
-        if (source is null || target is null || source.SelectedItem is not ComboBoxItem selected)
-
-            return;
-
-
-
-        var tag = selected.Tag?.ToString();
-
-        if (string.IsNullOrWhiteSpace(tag))
-
-            return;
-
-
-
-        _isSyncingPrintTemplateControls = true;
-
-        try
-
-        {
-
-            var targetItem = target.Items.OfType<ComboBoxItem>()
-
-                .FirstOrDefault(item => string.Equals(item.Tag?.ToString(), tag, StringComparison.OrdinalIgnoreCase));
-
-
-
-            if (targetItem is null)
-
-            {
-
-                var label = tag switch
-
-                {
-
-                    "nexora" => ReferenceEquals(target, PreviewTemplateComboBox) ? "القالب الافتراضي" : "القالب الافتراضي",
-
-                    "light" => ReferenceEquals(target, PreviewTemplateComboBox) ? "القالب الفاتح" : "القالب الفاتح",
-
-                    "compact" => ReferenceEquals(target, PreviewTemplateComboBox) ? "القالب المضغوط" : "القالب المضغوط",
-
-                    _ when tag.StartsWith("custom-template:", StringComparison.OrdinalIgnoreCase) => tag["custom-template:".Length..],
-
-                    _ => selected.Content?.ToString() ?? tag
-
-                };
-
-                targetItem = new ComboBoxItem { Content = label, Tag = tag };
-
-                target.Items.Add(targetItem);
-
-            }
-
-
-
-            target.SelectedItem = targetItem;
-
-        }
-
-        finally
-
-        {
-
-            _isSyncingPrintTemplateControls = false;
-
-        }
-
-    }
-
-
-
-    private void PrintMode_Changed(object sender, RoutedEventArgs e)
-
-    {
-
-        if (!IsLoaded || QuantityTextBox is null || SingleCardModeRadioButton is null)
-
-            return;
-
-
-
-        var single = SingleCardModeRadioButton.IsChecked == true;
-
-        if (single && !_singleCardModeApplied)
-
-        {
-
-            _quantityBeforeSingleCard = QuantityTextBox.Text;
-
-            QuantityTextBox.Text = "1";
-
-            QuantityTextBox.IsEnabled = false;
-
-            _singleCardModeApplied = true;
-
-        }
-
-        else if (!single && _singleCardModeApplied)
-
-        {
-
-            QuantityTextBox.IsEnabled = true;
-
-            QuantityTextBox.Text = string.IsNullOrWhiteSpace(_quantityBeforeSingleCard) ? "20" : _quantityBeforeSingleCard;
-
-            _singleCardModeApplied = false;
-
-        }
-
-
-
-        if (IssuanceStatusTextBlock is not null)
-
-        {
-
-            if (single)
-
-                SetStatus("وضع كرت واحد: ستُنشأ بطاقة واحدة فقط. لا تُرسل مهمة طباعة فعلية.", false);
-
-            else if (FastFilePrintModeRadioButton?.IsChecked == true)
-
-                SetStatus("الطباعة السريعة عبر ملف مؤجلة حتى اكتمال الاستيراد والتحقق من الملف.", true);
-
-            else if (SequentialPrintModeRadioButton?.IsChecked == true)
-
-                SetStatus("تم اختيار مراجعة الكروت بالتتابع؛ هذا يحدد طريقة العرض فقط ولا يرسل مهمة إلى الطابعة.", false);
-
-            else if (DefaultPrintModeRadioButton?.IsChecked == true)
-
-                SetStatus("تم اختيار إعداد الطباعة الافتراضي للمعاينة.", false);
-
-        }
-
-        UpdatePreview();
-
-        PersistCurrentPreferences();
-
-    }
-
-
-
-    private void BatchMode_Changed(object sender, RoutedEventArgs e)
+private void BatchMode_Changed(object sender, RoutedEventArgs e)
     {
         if (!IsLoaded || ExistingBatchPanel is null || AppendToPreviousBatchRadioButton is null)
             return;
 
-        ExistingBatchPanel.IsEnabled = AppendToPreviousBatchRadioButton.IsChecked == true;
-        BatchRegistrationHintTextBlock.Text = AppendToPreviousBatchRadioButton.IsChecked == true
-            ? "اختر دفعة سابقة؛ ستُحمّل الباقة ونقطة البيع وملف الاستخدام وإعدادات المشاركة المطابقة تلقائيًا."
+        var append = AppendToPreviousBatchRadioButton.IsChecked == true;
+        ExistingBatchPanel.IsEnabled = append;
+        PickExistingBatchButton.IsEnabled = append;
+        BatchRegistrationHintTextBlock.Visibility = append ? Visibility.Visible : Visibility.Collapsed;
+        BatchRegistrationHintTextBlock.Text = append
+            ? "اختر دفعة سابقة؛ ستُحمّل إعداداتها المطابقة تلقائيًا."
             : "سيُنشأ رقم دفعة جديد تلقائيًا.";
 
         RefreshExistingBatches();
-        if (AppendToPreviousBatchRadioButton.IsChecked == true && ExistingBatchComboBox.SelectedItem is GeneratedCardBatch batch)
+        if (append && ExistingBatchComboBox.SelectedItem is GeneratedCardBatch batch)
             ApplyPreviousBatchSettings(batch);
         PersistCurrentPreferences();
     }
@@ -1518,70 +1148,31 @@ private void PickExistingBatchButton_Click(object sender, RoutedEventArgs e)
         ExistingBatchComboBox.Focus();
         ExistingBatchComboBox.IsDropDownOpen = true;
     }
-private void AddPrintTemplateButton_Click(object sender, RoutedEventArgs e) => AddNamedOption("template");
+    private void AddPointOfSaleButton_Click(object sender, RoutedEventArgs e) => AddPointOfSaleOption();
 
-    private void AddPointOfSaleButton_Click(object sender, RoutedEventArgs e) => AddNamedOption("point-of-sale");
-
-
-
-    private void AddNamedOption(string optionKind)
-
+    private void AddPointOfSaleOption()
     {
-
-        var isTemplate = optionKind == "template";
-
-        var title = isTemplate ? "إضافة قالب طباعة" : "إضافة نقطة بيع";
-
-        var prompt = isTemplate ? "اسم القالب" : "اسم نقطة البيع";
-
-        var value = PromptForOption(title, prompt);
-
-        if (string.IsNullOrWhiteSpace(value))
-
-            return;
-
-
+        var value = PromptForOption("إضافة نقطة بيع", "اسم نقطة البيع");
+        if (string.IsNullOrWhiteSpace(value)) return;
 
         try
-
         {
-
-            _workflowStore.AddOption(GetCurrentSystemKey(), optionKind, value);
-
-            var combo = isTemplate ? PrintTemplateComboBox : PointOfSaleComboBox;
-
-            var tagPrefix = isTemplate ? "custom-template:" : "custom-pos:";
-
-            var existing = combo.Items.OfType<ComboBoxItem>()
-
+            _workflowStore.AddOption(GetCurrentSystemKey(), "point-of-sale", value);
+            var existing = PointOfSaleComboBox.Items.OfType<ComboBoxItem>()
                 .FirstOrDefault(item => string.Equals(item.Content?.ToString(), value, StringComparison.OrdinalIgnoreCase));
-
             if (existing is null)
-
             {
-
-                existing = new ComboBoxItem { Content = value, Tag = tagPrefix + value };
-
-                combo.Items.Add(existing);
-
+                existing = new ComboBoxItem { Content = value, Tag = "custom-pos:" + value };
+                PointOfSaleComboBox.Items.Add(existing);
             }
-
-            combo.SelectedItem = existing;
-
+            PointOfSaleComboBox.SelectedItem = existing;
             PersistCurrentPreferences();
-
-            SetStatus($"تم حفظ {(isTemplate ? "القالب" : "نقطة البيع")} «{value}».", false);
-
+            SetStatus($"تم حفظ نقطة البيع «{value}».", false);
         }
-
         catch (Exception ex)
-
         {
-
-            SetStatus("تعذر حفظ الخيار: " + ex.Message, true);
-
+            SetStatus("تعذر حفظ نقطة البيع: " + ex.Message, true);
         }
-
     }
 
 
@@ -1706,16 +1297,6 @@ private void AddPrintTemplateButton_Click(object sender, RoutedEventArgs e) => A
 
     {
 
-        foreach (var value in _workflowStore.GetOptions(GetCurrentSystemKey(), "template"))
-
-        {
-
-            if (!PrintTemplateComboBox.Items.OfType<ComboBoxItem>().Any(item => string.Equals(item.Content?.ToString(), value, StringComparison.OrdinalIgnoreCase)))
-
-                PrintTemplateComboBox.Items.Add(new ComboBoxItem { Content = value, Tag = "custom-template:" + value });
-
-        }
-
         foreach (var value in _workflowStore.GetOptions(GetCurrentSystemKey(), "point-of-sale"))
 
         {
@@ -1775,21 +1356,12 @@ private void AddPrintTemplateButton_Click(object sender, RoutedEventArgs e) => A
             SetText("CardSuffix", CardSuffixTextBox);
 
             SetText("CardNumberLength", CardNumberLengthTextBox);
-
-            SetText("UsernameLength", UsernameLengthTextBox);
-
             SetText("PasswordLength", PasswordLengthTextBox);
-
-            SetText("SequenceStart", SequenceStartTextBox);
-
-            SetText("RouterProfile", RouterProfileTextBox);
+SetText("RouterProfile", RouterProfileTextBox);
 
             SetText("Comment", CommentTextBox);
 
             SetTag("CardNumberCharacterSet", CardNumberCharacterSetComboBox);
-
-            SetTag("UsernameCharacterSet", UsernameCharacterSetComboBox);
-
             SetTag("PasswordCharacterSet", PasswordCharacterSetComboBox);
 
             SetTag("PasswordMode", PasswordModeComboBox);
@@ -1800,35 +1372,12 @@ private void AddPrintTemplateButton_Click(object sender, RoutedEventArgs e) => A
 
             SetTag("PointOfSale", PointOfSaleComboBox);
 
-            SetTag("PrintTemplate", PrintTemplateComboBox);
-
             if (values.TryGetValue("PackageKey", out var packageKey))
 
                 PackageComboBox.SelectedItem = PackageComboBox.Items.OfType<DemoCardPackage>().FirstOrDefault(package => package.Key == packageKey)
 
                     ?? PackageComboBox.SelectedItem;
-
-            if (values.TryGetValue("PrintMode", out var printMode))
-
-            {
-
-                DefaultPrintModeRadioButton.IsChecked = printMode == "default" || printMode == "file";
-
-                SingleCardModeRadioButton.IsChecked = printMode == "single";
-
-                SequentialPrintModeRadioButton.IsChecked = printMode == "sequential";
-
-                FastFilePrintModeRadioButton.IsChecked = false;
-
-            }
-
-            if (values.TryGetValue("NumberGenerationMode", out _))
-            {
-                SequentialGenerationRadioButton.IsChecked = false;
-                RandomGenerationRadioButton.IsChecked = true;
-            }
-
-            if (values.TryGetValue("BatchMode", out var batchMode))
+if (values.TryGetValue("BatchMode", out var batchMode))
 
             {
 
@@ -1837,16 +1386,6 @@ private void AddPrintTemplateButton_Click(object sender, RoutedEventArgs e) => A
                 AppendToPreviousBatchRadioButton.IsChecked = batchMode == "append";
 
             }
-
-            if (values.TryGetValue("ShowCardNumber", out var showNumber)) ShowCardNumberCheckBox.IsChecked = showNumber != "false";
-
-            if (values.TryGetValue("ShowUsername", out var showUsername)) ShowUsernameCheckBox.IsChecked = showUsername != "false";
-
-            if (values.TryGetValue("ShowPassword", out var showPassword)) ShowPasswordCheckBox.IsChecked = showPassword != "false";
-
-            if (values.TryGetValue("ShowPackage", out var showPackage)) ShowPackageCheckBox.IsChecked = showPackage != "false";
-
-            if (values.TryGetValue("ShowPrice", out var showPrice)) ShowPriceCheckBox.IsChecked = showPrice != "false";
 
             if (values.TryGetValue("ExistingBatchId", out var existingBatchId))
 
@@ -1905,21 +1444,12 @@ private void AddPrintTemplateButton_Click(object sender, RoutedEventArgs e) => A
                 ["CardSuffix"] = CardSuffixTextBox.Text,
 
                 ["CardNumberLength"] = CardNumberLengthTextBox.Text,
-
-                ["UsernameLength"] = UsernameLengthTextBox.Text,
-
                 ["PasswordLength"] = PasswordLengthTextBox.Text,
-
-                ["SequenceStart"] = SequenceStartTextBox.Text,
-
-                ["RouterProfile"] = RouterProfileTextBox.Text,
+["RouterProfile"] = RouterProfileTextBox.Text,
 
                 ["Comment"] = CommentTextBox.Text,
 
                 ["CardNumberCharacterSet"] = ReadTag(CardNumberCharacterSetComboBox) ?? "NumericOnly",
-
-                ["UsernameCharacterSet"] = ReadTag(UsernameCharacterSetComboBox) ?? "NumericOnly",
-
                 ["PasswordCharacterSet"] = ReadTag(PasswordCharacterSetComboBox) ?? "NumericOnly",
 
                 ["PasswordMode"] = ReadTag(PasswordModeComboBox) ?? "Empty",
@@ -1930,27 +1460,10 @@ private void AddPrintTemplateButton_Click(object sender, RoutedEventArgs e) => A
 
                 ["PointOfSale"] = ReadTag(PointOfSaleComboBox) ?? "main",
 
-                ["PrintTemplate"] = ReadTag(PrintTemplateComboBox) ?? "nexora",
-
                 ["PackageKey"] = (PackageComboBox.SelectedItem as DemoCardPackage)?.Key ?? string.Empty,
-
-                ["PrintMode"] = SingleCardModeRadioButton.IsChecked == true ? "single" : SequentialPrintModeRadioButton.IsChecked == true ? "sequential" : FastFilePrintModeRadioButton.IsChecked == true ? "file" : "default",
-
-                ["NumberGenerationMode"] = "random",
-
                 ["ExistingBatchId"] = (ExistingBatchComboBox.SelectedItem as GeneratedCardBatch)?.BatchId ?? string.Empty,
 
                 ["BatchMode"] = AppendToPreviousBatchRadioButton.IsChecked == true ? "append" : "new",
-
-                ["ShowCardNumber"] = ShowCardNumberCheckBox.IsChecked == true ? "true" : "false",
-
-                ["ShowUsername"] = ShowUsernameCheckBox.IsChecked == true ? "true" : "false",
-
-                ["ShowPassword"] = ShowPasswordCheckBox.IsChecked == true ? "true" : "false",
-
-                ["ShowPackage"] = ShowPackageCheckBox.IsChecked == true ? "true" : "false",
-
-                ["ShowPrice"] = ShowPriceCheckBox.IsChecked == true ? "true" : "false",
 
                 ["PrintPaperSize"] = _printPaperSize,
 
@@ -1976,95 +1489,117 @@ private void AddPrintTemplateButton_Click(object sender, RoutedEventArgs e) => A
 
 
 
-    private void AddPackageButton_Click(object sender, RoutedEventArgs e)
-
+    private void OpenTemplateDesignerButton_Click(object sender, RoutedEventArgs e)
     {
-
         try
-
         {
-
-            var providerKey = _targetSystem == DemoAccountSystem.HotSpot ? "hotspot" : "user-manager";
-
-            var dialog = new PackageEditorWindow(providerKey);
-
             var owner = Window.GetWindow(this);
-
-            if (owner is not null)
-
-                dialog.Owner = owner;
-
-
-
-            if (dialog.ShowDialog() == true)
-
+            var designer = new Nexora.Demo.Desktop.Features.Printing.Views.TemplateDesignerView();
+            var ownerWidth = owner is not null && owner.ActualWidth > 700 ? owner.ActualWidth : 1180d;
+            var ownerHeight = owner is not null && owner.ActualHeight > 500 ? owner.ActualHeight : 720d;
+            var dialog = new Window
             {
+                Title = "تصميم قالب الكرت",
+                Content = designer,
+                Owner = owner,
+                WindowStartupLocation = owner is null ? WindowStartupLocation.CenterScreen : WindowStartupLocation.CenterOwner,
+                ResizeMode = ResizeMode.CanResize,
+                ShowInTaskbar = false,
+                FlowDirection = FlowDirection.RightToLeft,
+                Background = new SolidColorBrush(Color.FromRgb(247, 248, 250)),
+                Width = Math.Clamp(ownerWidth * 0.94, 900, 1320),
+                Height = Math.Clamp(ownerHeight * 0.92, 620, 900),
+                MinWidth = 880,
+                MinHeight = 600
+            };
 
-                var catalog = DemoPackageStore.Load();
+            dialog.ShowDialog();
 
-                var newestPackage = catalog.Packages
+            // The designer persists to the same local definition consumed by the issuance preview.
+            LoadDesignerTemplateDefinition();
+            ApplyPrintTemplate();
+            UpdatePreview();
+            PersistCurrentPreferences();
+            SetStatus("تم تحديث معاينة الإصدار وفق القالب المحفوظ.", false);
+        }
+        catch (Exception ex)
+        {
+            SetStatus("تعذر فتح شاشة تصميم القالب: " + ex.Message, true);
+        }
+    }
 
-                    .Where(package => !package.IsArchived)
+    private void AddPackageButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var providerKey = _targetSystem == DemoAccountSystem.HotSpot ? "hotspot" : "user-manager";
+            var owner = Window.GetWindow(this);
+            var before = DemoPackageStore.Load();
+            var packageIdsBefore = new HashSet<string>(
+                before.Packages.Select(package => package.Id?.ToString() ?? string.Empty),
+                StringComparer.OrdinalIgnoreCase);
+            var bindingKeysBefore = new HashSet<string>(
+                before.Bindings.Select(binding => string.Join("|", binding.Id, binding.PackageId, binding.ProviderKey)),
+                StringComparer.OrdinalIgnoreCase);
 
-                    .OrderByDescending(package => package.CreatedAt)
+            var packageView = new PackageManagementView(providerKey);
+            packageView.PrepareForCardIssuanceOverlay();
 
+            var ownerWidth = owner is not null && owner.ActualWidth > 600 ? owner.ActualWidth : 1120d;
+            var ownerHeight = owner is not null && owner.ActualHeight > 450 ? owner.ActualHeight : 740d;
+            var dialog = new Window
+            {
+                Title = "إنشاء باقة جديدة",
+                Content = packageView,
+                Owner = owner,
+                WindowStartupLocation = owner is null ? WindowStartupLocation.CenterScreen : WindowStartupLocation.CenterOwner,
+                ResizeMode = ResizeMode.CanResize,
+                ShowInTaskbar = false,
+                FlowDirection = FlowDirection.RightToLeft,
+                Background = new SolidColorBrush(Color.FromRgb(247, 248, 250)),
+                Width = Math.Clamp(ownerWidth * 0.90, 850, 1240),
+                Height = Math.Clamp(ownerHeight * 0.88, 540, 820),
+                MinWidth = 820,
+                MinHeight = 520
+            };
+
+            dialog.ShowDialog();
+
+            var after = DemoPackageStore.Load();
+            var createdPackage = after.Packages
+                .Where(package => !package.IsArchived && !packageIdsBefore.Contains(package.Id?.ToString() ?? string.Empty))
+                .OrderByDescending(package => package.CreatedAt)
+                .FirstOrDefault();
+
+            // Also support attaching an existing commercial definition to this system from the create screen.
+            if (createdPackage is null)
+            {
+                var newBinding = after.Bindings
+                    .Where(binding => string.Equals(binding.ProviderKey, providerKey, StringComparison.OrdinalIgnoreCase) &&
+                        !bindingKeysBefore.Contains(string.Join("|", binding.Id, binding.PackageId, binding.ProviderKey)))
+                    .OrderByDescending(binding => binding.UpdatedAt)
                     .FirstOrDefault();
-
-                RefreshPackageCatalog(preserveSelection: false, preferredKey: newestPackage?.Id);
-
-                SetStatus("تم حفظ الباقة وتحديث قائمة الباقات المتاحة للإصدار.", false);
-
+                if (newBinding is not null)
+                    createdPackage = after.Packages.FirstOrDefault(package =>
+                        string.Equals(package.Id?.ToString(), newBinding.PackageId?.ToString(), StringComparison.OrdinalIgnoreCase));
             }
 
+            if (createdPackage is not null)
+            {
+                RefreshPackageCatalog(preserveSelection: false, preferredKey: createdPackage.Id?.ToString());
+                SetStatus("تم حفظ الباقة الجديدة وتحديث قائمة الباقات المتاحة للإصدار.", false);
+            }
+            else
+            {
+                RefreshPackageCatalog(preserveSelection: true);
+                SetStatus("أُغلقت شاشة الباقات. تم تحديث القائمة إذا كانت البيانات قد تغيّرت.", false);
+            }
         }
-
         catch (Exception ex)
-
         {
-
-            SetStatus("تعذر فتح أو حفظ شاشة الباقة: " + ex.Message, true);
-
+            SetStatus("تعذر فتح شاشة إنشاء الباقة: " + ex.Message, true);
         }
-
     }
-
-
-
-    private void PrintOptionsButton_Click(object sender, RoutedEventArgs e)
-
-    {
-
-        var dialog = new IssuanceUtilityDialog(
-
-            showOffers: false, currentPaperSize: _printPaperSize, currentColumns: _printColumns, showCutMarks: _printCutMarks);
-
-        var owner = Window.GetWindow(this);
-
-        if (owner is not null) dialog.Owner = owner;
-
-
-
-        if (dialog.ShowDialog() == true)
-
-        {
-
-            _printPaperSize = dialog.SelectedPaperSize;
-
-            _printColumns = dialog.SelectedColumns;
-
-            _printCutMarks = dialog.SelectedCutMarks;
-
-            PersistCurrentPreferences();
-
-            SetStatus($"تم حفظ إعدادات المعاينة: {_printPaperSize} · {_printColumns} أعمدة · " +
-
-                      (_printCutMarks ? "فواصل قص ظاهرة." : "دون فواصل قص."), false);
-
-        }
-
-    }
-
-
 
     private void OffersButton_Click(object sender, RoutedEventArgs e)
 
@@ -2079,20 +1614,6 @@ private void AddPrintTemplateButton_Click(object sender, RoutedEventArgs e) => A
         dialog.ShowDialog();
 
     }
-
-
-
-    private void OpenGeneratedCardsButton_Click(object sender, RoutedEventArgs e)
-
-    {
-
-        var section = _targetSystem == DemoAccountSystem.HotSpot ? "hotspot" : "user-manager";
-
-        NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs(section, "إدارة الكروت"));
-
-    }
-
-
 
     private void OpenPrintQueueButton_Click(object sender, RoutedEventArgs e)
     {

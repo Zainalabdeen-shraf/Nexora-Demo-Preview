@@ -30,9 +30,8 @@ public partial class NetworkClientsView : UserControl, INetworkOperationsNavigat
 
     private void UpdateSummary()
     {
-        ClientsTotalTextBlock.Text = NetworkOperationsDemoStore.Clients.Count.ToString("N0");
-        ActiveSessionsTextBlock.Text = NetworkOperationsDemoStore.Clients.Count(client => client.Layer.StartsWith("جلسة", StringComparison.Ordinal) && client.Status.StartsWith("نشطة", StringComparison.Ordinal)).ToString("N0");
-        TotalUsageTextBlock.Text = $"{NetworkOperationsDemoStore.Clients.Sum(client => client.DownloadGb):N1} GB";
+        // تحديث الملخص والإحصائيات الخاصة بعملاء الشبكة محلياً
+        ClientRowsCountTextBlock.Text = $"{VisibleClients.Count:N0} سجلًا نشطًا";
     }
 
     public void RefreshFromSharedState()

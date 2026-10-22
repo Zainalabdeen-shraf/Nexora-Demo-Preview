@@ -149,10 +149,10 @@
             <Setter Property="FontSize" Value="10.5" />
         </Style>
         <Style x:Key="PkgSectionHeaderStyle" TargetType="Border">
-            <Setter Property="Background" Value="#FCEDEF" />
+            <Setter Property="Background" Value="#F7F9FC" />
             <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Padding" Value="8,3" />
-            <Setter Property="Margin" Value="0,0,0,5" />
+            <Setter Property="Padding" Value="7,2" />
+            <Setter Property="Margin" Value="0,0,0,3" />
         </Style>
         <Style x:Key="NexoraPackageTabControlStyle" TargetType="{x:Type TabControl}">
             <Setter Property="Background" Value="Transparent" />
@@ -164,10 +164,10 @@
         </Style>
         <Style x:Key="NexoraPackageTabItemStyle" TargetType="{x:Type TabItem}">
             <Setter Property="Foreground" Value="#526B8C" />
-            <Setter Property="Background" Value="#EDF1F6" />
+            <Setter Property="Background" Value="#FFFFFF" />
             <Setter Property="BorderBrush" Value="#D9E1EC" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="24,12" />
+            <Setter Property="Padding" Value="18,8" />
             <Setter Property="Margin" Value="0,0,6,0" />
             <Setter Property="FontSize" Value="12" />
             <Setter Property="FontWeight" Value="SemiBold" />
@@ -180,15 +180,15 @@
                             <ContentPresenter ContentSource="Header" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True" />
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="TabBorder" Property="Background" Value="#FFFFFF" />
-                                <Setter TargetName="TabBorder" Property="BorderBrush" Value="#BE1726" />
-                                <Setter TargetName="TabBorder" Property="BorderThickness" Value="1,3,1,0" />
-                                <Setter Property="Foreground" Value="#BE1726" />
-                            </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="TabBorder" Property="Background" Value="#FFFFFF" />
-                            </Trigger>
+    <Setter TargetName="TabBorder" Property="Background" Value="#F8FAFC" />
+</Trigger>
+<Trigger Property="IsSelected" Value="True">
+    <Setter TargetName="TabBorder" Property="Background" Value="#FCEDEF" />
+    <Setter TargetName="TabBorder" Property="BorderBrush" Value="#BE1726" />
+    <Setter TargetName="TabBorder" Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="#BE1726" />
+</Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.55" />
                             </Trigger>
@@ -260,90 +260,120 @@
                             <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource PkgSlimScrollBarStyle}" />
                         </ScrollViewer.Resources>
                         <StackPanel x:Name="PackageScrollableContent" Margin="2">
-                            <Border Background="White" BorderBrush="{StaticResource PkgPanelAccentBorderBrush}" BorderThickness="1,3,1,1" CornerRadius="9" Padding="8" Margin="0,0,0,6">
-                                <Grid>
+                            <Border Background="White" BorderBrush="{StaticResource PkgBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="5" Margin="0,0,0,3"><DockPanel LastChildFill="True">
+    <Border x:Name="PackageCommercialAccentLine" DockPanel.Dock="Top" Height="2" Background="#BE1726" CornerRadius="1" Margin="0,0,0,4" />
+    <Grid x:Name="PackageCommercialLayoutV2">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
-                                    <Border Grid.Row="0" Style="{StaticResource PkgSectionHeaderStyle}">
-                                        <DockPanel LastChildFill="True">
-                                            <TextBlock DockPanel.Dock="Right" Text="▤" Foreground="{StaticResource PkgRedBrush}" FontSize="16" FontWeight="Bold" Margin="0,0,0,0" />
-                                            <TextBlock Text="بيانات الباقة التجارية" Foreground="{StaticResource PkgTextBrush}" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0" />
-                                        </DockPanel>
-                                    </Border>
-                                    <Grid Grid.Row="1" Margin="1,0,1,0">
+
+                                    <!-- Row 1: package name and data quota; the limit switch stays beside its fields. -->
+                                    <Grid Grid.Row="0" Margin="1,0,1,3">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="1.15*" />
-                                            <ColumnDefinition Width="1*" />
-                                            <ColumnDefinition Width="1*" />
-                                            <ColumnDefinition Width="0.92*" />
                                             <ColumnDefinition Width="1.05*" />
+                                            <ColumnDefinition Width="1.25*" />
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" Margin="3,1,3,0">
                                             <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="اسم الباقة *" />
                                             <TextBox x:Name="PackageNameTextBox" ToolTip="اسم الباقة" />
                                         </StackPanel>
-                                        <StackPanel Grid.Column="1" Margin="3,1,3,0">
-                                            <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="سعر البيع (ريال يمني) *" />
-                                            <TextBox x:Name="SalePriceTextBox" Text="100" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="2" Margin="3,1,3,0">
-                                            <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="السعر المطبوع على الكرت" />
-                                            <TextBox x:Name="CardDisplayPriceTextBox" Text="100" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="3" Margin="3,1,3,0">
-                                            <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="مدة الصلاحية (أيام)" />
-                                            <TextBox x:Name="ValidityDaysTextBox" Text="7" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="4" Margin="3,1,3,0">
-                                            <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="حصة البيانات" />
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="88" />
-                                                </Grid.ColumnDefinitions>
-                                                <TextBox x:Name="DataQuotaAmountTextBox" Text="500" />
-                                                <ComboBox x:Name="DataQuotaUnitComboBox" Grid.Column="1" SelectedIndex="0" Margin="3,0,0,0">
-                                                    <ComboBoxItem Tag="MB" Content="ميجابايت" />
-                                                    <ComboBoxItem Tag="GB" Content="جيجابايت" />
-                                                </ComboBox>
-                                            </Grid>
-                                        </StackPanel>
+                                        <Grid Grid.Column="1" Margin="3,1,3,0">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="82" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource PkgFieldLabelStyle}" Text="حصة البيانات" />
+                                            <TextBox x:Name="DataQuotaAmountTextBox" Grid.Row="1" Grid.Column="0" Text="500" HorizontalContentAlignment="Center" />
+                                            <ComboBox x:Name="DataQuotaUnitComboBox" Grid.Row="1" Grid.Column="1" SelectedIndex="0" Margin="3,0,0,0">
+                                                <ComboBoxItem Tag="MB" Content="ميجابايت" />
+                                                <ComboBoxItem Tag="GB" Content="جيجابايت" />
+                                            </ComboBox>
+                                            <CheckBox x:Name="UnlimitedDataCheckBox" Grid.Row="1" Grid.Column="2" Content="بلا حد للبيانات" ToolTip="بدون حد لحصة البيانات" Checked="LimitOption_Changed" Unchecked="LimitOption_Changed" Style="{StaticResource PkgToggleSwitchCheckBoxStyle}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                        </Grid>
                                     </Grid>
-                                    <Grid Grid.Row="2" Margin="1,4,1,0">
+
+                                    <!-- Row 2: prices on the right, commission controls on the left. -->
+                                    <Grid Grid.Row="1" Margin="1,0,1,3">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="1.15*" />
-                                            <ColumnDefinition Width="1*" />
-                                            <ColumnDefinition Width="1*" />
-                                            <ColumnDefinition Width="0.92*" />
                                             <ColumnDefinition Width="1.05*" />
+                                            <ColumnDefinition Width="1.25*" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="3,0">
-                                            <CheckBox x:Name="UnlimitedDataCheckBox" Content="بلا حد للبيانات" Checked="LimitOption_Changed" Unchecked="LimitOption_Changed" Style="{StaticResource PkgToggleSwitchCheckBoxStyle}" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="3,0">
-                                            <CheckBox x:Name="UnlimitedValidityCheckBox" Content="بلا انتهاء تقويمي" Checked="LimitOption_Changed" Unchecked="LimitOption_Changed" Style="{StaticResource PkgToggleSwitchCheckBoxStyle}" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="3,0">
-                                            <CheckBox x:Name="CommissionEnabledCheckBox" Content="تفعيل العمولة" Checked="CommissionEnabled_Changed" Unchecked="CommissionEnabled_Changed" Style="{StaticResource PkgToggleSwitchCheckBoxStyle}" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="3" Margin="3,0">
-                                            <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="نوع العمولة" />
-                                            <ComboBox x:Name="CommissionModeComboBox" SelectedIndex="0">
+                                        <Grid Grid.Column="0" Margin="3,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Margin="0,0,3,0">
+                                                <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="سعر البيع (ريال يمني) *" />
+                                                <TextBox x:Name="SalePriceTextBox" Text="100" HorizontalContentAlignment="Center" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Margin="3,0,0,0">
+                                                <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="السعر المطبوع على الكرت" />
+                                                <TextBox x:Name="CardDisplayPriceTextBox" Text="100" HorizontalContentAlignment="Center" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <Grid Grid.Column="1" Margin="3,0">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="1.1*" />
+                                                <ColumnDefinition Width="0.75*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource PkgFieldLabelStyle}" Text="نوع العمولة" />
+                                            <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource PkgFieldLabelStyle}" Text="قيمة العمولة" />
+                                            <ComboBox x:Name="CommissionModeComboBox" Grid.Row="1" Grid.Column="0" SelectedIndex="0">
                                                 <ComboBoxItem Tag="Percentage" Content="نسبة مئوية" />
                                                 <ComboBoxItem Tag="Fixed" Content="مبلغ ثابت" />
                                             </ComboBox>
+                                            <TextBox x:Name="CommissionValueTextBox" Grid.Row="1" Grid.Column="1" Text="0" HorizontalContentAlignment="Center" />
+                                            <CheckBox x:Name="CommissionEnabledCheckBox" Grid.Row="0" Grid.Column="2" Grid.RowSpan="2" Content="تفعيل العمولة" Checked="CommissionEnabled_Changed" Unchecked="CommissionEnabled_Changed" Style="{StaticResource PkgToggleSwitchCheckBoxStyle}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Grid>
+
+                                    <!-- Row 3: validity in days and uptime limit with aligned switch. -->
+                                    <Grid Grid.Row="2" Margin="1,0,1,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1.05*" />
+                                            <ColumnDefinition Width="1.25*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="3,0">
+                                            <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="مدة الصلاحية (أيام)" />
+                                            <TextBox x:Name="ValidityDaysTextBox" Text="7" HorizontalContentAlignment="Center" />
                                         </StackPanel>
-                                        <StackPanel Grid.Column="4" Margin="3,0">
-                                            <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="قيمة العمولة" />
-                                            <TextBox x:Name="CommissionValueTextBox" Text="0" />
-                                        </StackPanel>
+                                        <Grid Grid.Column="1" Margin="3,0">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="60" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="60" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4" Style="{StaticResource PkgFieldLabelStyle}" Text="عدد الساعات" />
+                                            <TextBox x:Name="UptimeHoursTextBox" Grid.Row="1" Grid.Column="0" Text="0" ToolTip="الساعات" Padding="3,2" HorizontalContentAlignment="Center" />
+                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="س" Style="{StaticResource PkgFieldLabelStyle}" VerticalAlignment="Center" Margin="2,0" />
+                                            <TextBox x:Name="UptimeMinutesTextBox" Grid.Row="1" Grid.Column="2" Text="0" ToolTip="الدقائق" Padding="3,2" HorizontalContentAlignment="Center" />
+                                            <TextBlock Grid.Row="1" Grid.Column="3" Text="د" Style="{StaticResource PkgFieldLabelStyle}" VerticalAlignment="Center" Margin="2,0" />
+                                            <CheckBox x:Name="UnlimitedUptimeCheckBox" Grid.Row="0" Grid.Column="4" Grid.RowSpan="2" Content="ساعات مفتوحة" ToolTip="بدون حد لإجمالي ساعات الاستخدام" Checked="LimitOption_Changed" Unchecked="LimitOption_Changed" Style="{StaticResource PkgToggleSwitchCheckBoxStyle}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                        </Grid>
                                     </Grid>
                                 </Grid>
-                            </Border>
-                            <Border Background="White" BorderBrush="{StaticResource PkgPanelAccentBorderBrush}" BorderThickness="1,3,1,1" CornerRadius="9" Padding="8" Margin="0,0,0,6">
+</DockPanel>
+</Border>
+                            <Border Background="White" BorderBrush="{StaticResource PkgPanelAccentBorderBrush}" BorderThickness="1,3,1,1" CornerRadius="9" Padding="5" Margin="0,0,0,3">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
@@ -356,68 +386,53 @@
                                             <TextBlock Text="حدود الاستخدام والسرعة" Foreground="{StaticResource PkgTextBrush}" FontSize="13" FontWeight="Bold" Margin="6,0,0,0" VerticalAlignment="Center" />
                                         </DockPanel>
                                     </Border>
-                                    <Grid Grid.Row="1" Margin="1,0,1,1">
+                                    <Grid Grid.Row="1" Margin="1,0,1,0">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition />
-                                            <ColumnDefinition />
-                                            <ColumnDefinition />
-                                            <ColumnDefinition />
+                                            <ColumnDefinition Width="1*" />
+                                            <ColumnDefinition Width="1*" />
+                                            <ColumnDefinition Width="1*" />
+                                            <ColumnDefinition Width="1*" />
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" Margin="3,0">
                                             <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="سرعة التنزيل (ميجابت/ث)" />
-                                            <TextBox x:Name="DownloadMbpsTextBox" Text="2" />
+                                            <TextBox x:Name="DownloadMbpsTextBox" Text="2" Height="29" VerticalContentAlignment="Center" />
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Margin="3,0">
                                             <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="سرعة الرفع (ميجابت/ث)" />
-                                            <TextBox x:Name="UploadMbpsTextBox" Text="0.5" />
+                                            <TextBox x:Name="UploadMbpsTextBox" Text="0.5" Height="29" VerticalContentAlignment="Center" />
                                         </StackPanel>
+
                                         <StackPanel Grid.Column="2" Margin="3,0">
-                                            <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="حد الاستخدام الزمني" />
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition />
-                                                    <ColumnDefinition Width="8" />
-                                                    <ColumnDefinition Width="0.8*" />
-                                                </Grid.ColumnDefinitions>
-                                                <TextBox x:Name="UptimeHoursTextBox" Text="0" ToolTip="الساعات" />
-                                                <TextBox x:Name="UptimeMinutesTextBox" Grid.Column="2" Text="0" ToolTip="الدقائق" />
-                                            </Grid>
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="3" Margin="3,0">
                                             <TextBlock x:Name="ConcurrentUsersLabel" Style="{StaticResource PkgFieldLabelStyle}" Text="عدد المستخدمين المتزامنين" />
-                                            <ComboBox x:Name="HotSpotSharedUsersComboBox" SelectedIndex="0">
+                                            <ComboBox x:Name="HotSpotSharedUsersComboBox" SelectedIndex="0" Height="29">
                                                 <ComboBoxItem Tag="1" Content="جلسة واحدة" />
                                                 <ComboBoxItem Tag="2" Content="جلستان" />
                                                 <ComboBoxItem Tag="3" Content="3 جلسات" />
                                                 <ComboBoxItem Tag="5" Content="5 جلسات" />
                                                 <ComboBoxItem Tag="0" Content="غير محدود" />
                                             </ComboBox>
-                                            <ComboBox x:Name="UserManagerSharedOverrideComboBox" Visibility="Collapsed" SelectedIndex="0">
+                                            <ComboBox x:Name="UserManagerSharedOverrideComboBox" Visibility="Collapsed" SelectedIndex="0" Height="29">
                                                 <ComboBoxItem Tag="off" Content="استخدام الإعداد الأصلي" />
                                                 <ComboBoxItem Tag="unlimited" Content="غير محدود" />
                                             </ComboBox>
                                         </StackPanel>
-                                    </Grid>
-                                    <Grid Grid.Row="2" Margin="1,4,1,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition />
-                                            <ColumnDefinition />
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel x:Name="HotSpotServerPanel" Grid.Column="0" Margin="3,0">
+
+                                            <StackPanel x:Name="HotSpotServerPanel" Grid.Column="3" Margin="3,0">
                                             <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="خادم الهوتسبوت" />
-                                            <ComboBox x:Name="HotSpotServerComboBox" SelectedIndex="0">
+                                            <ComboBox x:Name="HotSpotServerComboBox" SelectedIndex="0" Height="29">
                                                 <ComboBoxItem Tag="hotspot1" Content="الخادم الافتراضي" />
                                                 <ComboBoxItem Tag="all" Content="كل الخوادم" />
                                             </ComboBox>
                                         </StackPanel>
-                                        <StackPanel x:Name="UserManagerStartsWhenPanel" Grid.Column="1" Margin="3,0" Visibility="Collapsed">
+<StackPanel x:Name="UserManagerStartsWhenPanel" Grid.Column="3" Margin="3,0" Visibility="Collapsed">
                                             <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="بدء احتساب الصلاحية" />
-                                            <ComboBox x:Name="UserManagerStartsWhenComboBox" SelectedIndex="0">
+                                            <ComboBox x:Name="UserManagerStartsWhenComboBox" SelectedIndex="0" Height="29">
                                                 <ComboBoxItem Tag="first-auth" Content="عند أول مصادقة" />
                                                 <ComboBoxItem Tag="assigned" Content="من وقت إسناد الملف" />
                                             </ComboBox>
                                         </StackPanel>
-                                    </Grid>
+                                        </Grid>
+
                                 </Grid>
                             </Border>
                             <Grid Margin="0,0,0,6">
@@ -425,7 +440,7 @@
                                     <ColumnDefinition Width="1.25*" />
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource PkgPanelAccentBorderBrush}" BorderThickness="1,3,1,1" CornerRadius="9" Padding="7" Margin="0,0,3,0">
+                                <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource PkgPanelAccentBorderBrush}" BorderThickness="1,3,1,1" CornerRadius="9" Padding="5" Margin="0,0,2,0">
                                     <Grid>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto" />
@@ -449,7 +464,7 @@
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="ملف البروفايل الافتراضي" Style="{StaticResource PkgFieldLabelStyle}" VerticalAlignment="Center" Margin="2,0,8,0" />
-                                                    <ComboBox x:Name="HotSpotProfileComboBox" Grid.Column="1" SelectedIndex="0">
+                                                    <ComboBox x:Name="HotSpotProfileComboBox" Grid.Column="1" SelectedIndex="0" Height="29">
                                                         <ComboBoxItem Tag="default" Content="البروفايل الافتراضي" />
                                                         <ComboBoxItem Tag="HS-1H-500M" Content="ساعة واحدة — 500 ميجابايت" />
                                                         <ComboBoxItem Tag="HS-6H-2G" Content="6 ساعات — 2 جيجابايت" />
@@ -463,54 +478,42 @@
                                                     <CheckBox x:Name="RecordHotSpotSessionsCheckBox" Content="تسجيل جلسات هوتسبوت" IsChecked="True" Style="{StaticResource PkgRtlCheckBoxStyle}" />
                                                 </UniformGrid>
                                             </Grid>
-                                            <Grid x:Name="UserManagerSourcePanel" Visibility="Collapsed" Margin="1,0,1,0">
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                </Grid.RowDefinitions>
-                                                <Grid Grid.Row="0">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition />
-                                                        <ColumnDefinition />
-                                                    </Grid.ColumnDefinitions>
-                                                    <StackPanel Grid.Column="0" Margin="2,0,3,0">
-                                                        <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="ملف مدير المستخدمين" />
-                                                        <ComboBox x:Name="UserManagerProfileComboBox" SelectedIndex="0">
-                                                            <ComboBoxItem Tag="UM-1H-500M" Content="باقة ساعة واحدة" />
-                                                            <ComboBoxItem Tag="UM-6H-2G" Content="باقة 6 ساعات" />
-                                                            <ComboBoxItem Tag="UM-24H-5G" Content="باقة 24 ساعة" />
-                                                            <ComboBoxItem Tag="UM-7D-20G" Content="باقة أسبوع" />
-                                                        </ComboBox>
-                                                    </StackPanel>
-                                                    <StackPanel Grid.Column="1" Margin="3,0,2,0">
-                                                        <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="مجموعة المستخدمين" />
-                                                        <ComboBox x:Name="UserManagerGroupComboBox" SelectedIndex="0">
-                                                            <ComboBoxItem Tag="default" Content="المجموعة الافتراضية" />
-                                                            <ComboBoxItem Tag="retailers" Content="موزعو التجزئة" />
-                                                        </ComboBox>
-                                                    </StackPanel>
-                                                </Grid>
-                                                <Grid Grid.Row="1" Margin="0,4,0,0">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition />
-                                                        <ColumnDefinition />
-                                                    </Grid.ColumnDefinitions>
-                                                    <StackPanel Grid.Column="0" Margin="2,0,3,0">
-                                                        <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="محدد الاستخدام" />
-                                                        <ComboBox x:Name="UserManagerLimitationComboBox" SelectedIndex="0">
-                                                            <ComboBoxItem Tag="limit-hour-500mb-2m" Content="ساعة — 500 ميجابايت" />
-                                                            <ComboBoxItem Tag="limit-six-hours-2gb-4m" Content="6 ساعات — 2 جيجابايت" />
-                                                            <ComboBoxItem Tag="limit-daily-5gb-6m" Content="يومي — 5 جيجابايت" />
-                                                            <ComboBoxItem Tag="limit-weekly-20gb-8m" Content="أسبوعي — 20 جيجابايت" />
-                                                        </ComboBox>
-                                                    </StackPanel>
-                                                    <TextBlock Grid.Column="1" Text="الإعدادات خاصة بربط المصدر المحدد" FontSize="10" Foreground="{StaticResource PkgMutedBrush}" VerticalAlignment="Center" Margin="6,8,2,0" TextWrapping="Wrap" />
-                                                </Grid>
+                                                                                        <Grid x:Name="UserManagerSourcePanel" Visibility="Collapsed" Margin="1,0,1,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="1.1*" />
+                                                    <ColumnDefinition Width="1*" />
+                                                    <ColumnDefinition Width="1.15*" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" Margin="2,0,3,0">
+                                                    <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="ملف مدير المستخدمين" />
+                                                    <ComboBox x:Name="UserManagerProfileComboBox" SelectedIndex="0">
+                                                        <ComboBoxItem Tag="UM-1H-500M" Content="باقة ساعة واحدة" />
+                                                        <ComboBoxItem Tag="UM-6H-2G" Content="باقة 6 ساعات" />
+                                                        <ComboBoxItem Tag="UM-24H-5G" Content="باقة 24 ساعة" />
+                                                        <ComboBoxItem Tag="UM-7D-20G" Content="باقة أسبوع" />
+                                                    </ComboBox>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" Margin="3,0">
+                                                    <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="مجموعة المستخدمين" />
+                                                    <ComboBox x:Name="UserManagerGroupComboBox" SelectedIndex="0">
+                                                        <ComboBoxItem Tag="default" Content="المجموعة الافتراضية" />
+                                                        <ComboBoxItem Tag="retailers" Content="موزعو التجزئة" />
+                                                    </ComboBox>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="2" Margin="3,0,2,0">
+                                                    <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="محدد الاستخدام" />
+                                                    <ComboBox x:Name="UserManagerLimitationComboBox" SelectedIndex="0">
+                                                        <ComboBoxItem Tag="limit-hour-500mb-2m" Content="ساعة — 500 ميجابايت" />
+                                                        <ComboBoxItem Tag="limit-six-hours-2gb-4m" Content="6 ساعات — 2 جيجابايت" />
+                                                        <ComboBoxItem Tag="limit-daily-5gb-6m" Content="يومي — 5 جيجابايت" />
+                                                        <ComboBoxItem Tag="limit-weekly-20gb-8m" Content="أسبوعي — 20 جيجابايت" />
+                                                    </ComboBox>
+                                                </StackPanel>
                                             </Grid>
                                         </Grid>
                                     </Grid>
                                 </Border>
-                                <Border Grid.Column="1" Background="White" BorderBrush="{StaticResource PkgPanelAccentBorderBrush}" BorderThickness="1,3,1,1" CornerRadius="9" Padding="7" Margin="3,0,0,0">
+                                <Border Grid.Column="1" Background="White" BorderBrush="{StaticResource PkgPanelAccentBorderBrush}" BorderThickness="1,3,1,1" CornerRadius="9" Padding="5" Margin="3,0,0,0">
                                     <Grid>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto" />
@@ -530,7 +533,7 @@
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" Margin="2,0,3,0">
                                                 <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="الأيام المسموحة" />
-                                                <ComboBox x:Name="DaysPolicyComboBox" SelectedIndex="0" SelectionChanged="PolicySelection_Changed">
+                                                <ComboBox x:Name="DaysPolicyComboBox" SelectedIndex="0" SelectionChanged="PolicySelection_Changed" Height="29">
                                                     <ComboBoxItem Tag="all" Content="كل الأيام" />
                                                     <ComboBoxItem Tag="custom" Content="أيام محددة" />
                                                 </ComboBox>
@@ -546,7 +549,7 @@
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Margin="3,0,2,0">
                                                 <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="الفترة الزمنية المسموحة" />
-                                                <ComboBox x:Name="PeriodPolicyComboBox" SelectedIndex="0" SelectionChanged="PolicySelection_Changed">
+                                                <ComboBox x:Name="PeriodPolicyComboBox" SelectedIndex="0" SelectionChanged="PolicySelection_Changed" Height="29">
                                                     <ComboBoxItem Tag="full-day" Content="كامل اليوم (24 ساعة)" />
                                                     <ComboBoxItem Tag="custom" Content="فترة مخصصة" />
                                                 </ComboBox>
@@ -560,11 +563,11 @@
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0">
                                                 <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="من الساعة (24 ساعة)" />
-                                                <TextBox x:Name="AccessFromTextBox" Text="08:00" />
+                                                <TextBox x:Name="AccessFromTextBox" Text="08:00" Height="29" VerticalContentAlignment="Center" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="2">
                                                 <TextBlock Style="{StaticResource PkgFieldLabelStyle}" Text="إلى الساعة (24 ساعة)" />
-                                                <TextBox x:Name="AccessUntilTextBox" Text="18:00" />
+                                                <TextBox x:Name="AccessUntilTextBox" Text="18:00" Height="29" VerticalContentAlignment="Center" />
                                             </StackPanel>
                                         </Grid>
                                     </Grid>
@@ -573,17 +576,15 @@
                         </StackPanel>
                     </ScrollViewer>
                     <Border Background="White" BorderBrush="#DCE3EC" BorderThickness="1" CornerRadius="8" Padding="5,4" Grid.Row="1">
-                        <Grid>
+                                                <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="0.72*" />
-                                <ColumnDefinition Width="1.05*" />
-                                <ColumnDefinition Width="1.25*" />
-                                <ColumnDefinition Width="1.8*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Button x:Name="CancelButton" Grid.Column="0" Content="إلغاء" Click="CancelButton_Click" Margin="2,0" Background="White" Foreground="{StaticResource PkgRedBrush}" BorderBrush="#D31B2B" />
-                            <Button x:Name="SaveAndNewButton" Grid.Column="1" Content="حفظ وإضافة أخرى" Click="SaveAndNewButton_Click" Margin="2,0" Background="White" Foreground="{StaticResource PkgRedBrush}" BorderBrush="#D31B2B" />
-                            <TextBlock Grid.Column="2" Text="سيتم حفظ تعريف الباقة وربطها بالمصدر المحدد." Foreground="{StaticResource PkgMutedBrush}" FontSize="10" VerticalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="4,0" />
-                            <Button x:Name="SavePackageButton" Grid.Column="3" Content="حفظ الباقة" Click="SavePackageButton_Click" Margin="2,0" Background="{StaticResource PkgRedBrush}" Foreground="White" BorderBrush="{StaticResource PkgRedBrush}" FontWeight="Bold" />
+                            <Button x:Name="SavePackageButton" Grid.Column="0" Content="حفظ الباقة" Click="SavePackageButton_Click" Margin="3,0" Height="34" MinWidth="132" Padding="16,4" FontSize="12" Background="#EAF0F7" Foreground="{StaticResource PkgTextBrush}" BorderBrush="#C7D3E0" BorderThickness="1" FontWeight="SemiBold" />
+                            <Button x:Name="SaveAndNewButton" Grid.Column="1" Content="حفظ وإضافة أخرى" Click="SaveAndNewButton_Click" Margin="3,0" Height="34" MinWidth="150" Padding="16,4" FontSize="12" Background="#EAF0F7" Foreground="{StaticResource PkgTextBrush}" BorderBrush="#C7D3E0" BorderThickness="1" FontWeight="SemiBold" />
+                            <TextBlock Grid.Column="2" Text="سيتم حفظ تعريف الباقة وربطها بالمصدر المحدد." Foreground="{StaticResource PkgMutedBrush}" FontSize="10" VerticalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="8,0" />
                         </Grid>
                     </Border>
                 </Grid>

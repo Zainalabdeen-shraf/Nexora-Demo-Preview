@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 using Nexora.Demo.Desktop.Features.Cards.Models;
 using Nexora.Demo.Desktop.Features.Cards.Services;
 using Nexora.Demo.Desktop.Features.Shared;
@@ -72,11 +73,9 @@ public partial class GeneratedCardsView : UserControl
     }
 
     public void SetSystemFilterControlVisible(bool isVisible)
-        {
-            CardSystemFilterComboBox.Visibility = isVisible
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-        }
+    {
+        CardSystemFilterComboBox.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+    }
 
     public void ShowAllSystems() => SetSystemFilter("all");
 
@@ -146,22 +145,17 @@ public partial class GeneratedCardsView : UserControl
 
     private void ApplySystemColumnVisibility()
     {
-        if (GeneratedCardsGrid is null)
-            return;
+        if (GeneratedCardsGrid is null) return;
         var systemKey = GetCurrentSystemKey();
-        var usernameColumn = GeneratedCardsGrid.Columns.FirstOrDefault(column => column.Header?.ToString() == "اسم المستخدم");
-        if (usernameColumn is not null)
-            usernameColumn.Visibility = systemKey == "user-manager" ? Visibility.Collapsed : Visibility.Visible;
         var cardNumberColumn = GeneratedCardsGrid.Columns.FirstOrDefault(column =>
-            column.Header?.ToString() == "رقم الكرت" || column.Header?.ToString() == "رقم الكرت / اسم المستخدم");
+            column.Header?.ToString() == "رقم الكرت / اسم المستخدم");
         if (cardNumberColumn is not null)
-            cardNumberColumn.Header = systemKey == "user-manager" ? "رقم الكرت / اسم المستخدم" : "رقم الكرت";
+            cardNumberColumn.Header = "رقم الكرت / اسم المستخدم";
     }
 
     private void RefreshBatchFilterOptions(string? preferredBatchId = null)
     {
-        if (CardBatchFilterComboBox is null)
-            return;
+        if (CardBatchFilterComboBox is null) return;
         var previousBatchId = (CardBatchFilterComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
         var systemKey = GetCurrentSystemKey();
         var batches = _issuanceService.Batches
@@ -195,30 +189,18 @@ public partial class GeneratedCardsView : UserControl
 
     private bool MatchCard(object item)
     {
-        if (item is not GeneratedDemoCard card)
-            return false;
+        if (item is not GeneratedDemoCard card) return false;
 
         var systemFilter = (CardSystemFilterComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
-        if (systemFilter == "hotspot" && card.TargetSystem != "مستخدمو الهوتسبوت")
-            return false;
-        if (systemFilter == "user-manager" && card.TargetSystem != "مدير المستخدمين")
-            return false;
-        if (_activityFilter == "active" && card.DemoStatus != "قيد الاستخدام")
-            return false;
-        if (_activityFilter == "inactive" && card.DemoStatus == "قيد الاستخدام")
-            return false;
+        if (systemFilter == "hotspot" && card.TargetSystem != "مستخدمو الهوتسبوت") return false;
+        if (systemFilter == "user-manager" && card.TargetSystem != "مدير المستخدمين") return false;
 
         var batchFilter = (CardBatchFilterComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
         if (!string.IsNullOrWhiteSpace(batchFilter) && batchFilter != "all" && !string.Equals(card.BatchId, batchFilter, StringComparison.OrdinalIgnoreCase))
             return false;
 
-        var statusFilter = (CardStatusFilterComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
-        if (!string.IsNullOrWhiteSpace(statusFilter) && statusFilter != "all" && card.DemoStatus != statusFilter)
-            return false;
-
         var search = CardSearchTextBox?.Text.Trim();
-        if (string.IsNullOrWhiteSpace(search))
-            return true;
+        if (string.IsNullOrWhiteSpace(search)) return true;
         return card.BatchId.Contains(search, StringComparison.OrdinalIgnoreCase) ||
                card.CardNumber.Contains(search, StringComparison.OrdinalIgnoreCase) ||
                card.Username.Contains(search, StringComparison.OrdinalIgnoreCase) ||
@@ -231,8 +213,7 @@ public partial class GeneratedCardsView : UserControl
 
     private void CardFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_refreshingBatchFilter)
-            return;
+        if (_refreshingBatchFilter) return;
         if (ReferenceEquals(sender, CardSystemFilterComboBox))
         {
             var systemKey = GetCurrentSystemKey();
@@ -242,10 +223,9 @@ public partial class GeneratedCardsView : UserControl
         RefreshFilteredCards();
     }
 
-    private void RefreshFilteredCards()
+    public void RefreshFilteredCards()
     {
-        if (_cardsView is null)
-            return;
+        if (_cardsView is null) return;
         _cardsView.Refresh();
         UpdateSummary();
         UpdateWorkflowStatus();
@@ -255,12 +235,11 @@ public partial class GeneratedCardsView : UserControl
 
     private void UpdateWorkflowStatus()
     {
-        if (WorkflowStatusTextBlock is null || GeneratedCardsGrid is null)
-            return;
+        if (WorkflowStatusTextBlock is null || GeneratedCardsGrid is null) return;
         var selected = GetSelectedCards();
         if (selected.Count == 0)
         {
-            WorkflowStatusTextBlock.Text = "حدد كرتًا لعرض تفاصيل حالته.";
+            WorkflowStatusTextBlock.Text = "حدد كرتًا لعرض تفاصيل حالته التشغيلية.";
             return;
         }
         if (selected.Count > 1)
@@ -269,7 +248,7 @@ public partial class GeneratedCardsView : UserControl
             return;
         }
         var card = selected[0];
-        WorkflowStatusTextBlock.Text = $"{card.CardNumber} · {card.BatchId} · {_workflowStore.GetCardStatusLabel(card.BatchId, card.CardNumber)}";
+        WorkflowStatusTextBlock.Text = $"{card.CardNumber} · {card.BatchId} · الحالة: {_workflowStore.GetCardStatusLabel(card.BatchId, card.CardNumber)}";
     }
 
     private void GeneratedCardsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateWorkflowStatus();
@@ -303,65 +282,132 @@ public partial class GeneratedCardsView : UserControl
             ShowCardDetails(card);
     }
 
+    // النافذة التفاعلية الاحترافية لتفاصيل الكرت
     private void ShowCardDetails(GeneratedDemoCard card)
     {
         var owner = Window.GetWindow(this);
         var details = new Window
         {
-            Title = "تفاصيل الكرت",
-            Width = 650,
-            Height = 540,
-            MinWidth = 560,
-            MinHeight = 450,
+            Title = $"تفاصيل الحساب والتجهيز — {card.CardNumber}",
+            Width = 690,
+            Height = 600,
+            MinWidth = 580,
+            MinHeight = 480,
             WindowStartupLocation = owner is null ? WindowStartupLocation.CenterScreen : WindowStartupLocation.CenterOwner,
             ResizeMode = ResizeMode.CanResize,
             FlowDirection = FlowDirection.RightToLeft,
-            Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(246, 248, 251)),
+            Background = new SolidColorBrush(Color.FromRgb(244, 246, 249)),
             Owner = owner
         };
-        var root = new DockPanel { Margin = new Thickness(16) };
-        var titlePanel = new StackPanel { Margin = new Thickness(0, 0, 0, 12) };
-        titlePanel.Children.Add(new TextBlock { Text = card.TargetSystem == "مدير المستخدمين" ? $"{card.CardNumber} — اسم المستخدم" : card.CardNumber, FontSize = 20, FontWeight = FontWeights.Bold, Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(32, 43, 69)) });
-        titlePanel.Children.Add(new TextBlock { Text = $"{card.TargetSystem} · الدفعة {card.BatchId} · {_workflowStore.GetCardStatusLabel(card.BatchId, card.CardNumber)}", FontSize = 12, Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(201, 24, 61)), Margin = new Thickness(0, 4, 0, 0), TextWrapping = TextWrapping.Wrap });
-        DockPanel.SetDock(titlePanel, Dock.Top);
-        root.Children.Add(titlePanel);
 
+        var root = new DockPanel { Margin = new Thickness(18) };
+
+        // الهيدر العلوي
+        var headerBorder = new Border
+        {
+            Background = Brushes.White,
+            BorderBrush = new SolidColorBrush(Color.FromRgb(226, 232, 240)),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(8),
+            Padding = new Thickness(14),
+            Margin = new Thickness(0, 0, 0, 12)
+        };
+
+        var headerPanel = new StackPanel();
+        var statusLabelText = _workflowStore.GetCardStatusLabel(card.BatchId, card.CardNumber);
+
+        headerPanel.Children.Add(new TextBlock { Text = $"👤 رقم الكرت / اسم المستخدم: {card.CardNumber}", FontSize = 17, FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Color.FromRgb(32, 43, 69)) });
+
+        var statusTextBlock = new TextBlock { Text = $"🏷️ النظام: {card.TargetSystem}  |  📂 الدفعة: {card.BatchId}  |  📌 الحالة الإجرائية: {statusLabelText}", FontSize = 12, Foreground = new SolidColorBrush(Color.FromRgb(201, 24, 61)), FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 5, 0, 0) };
+        headerPanel.Children.Add(statusTextBlock);
+        headerBorder.Child = headerPanel;
+        DockPanel.SetDock(headerBorder, Dock.Top);
+        root.Children.Add(headerBorder);
+
+        // شريط الأزرار التفاعلية المباشرة داخل نافذة التفاصيل
+        var actionPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 12) };
+
+        var syncBtn = new Button { Content = "⚡ طلب مزامنة", Width = 110, Height = 34, Margin = new Thickness(4, 0, 4, 0), Background = new SolidColorBrush(Color.FromRgb(238, 242, 255)), Foreground = new SolidColorBrush(Color.FromRgb(67, 56, 202)), FontWeight = FontWeights.SemiBold, Cursor = Cursors.Hand };
+        var printBtn = new Button { Content = "🖨️ تجهيز طباعة", Width = 110, Height = 34, Margin = new Thickness(4, 0, 4, 0), Background = new SolidColorBrush(Color.FromRgb(236, 253, 245)), Foreground = new SolidColorBrush(Color.FromRgb(4, 120, 87)), FontWeight = FontWeights.SemiBold, Cursor = Cursors.Hand };
+        var saleBtn = new Button { Content = "🛒 بيع إلكتروني", Width = 110, Height = 34, Margin = new Thickness(4, 0, 4, 0), Background = new SolidColorBrush(Color.FromRgb(255, 241, 242)), Foreground = new SolidColorBrush(Color.FromRgb(225, 29, 72)), FontWeight = FontWeights.SemiBold, Cursor = Cursors.Hand };
+
+        syncBtn.Click += (_, _) =>
+        {
+            _workflowStore.RecordRouterUpload(new[] { card });
+            statusTextBlock.Text = $"🏷️ النظام: {card.TargetSystem}  |  📂 الدفعة: {card.BatchId}  |  📌 الحالة الإجرائية: {_workflowStore.GetCardStatusLabel(card.BatchId, card.CardNumber)}";
+            RefreshFilteredCards();
+            MessageBox.Show(details, "⚡ تم تسجيل طلب المزامنة للراوتر بنجاح.", "المزامنة", MessageBoxButton.OK, MessageBoxImage.Information);
+        };
+
+        printBtn.Click += (_, _) =>
+        {
+            _workflowStore.QueuePrintSelection(new[] { card });
+            statusTextBlock.Text = $"🏷️ النظام: {card.TargetSystem}  |  📂 الدفعة: {card.BatchId}  |  📌 الحالة الإجرائية: {_workflowStore.GetCardStatusLabel(card.BatchId, card.CardNumber)}";
+            RefreshFilteredCards();
+            MessageBox.Show(details, "🖨️ تم تجهيز الكرت وإضافته إلى قائمة الطباعة.", "الطباعة", MessageBoxButton.OK, MessageBoxImage.Information);
+        };
+
+        saleBtn.Click += (_, _) =>
+        {
+            _workflowStore.RecordOnlineSalePreparation(new[] { card });
+            statusTextBlock.Text = $"🏷️ النظام: {card.TargetSystem}  |  📂 الدفعة: {card.BatchId}  |  📌 الحالة الإجرائية: {_workflowStore.GetCardStatusLabel(card.BatchId, card.CardNumber)}";
+            RefreshFilteredCards();
+            MessageBox.Show(details, "🛒 تم تجهيز الكرت للبيع الإلكتروني بنجاح.", "البيع الإلكتروني", MessageBoxButton.OK, MessageBoxImage.Information);
+        };
+
+        actionPanel.Children.Add(syncBtn);
+        actionPanel.Children.Add(printBtn);
+        actionPanel.Children.Add(saleBtn);
+
+        // زر الإغلاق السفلي
+        var footerPanel = new DockPanel { Margin = new Thickness(0, 12, 0, 0) };
+        var closeButton = new Button { Content = "إغلاق النافذة", Width = 100, Height = 34, Background = new SolidColorBrush(Color.FromRgb(233, 37, 77)), Foreground = Brushes.White, FontWeight = FontWeights.SemiBold, Cursor = Cursors.Hand };
+        closeButton.Click += (_, _) => details.Close();
+        DockPanel.SetDock(closeButton, Dock.Left);
+        footerPanel.Children.Add(closeButton);
+        footerPanel.Children.Add(actionPanel);
+
+        DockPanel.SetDock(footerPanel, Dock.Bottom);
+        root.Children.Add(footerPanel);
+
+        // جدول التفاصيل
         var scroll = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
         var detailsGrid = new Grid();
-        detailsGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
+        detailsGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(170) });
         detailsGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
         var rows = new (string Label, string Value)[]
         {
-            ("رقم الكرت / اسم المستخدم", card.TargetSystem == "مدير المستخدمين" ? card.CardNumber : card.Username),
-            ("كلمة المرور", string.IsNullOrEmpty(card.Password) ? "فارغة" : card.Password),
-            ("الباقة", card.PackageName),
-            ("السعر", card.UnitPriceLabel),
-            ("الوقت", card.TimeLimit),
-            ("حد البيانات", card.DataLimit),
-            ("السرعة", card.RateLimit),
-            ("الصلاحية", card.PackageValidity),
-            ("ملف الاستخدام", card.RouterProfile),
-            ("نقطة البيع", card.PointOfSale),
-            ("مستخدم الإدارة", card.ManagerAccount),
-            ("الأجهزة المتزامنة", card.SharedUsersLabel),
-            ("تاريخ الإنشاء", card.CreatedAtLabel),
-            ("حالة الحساب", card.DemoStatus),
-            ("حالة الإجراء", _workflowStore.GetCardStatusLabel(card.BatchId, card.CardNumber)),
-            ("ملاحظة", card.Comment)
+            ("كلمة المرور", string.IsNullOrEmpty(card.Password) ? "🔒 (فارغة)" : $"🔑 {card.Password}"),
+            ("الباقة المرتبطة", $"📦 {card.PackageName}"),
+            ("قيمة السعر", $"💵 {card.UnitPriceLabel}"),
+            ("الوقت المسموح", $"⏱️ {card.TimeLimit}"),
+            ("حد البيانات", $"📊 {card.DataLimit}"),
+            ("سياسة السرعة", $"🚀 {card.RateLimit}"),
+            ("مدة الصلاحية", $"📅 {card.PackageValidity}"),
+            ("ملف الراوتر (Profile)", $"⚙️ {card.RouterProfile}"),
+            ("نقطة البيع", $"🏢 {card.PointOfSale}"),
+            ("حساب المشرف", $"👨‍💻 {card.ManagerAccount}"),
+            ("المستخدمون المتزامنون", $"👥 {card.SharedUsersLabel}"),
+            ("تاريخ الإنشاء المحلي", $"🕒 {card.CreatedAtLabel}"),
+            ("ملاحظات إضافية", string.IsNullOrWhiteSpace(card.Comment) ? "—" : card.Comment)
         };
+
         for (var i = 0; i < rows.Length; i++)
         {
             detailsGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            var background = new System.Windows.Media.SolidColorBrush(i % 2 == 0
-                ? System.Windows.Media.Color.FromRgb(255, 255, 255)
-                : System.Windows.Media.Color.FromRgb(248, 250, 253));
-            var label = new Border { Padding = new Thickness(10, 8, 10, 8), Background = background, BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(232, 221, 228)), BorderThickness = new Thickness(0, 0, 0, 1) };
-            label.Child = new TextBlock { Text = rows[i].Label, FontWeight = FontWeights.SemiBold, Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(104, 117, 141)), TextWrapping = TextWrapping.Wrap };
-            var value = new Border { Padding = new Thickness(10, 8, 10, 8), Background = background, BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(232, 221, 228)), BorderThickness = new Thickness(0, 0, 0, 1) };
-            value.Child = new TextBlock { Text = string.IsNullOrWhiteSpace(rows[i].Value) ? "—" : rows[i].Value, Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(32, 43, 69)), TextWrapping = TextWrapping.Wrap };
-            Grid.SetRow(label, i); Grid.SetColumn(label, 0); detailsGrid.Children.Add(label);
-            Grid.SetRow(value, i); Grid.SetColumn(value, 1); detailsGrid.Children.Add(value);
+            var bg = i % 2 == 0 ? Colors.White : Color.FromRgb(248, 250, 253);
+
+            var lblBorder = new Border { Padding = new Thickness(10, 8, 10, 8), Background = new SolidColorBrush(bg), BorderBrush = new SolidColorBrush(Color.FromRgb(232, 221, 228)), BorderThickness = new Thickness(0, 0, 0, 1) };
+            lblBorder.Child = new TextBlock { Text = rows[i].Label, FontWeight = FontWeights.SemiBold, Foreground = new SolidColorBrush(Color.FromRgb(104, 117, 141)), FontSize = 11.5 };
+
+            var valBorder = new Border { Padding = new Thickness(10, 8, 10, 8), Background = new SolidColorBrush(bg), BorderBrush = new SolidColorBrush(Color.FromRgb(232, 221, 228)), BorderThickness = new Thickness(0, 0, 0, 1) };
+            valBorder.Child = new TextBlock { Text = rows[i].Value, Foreground = new SolidColorBrush(Color.FromRgb(32, 43, 69)), FontSize = 11.5, TextWrapping = TextWrapping.Wrap };
+
+            Grid.SetRow(lblBorder, i); Grid.SetColumn(lblBorder, 0); detailsGrid.Children.Add(lblBorder);
+            Grid.SetRow(valBorder, i); Grid.SetColumn(valBorder, 1); detailsGrid.Children.Add(valBorder);
         }
+
         scroll.Content = detailsGrid;
         root.Children.Add(scroll);
         details.Content = root;
@@ -400,6 +446,7 @@ public partial class GeneratedCardsView : UserControl
             _workflowStore.QueuePrintSelection(selected);
             SetPreferredBatchesForSelection(selected);
             CardsScopeTextBlock.Text = $"تم تسجيل طلب مزامنة لـ {selected.Count:N0} كرت وإضافتها إلى قائمة الطباعة.";
+            RefreshFilteredCards();
             NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("printing", "قائمة الطباعة"));
         }
         catch (Exception ex) { CardsScopeTextBlock.Text = "تعذر تجهيز مسار الطباعة: " + ex.Message; }
@@ -441,29 +488,25 @@ public partial class GeneratedCardsView : UserControl
 
     private void IssuanceService_ScenarioChanged(object? sender, EventArgs e)
     {
-        Dispatcher.InvokeAsync(() =>
-        {
-            RefreshFilteredCards();
-        });
+        Dispatcher.InvokeAsync(RefreshFilteredCards);
     }
+
     private void OpenPrintQueueButton_Click(object sender, RoutedEventArgs e) =>
         NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("printing", "قائمة الطباعة"));
 
     private void UpdateSummary()
     {
-        if (GeneratedCardsGrid is null || CardsCountSummaryTextBlock is null)
-            return;
+        if (GeneratedCardsGrid is null || CardsCountSummaryTextBlock is null) return;
 
         var displayed = GeneratedCardsGrid.Items.Count;
         var totalSystemCards = GetCardsInCurrentSystemScope().Count();
         var totalBatches = GetCardsInCurrentSystemScope().Select(card => card.BatchId).Distinct(StringComparer.OrdinalIgnoreCase).Count();
-        VisibleCardsMetricTextBlock.Text = displayed.ToString("N0");
-        VisibleBatchesMetricTextBlock.Text = totalBatches.ToString("N0");
-        CardsCountSummaryTextBlock.Text = $"المعروض: {displayed:N0} سجل · إجمالي السجلات ضمن النطاق: {totalSystemCards:N0} · مصادر الإصدار: HotSpot وUser Manager.";
+
+        CardsCountSummaryTextBlock.Text = $"المعروض: {displayed:N0} سجل معلق · إجمالي السجلات ضمن النطاق: {totalSystemCards:N0} · إجمالي الدفعات: {totalBatches:N0}";
         EmptyCardsPanel.Visibility = displayed == 0 ? Visibility.Visible : Visibility.Collapsed;
         EmptyCardsDescriptionTextBlock.Text = _issuanceService.Cards.Count == 0
-            ? "لا توجد حسابات مطابقة. أنشئ دفعة جديدة أو غيّر الفلاتر."
-            : "لا توجد سجلات تطابق البحث والمرشحات الحالية. غيّر خيارات التصفية أو امسح البحث.";
+            ? "لا توجد حسابات معلقة. أنشئ دفعة جديدة."
+            : "لا توجد سجلات تطابق البحث والمرشحات الحالية.";
         UpdateWorkflowStatus();
     }
 
@@ -476,5 +519,62 @@ public partial class GeneratedCardsView : UserControl
         else if (systemFilter == "user-manager")
             cards = cards.Where(card => card.TargetSystem == "مدير المستخدمين");
         return cards;
+    }
+
+    // أحداث الأيقونات الفردية
+    private void RowSyncIcon_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.DataContext is GeneratedDemoCard card)
+        {
+            _workflowStore.RecordRouterUpload(new[] { card });
+            RefreshFilteredCards();
+            MessageBox.Show(Window.GetWindow(this),
+                $"⚡ تم تسجيل طلب المزامنة للكرت ({card.CardNumber}) بنجاح إلى الراوتر.",
+                "المزامنة الفورية", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
+    private void RowPrintIcon_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.DataContext is GeneratedDemoCard card)
+        {
+            _workflowStore.QueuePrintSelection(new[] { card });
+            RefreshFilteredCards();
+            MessageBox.Show(Window.GetWindow(this),
+                $"🖨️ تم تجهيز الكرت ({card.CardNumber}) وإضافته مباشرة إلى قائمة الطباعة.",
+                "تجهيز الطباعة", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
+    private void RowSaleIcon_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.DataContext is GeneratedDemoCard card)
+        {
+            _workflowStore.RecordOnlineSalePreparation(new[] { card });
+            RefreshFilteredCards();
+            MessageBox.Show(Window.GetWindow(this),
+                $"🛒 تم تسجيل الكرت ({card.CardNumber}) كمنتج جاهز للبيع الإلكتروني.",
+                "البيع الإلكتروني", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+}
+
+// محول العرض التفاعلي لحالة الكرت باللغة والنص الملون
+public class WorkflowStatusConverter : IValueConverter
+{
+    private static readonly DemoCardWorkflowStore WorkflowStore = new();
+
+    public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+    {
+        if (value is GeneratedDemoCard card)
+        {
+            return WorkflowStore.GetCardStatusLabel(card.BatchId, card.CardNumber);
+        }
+        return "بانتظار المزامنة";
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+    {
+        throw new NotImplementedException();
     }
 }

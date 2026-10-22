@@ -127,12 +127,8 @@ public sealed class DemoCardIssuanceService
         var knownUsernames = new HashSet<string>(
             Cards.Where(card => card.TargetSystem == targetName).Select(card => card.Username),
             StringComparer.OrdinalIgnoreCase);
-        if (request.TargetSystem == DemoAccountSystem.UserManager)
-        {
-            // User Manager uses the card number as the username in this demo, so prevent collisions across both existing sets.
-            knownCardNumbers.UnionWith(knownUsernames);
-            knownUsernames.UnionWith(knownCardNumbers);
-        }
+        knownCardNumbers.UnionWith(knownUsernames);
+        knownUsernames.UnionWith(knownCardNumbers);
         var newCards = new List<GeneratedDemoCard>(request.Quantity);
         var tokenLength = request.CardNumberLength - request.CardNumberPrefix.Length - request.CardNumberSuffix.Length;
         var nextSequence = request.NumberGenerationMode == CardNumberGenerationMode.Sequential
@@ -151,13 +147,8 @@ public sealed class DemoCardIssuanceService
                 _ => throw new InvalidOperationException("طريقة توليد رقم الكرت غير معروفة.")
             };
 
-            var username = request.TargetSystem == DemoAccountSystem.UserManager
-                ? number
-                : GenerateUniqueToken(
-                    request.UsernameLength, GetAlphabet(request.UsernameCharacterSet),
-                    knownUsernames, string.Empty, string.Empty);
-            if (request.TargetSystem == DemoAccountSystem.UserManager)
-                knownUsernames.Add(username);
+            var username = number;
+            knownUsernames.Add(username);
 
             var password = request.PasswordMode switch
             {
@@ -457,8 +448,7 @@ public sealed class DemoCardIssuanceService
         if (tokenLength < 1)
             throw new ArgumentException("الطول الكلي لا يترك مساحة لتوليد الرقم بعد البادئة واللاحقة.");
 
-        if (request.UsernameLength is < 4 or > 20)
-            throw new ArgumentOutOfRangeException(nameof(request.UsernameLength), "طول اسم المستخدم يجب أن يكون بين 4 و20 رمزًا.");
+
 
         if (request.PasswordMode == PasswordGenerationMode.Generated &&
             request.PasswordLength is < 4 or > 20)

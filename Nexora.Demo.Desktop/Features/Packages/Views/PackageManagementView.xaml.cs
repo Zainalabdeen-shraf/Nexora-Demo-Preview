@@ -120,12 +120,13 @@ public partial class PackageManagementView : UserControl
     private void PackagesDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_suppressSelection || PackagesDataGrid.SelectedItem is not PackageManagementRow row) return;
-        LoadPackageRow(row);
+        SetStatus($"تم تحديد الباقة «{row.Package.Name}». استخدم أيقونة التعديل لفتحها.", false);
     }
 
     private void PackagesDataGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        if (PackagesDataGrid.SelectedItem is PackageManagementRow row) LoadPackageRow(row);
+        if (PackagesDataGrid.SelectedItem is PackageManagementRow)
+            SetStatus("لتعديل الباقة، استخدم أيقونة التعديل في صف الإجراءات.", false);
     }
 
     private void RowActionsButton_Click(object sender, RoutedEventArgs e)
@@ -310,6 +311,7 @@ private void EditRowPackage_Click(object sender, RoutedEventArgs e)
 
     PackagesDataGrid.SelectedItem = row;
     PackagesDataGrid.ScrollIntoView(row);
+    PackageTabs.SelectedItem = CreatePackageTab;
     LoadPackageRow(row);
 }
 
@@ -356,10 +358,14 @@ private void EditPackageRowIcon_Click(object sender, RoutedEventArgs e)
     LoadPackageRow(row);
 }
 private void EditSelectedPackage_Click(object sender, RoutedEventArgs e)
+{
+    if (PackagesDataGrid.SelectedItem is PackageManagementRow row)
     {
-        if (PackagesDataGrid.SelectedItem is PackageManagementRow row) LoadPackageRow(row);
-        else SetStatus("اختر باقة من الجدول أولًا.", true);
+        PackageTabs.SelectedItem = CreatePackageTab;
+        LoadPackageRow(row);
     }
+    else SetStatus("اختر باقة من الجدول أولًا.", true);
+}
 
     private void ToggleBinding_Click(object sender, RoutedEventArgs e)
     {
@@ -399,7 +405,7 @@ private void EditSelectedPackage_Click(object sender, RoutedEventArgs e)
         SalePriceTextBox.Text = FormatNumber(row.Package.SalePriceYer);
         CardDisplayPriceTextBox.Text = FormatNumber(row.Package.CardDisplayPriceYer);
         ValidityDaysTextBox.Text = row.Package.ValidityDays.ToString(CultureInfo.InvariantCulture);
-        UnlimitedValidityCheckBox.IsChecked = row.Package.UnlimitedValidity;
+        UnlimitedUptimeCheckBox.IsChecked = row.Package.UptimeHours == 0 && row.Package.UptimeMinutes == 0;
         DataQuotaAmountTextBox.Text = FormatNumber(row.Package.DataQuotaAmount);
         SelectTag(DataQuotaUnitComboBox, row.Package.DataQuotaUnit);
         UnlimitedDataCheckBox.IsChecked = row.Package.UnlimitedData;
@@ -458,7 +464,7 @@ private void EditSelectedPackage_Click(object sender, RoutedEventArgs e)
         SalePriceTextBox.Text = "100";
         CardDisplayPriceTextBox.Text = "100";
         ValidityDaysTextBox.Text = "7";
-        UnlimitedValidityCheckBox.IsChecked = false;
+        UnlimitedUptimeCheckBox.IsChecked = false;
         DataQuotaAmountTextBox.Text = "500";
         SelectTag(DataQuotaUnitComboBox, "MB");
         UnlimitedDataCheckBox.IsChecked = false;
@@ -510,7 +516,9 @@ private void EditSelectedPackage_Click(object sender, RoutedEventArgs e)
     {
         if (DataQuotaAmountTextBox is not null) DataQuotaAmountTextBox.IsEnabled = UnlimitedDataCheckBox.IsChecked != true;
         if (DataQuotaUnitComboBox is not null) DataQuotaUnitComboBox.IsEnabled = UnlimitedDataCheckBox.IsChecked != true;
-        if (ValidityDaysTextBox is not null) ValidityDaysTextBox.IsEnabled = UnlimitedValidityCheckBox.IsChecked != true;
+        if (ValidityDaysTextBox is not null) ValidityDaysTextBox.IsEnabled = true;
+        if (UptimeHoursTextBox is not null) UptimeHoursTextBox.IsEnabled = UnlimitedUptimeCheckBox.IsChecked != true;
+        if (UptimeMinutesTextBox is not null) UptimeMinutesTextBox.IsEnabled = UnlimitedUptimeCheckBox.IsChecked != true;
         if (CommissionModeComboBox is not null) CommissionModeComboBox.IsEnabled = CommissionEnabledCheckBox.IsChecked == true;
         if (CommissionValueTextBox is not null) CommissionValueTextBox.IsEnabled = CommissionEnabledCheckBox.IsChecked == true;
         if (AccessTimeFieldsPanel is not null)
@@ -557,15 +565,28 @@ private void EditSelectedPackage_Click(object sender, RoutedEventArgs e)
             if (catalog.Packages.Any(p => p.Id != idToExclude && string.Equals(p.Name.Trim(), name, StringComparison.CurrentCultureIgnoreCase)))
             { SetStatus("يوجد تعريف باقة بهذا الاسم. اختر التعريف المحفوظ من الجدول لربطه بهذا النظام بدل إنشاء اسم مكرر.", true); return; }
 
-            var unlimitedValidity = UnlimitedValidityCheckBox.IsChecked == true;
-            if (!unlimitedValidity && (!TryInt(ValidityDaysTextBox, out var validityDaysInput) || validityDaysInput < 1))
-            { SetStatus("أدخل مدة صلاحية يومًا واحدًا على الأقل، أو اختر بلا انتهاء تقويمي.", true); return; }
-            var validityDays = unlimitedValidity ? 0 : ParseInt(ValidityDaysTextBox, 7);
+            var unlimitedUptime = UnlimitedUptimeCheckBox.IsChecked == true;
+            if (!TryInt(ValidityDaysTextBox, out var validityDaysInput) || validityDaysInput < 1)
+            { SetStatus("أدخل مدة صلاحية يومًا واحدًا على الأقل.", true); return; }
+            var validityDays = validityDaysInput;
 
-            if (!TryInt(UptimeHoursTextBox, out var uptimeHours) || uptimeHours < 0 ||
-                !TryInt(UptimeMinutesTextBox, out var uptimeMinutes) || uptimeMinutes < 0 || uptimeMinutes > 59)
-            { SetStatus("حد الاستخدام الزمني غير صحيح؛ الساعات موجبة أو صفر والدقائق بين 0 و59.", true); return; }
+            var uptimeHours = 0;
+            var uptimeMinutes = 0;
+            if (!unlimitedUptime)
+            {
+                if (!TryInt(UptimeHoursTextBox, out uptimeHours) || uptimeHours < 0 ||
+                    !TryInt(UptimeMinutesTextBox, out uptimeMinutes) || uptimeMinutes < 0 || uptimeMinutes > 59)
+                { SetStatus("أدخل عدد الساعات بصورة صحيحة، والدقائق بين 0 و59.", true); UptimeHoursTextBox.Focus(); return; }
 
+                if (uptimeHours == 0 && uptimeMinutes == 0)
+                { SetStatus("أدخل مدة استخدام أكبر من صفر أو فعّل «ساعات مفتوحة».", true); UptimeHoursTextBox.Focus(); return; }
+            }
+            else
+            {
+                // The package model stores unlimited uptime as zero hours and zero minutes.
+                uptimeHours = 0;
+                uptimeMinutes = 0;
+            }
             var unlimitedData = UnlimitedDataCheckBox.IsChecked == true;
             if (!unlimitedData && (!TryDecimal(DataQuotaAmountTextBox, out var quotaInput) || quotaInput <= 0))
             { SetStatus("حصة البيانات يجب أن تكون أكبر من صفر أو اختر بلا حد للبيانات.", true); return; }
@@ -611,7 +632,7 @@ private void EditSelectedPackage_Click(object sender, RoutedEventArgs e)
             }
             package.Name = name;
             package.ValidityDays = validityDays;
-            package.UnlimitedValidity = unlimitedValidity;
+            package.UnlimitedValidity = false;
             package.UptimeHours = uptimeHours;
             package.UptimeMinutes = uptimeMinutes;
             package.DataQuotaAmount = quotaAmount;
@@ -711,21 +732,29 @@ private void EditSelectedPackage_Click(object sender, RoutedEventArgs e)
                 }
             }
 
-            DemoPackageStore.Save(catalog);
-            _editingPackage = package.Copy();
-            _editingBinding = binding.Copy();
-            RefreshPackages(package.Id);
-            SetStatus(creatingDefinition
+            var successMessage = creatingDefinition
                 ? "تم حفظ تعريف الباقة وربطه بالنظام المحدد."
                 : creatingBinding
                     ? "تم حفظ التعريف التجاري وإنشاء الربط للنظام المحدد."
-                    : "تم حفظ تعديلات الباقة والربط.", false);
+                    : "تم حفظ تعديلات الباقة والربط.";
+
+            DemoPackageStore.Save(catalog);
+            var savedPackageId = package.Id;
 
             if (addAnother)
             {
                 ClearForm();
+                RefreshPackages(savedPackageId);
+                PackageTabs.SelectedItem = CreatePackageTab;
                 SetStatus("تم الحفظ. أدخل بيانات الباقة التالية.", false);
+                return;
             }
+
+            // End create/edit mode, then select the saved package in the saved-packages tab.
+            ClearForm();
+            RefreshPackages(savedPackageId);
+            PackageTabs.SelectedItem = SavedPackagesTab;
+            SetStatus(successMessage, false);
         }
         catch (Exception ex)
         {
@@ -796,9 +825,9 @@ public sealed class PackageManagementRow
     public DemoServicePackage Package { get; }
     public DemoPackageBinding? Binding { get; }
     public string Name => Package.Name;
-    public string ValidityDisplay => Package.UnlimitedValidity ? "بلا انتهاء" : $"{Package.ValidityDays} يوم";
+    public string ValidityDisplay => Package.ValidityDays > 0 ? $"{Package.ValidityDays} يوم" : "—";
     public string UptimeDisplay => Package.UptimeHours == 0 && Package.UptimeMinutes == 0
-        ? "بلا حد زمني"
+        ? "ساعات مفتوحة"
         : Package.UptimeHours >= 24 && Package.UptimeHours % 24 == 0 && Package.UptimeMinutes == 0
             ? $"{Package.UptimeHours / 24} يوم"
             : $"{Package.UptimeHours} س {Package.UptimeMinutes} د";
