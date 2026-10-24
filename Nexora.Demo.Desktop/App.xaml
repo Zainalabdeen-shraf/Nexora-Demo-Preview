@@ -84,23 +84,70 @@
     </ControlTemplate.Triggers>
    </ControlTemplate></Setter.Value></Setter>
   </Style>
-  <Style x:Key="DashboardMetricButtonStyle" TargetType="Button">
-   <Setter Property="Height" Value="120"/><Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-   <Setter Property="Foreground" Value="{StaticResource TextBrush}"/><Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/>
-   <Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="16,13"/><Setter Property="Cursor" Value="Hand"/>
-   <Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="VerticalContentAlignment" Value="Stretch"/>
-   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
-    <Grid>
-     <Border x:Name="MetricBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource RadiusCard}" Effect="{StaticResource CardShadowEffect}"/>
-     <Border Height="4" VerticalAlignment="Top" Background="{StaticResource PrimaryBrush}" CornerRadius="11,11,0,0"/>
-     <ContentPresenter Margin="0,4,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" TextElement.Foreground="{TemplateBinding Foreground}"/>
-    </Grid>
-    <ControlTemplate.Triggers>
-     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="MetricBorder" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/><Setter TargetName="MetricBorder" Property="Background" Value="#FFFBFB"/></Trigger>
-     <Trigger Property="IsPressed" Value="True"><Setter TargetName="MetricBorder" Property="Background" Value="{StaticResource PrimaryLightBrush}"/></Trigger>
-    </ControlTemplate.Triggers>
-   </ControlTemplate></Setter.Value></Setter>
-  </Style>
+
+
+<Style x:Key="DashboardMetricButtonStyle" TargetType="Button">
+    <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="Padding" Value="10,5"/>
+    <Setter Property="Cursor" Value="Hand"/>
+    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="Button">
+                <Grid ClipToBounds="True">
+                    <Border x:Name="MetricBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource RadiusCard}"
+                            Effect="{StaticResource CardShadowEffect}"/>
+
+                    <Border Height="2"
+                            Margin="1,1,1,0"
+                            VerticalAlignment="Top"
+                            Background="{StaticResource PrimaryBrush}"
+                            CornerRadius="11,11,0,0"
+                            IsHitTestVisible="False"/>
+
+                    <ContentPresenter Margin="0,2,0,0"
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Stretch"
+                                      TextElement.Foreground="{TemplateBinding Foreground}"/>
+                </Grid>
+
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="MetricBorder"
+                                Property="BorderBrush"
+                                Value="{StaticResource PrimaryBorderBrush}"/>
+                        <Setter TargetName="MetricBorder"
+                                Property="Background"
+                                Value="#FFFBFB"/>
+                    </Trigger>
+
+                    <Trigger Property="IsPressed" Value="True">
+                        <Setter TargetName="MetricBorder"
+                                Property="Background"
+                                Value="{StaticResource PrimaryLightBrush}"/>
+                    </Trigger>
+
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter TargetName="MetricBorder"
+                                Property="Opacity"
+                                Value="0.55"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
+
+
   <!-- TabCard Design System v1: shared typography and reusable component styles -->
   <Style x:Key="WorkspacePageTitleStyle" TargetType="TextBlock">
    <Setter Property="FontFamily" Value="Tahoma"/><Setter Property="FontSize" Value="28"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/>

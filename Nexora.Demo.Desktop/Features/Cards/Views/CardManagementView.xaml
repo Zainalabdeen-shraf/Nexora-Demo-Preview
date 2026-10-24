@@ -1,54 +1,50 @@
-<UserControl x:Class="Nexora.Demo.Desktop.Features.Cards.Views.CardManagementView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             FlowDirection="RightToLeft"
-             Background="{StaticResource AppBgBrush}"
-             SnapsToDevicePixels="True">
+<?xml version='1.0' encoding='utf-8'?>
+<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Nexora.Demo.Desktop.Features.Cards.Views.CardManagementView" FlowDirection="RightToLeft" Background="{StaticResource AppBgBrush}" FontFamily="Segoe UI" FontSize="11.5" SnapsToDevicePixels="True">
     <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
 
         <Style x:Key="ManagementPanel" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="{StaticResource RadiusCard}" />
-            <Setter Property="Padding" Value="12" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="11"/>
+            <Setter Property="Padding" Value="9"/>
         </Style>
-        <Style x:Key="ManagementTextBox" TargetType="TextBox">
-            <Setter Property="Height" Value="32" />
-            <Setter Property="Padding" Value="9,3" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Background" Value="#F8FAFD" />
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-            <Setter Property="FontFamily" Value="Tahoma" />
-            <Setter Property="FontSize" Value="12" />
+        <Style x:Key="ManagementTextBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12"/>
         </Style>
-        <Style x:Key="ManagementComboBox" TargetType="{x:Type ComboBox}">
-            <Setter Property="Height" Value="32" />
-            <Setter Property="Padding" Value="7,2" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-            <Setter Property="FontFamily" Value="Tahoma" />
-            <Setter Property="FontSize" Value="11.5" />
+        <Style x:Key="ManagementComboBox" TargetType="{x:Type ComboBox}" BasedOn="{StaticResource {x:Type ComboBox}}">
+            <Setter Property="Height" Value="33"/>
+            <Setter Property="Padding" Value="7,3"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="ItemContainerStyle">
                 <Setter.Value>
                     <Style TargetType="{x:Type ComboBoxItem}">
-                        <Setter Property="Padding" Value="9,6" />
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+                        <Setter Property="Padding" Value="9,6"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
                         <Style.Triggers>
                             <Trigger Property="IsHighlighted" Value="True">
-                                <Setter Property="Background" Value="#FFF1F2" />
-                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                                <Setter Property="Background" Value="#FCEEF2"/>
+                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="#FFF1F2" />
-                                <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+                                <Setter Property="Background" Value="#FCEEF2"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
                             </Trigger>
                         </Style.Triggers>
                     </Style>
@@ -57,93 +53,73 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ComboBox}">
-                        <Grid SnapsToDevicePixels="True">
-                            <Border x:Name="ComboBorder" Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" />
-                            <ContentPresenter IsHitTestVisible="False" Margin="8,0,28,0"
-                                              VerticalAlignment="Center" HorizontalAlignment="Right"
-                                              Content="{TemplateBinding SelectionBoxItem}"
-                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" />
-                            <ToggleButton HorizontalAlignment="Left" Width="27" Focusable="False"
-                                          Background="Transparent" BorderThickness="0" ClickMode="Press"
-                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                        <Grid SnapsToDevicePixels="True" FlowDirection="LeftToRight">
+                            <Border x:Name="ComboBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="7"/>
+                            <ContentPresenter IsHitTestVisible="False" FlowDirection="RightToLeft" Margin="30,0,8,0" VerticalAlignment="Center" HorizontalAlignment="Stretch" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
+                            <ToggleButton HorizontalAlignment="Left" Width="28" Focusable="False" Background="Transparent" BorderThickness="0" ClickMode="Press" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                                 <ToggleButton.Template>
                                     <ControlTemplate TargetType="{x:Type ToggleButton}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </ControlTemplate>
                                 </ToggleButton.Template>
-                                <TextBlock Text="⌄" FontSize="13" Foreground="{StaticResource MutedBrush}"
-                                           VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                <Path Data="M3,4 L7,8 L11,4" Width="12" Height="8" Stroke="{StaticResource MutedBrush}" StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Stretch="Uniform" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                             </ToggleButton>
-                            <Popup x:Name="PART_Popup" Placement="Bottom" AllowsTransparency="True"
-                                   Focusable="False" PopupAnimation="Fade"
-                                   IsOpen="{TemplateBinding IsDropDownOpen}">
-                                <Border MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
-                                        MaxHeight="{TemplateBinding MaxDropDownHeight}"
-                                        Background="#FFFFFF" BorderBrush="{StaticResource BorderBrushSoft}"
-                                        BorderThickness="1" CornerRadius="6" SnapsToDevicePixels="True">
+                            <Popup x:Name="PART_Popup" Placement="Bottom" PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}" StaysOpen="False" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade" IsOpen="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <Border MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="{TemplateBinding MaxDropDownHeight}" Background="#FFFFFF" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="6" SnapsToDevicePixels="True">
                                     <ScrollViewer Margin="1" SnapsToDevicePixels="True">
-                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
+                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
                                     </ScrollViewer>
                                 </Border>
                             </Popup>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="#CBD5E1" />
+                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="#DFE4EB"/>
                             </Trigger>
                             <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="ComboBorder" Property="Opacity" Value="0.6" />
+                                <Setter TargetName="ComboBorder" Property="Opacity" Value="0.6"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="ManagementSmallButton" TargetType="{x:Type Button}">
-            <Setter Property="Height" Value="32" />
-            <Setter Property="Padding" Value="11,0" />
-            <Setter Property="Margin" Value="3,0" />
-            <Setter Property="FontSize" Value="11.5" />
-            <Setter Property="FontFamily" Value="Tahoma" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="HorizontalContentAlignment" Value="Center" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Style x:Key="ManagementSmallButton" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="9,0"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
-                        <Border x:Name="ButtonBorder" Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="7" SnapsToDevicePixels="True">
-                            <ContentPresenter Margin="{TemplateBinding Padding}"
-                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                              RecognizesAccessKey="True" />
+                        <Border x:Name="ButtonBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="9" SnapsToDevicePixels="True">
+                            <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ButtonBorder" Property="Background" Value="#FFF1F2" />
-                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#F3A3AE" />
-                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#FCEEF2"/>
+                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#B33D56"/>
+                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="ButtonBorder" Property="Background" Value="#BE1E2D" />
-                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#BE1E2D" />
-                                <Setter Property="Foreground" Value="#FFFFFF" />
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#B33D56"/>
+                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#B33D56"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.45" />
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.45"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -151,316 +127,459 @@
             </Setter>
         </Style>
         <Style x:Key="ManagementIconButton" TargetType="{x:Type Button}" BasedOn="{StaticResource ManagementSmallButton}">
-            <Setter Property="Width" Value="32" />
-            <Setter Property="Height" Value="32" />
+            <Setter Property="Width" Value="31"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+        </Style>
+        <Style x:Key="ManagementRowIconButton" TargetType="Button" BasedOn="{StaticResource ManagementIconButton}">
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
             <Setter Property="Padding" Value="0" />
-            <Setter Property="Margin" Value="3,0" />
-            <Setter Property="FontSize" Value="18" />
-            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="Background" Value="#EDF5FF" />
+            <Setter Property="BorderBrush" Value="#D3E4FF" />
+            <Setter Property="Foreground" Value="#1769D2" />
         </Style>
-        <Style x:Key="ManagementInlineButton" TargetType="Button">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
+        <Style x:Key="ManagementPrintIconButton" TargetType="Button" BasedOn="{StaticResource ManagementRowIconButton}">
+            <Setter Property="Background" Value="#FFF0F2" />
+            <Setter Property="BorderBrush" Value="#F4C9D2" />
             <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
-            <Setter Property="Padding" Value="2,0" />
-            <Setter Property="HorizontalContentAlignment" Value="Right" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="FontFamily" Value="Tahoma" />
-            <Setter Property="FontSize" Value="11.5" />
         </Style>
-        <Style x:Key="CardStatusBadge" TargetType="Border">
-            <Setter Property="Background" Value="#F1F5F9" />
-            <Setter Property="CornerRadius" Value="10" />
-            <Setter Property="Padding" Value="8,3" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
+        <Style x:Key="ManagementArchiveIconButton" TargetType="Button" BasedOn="{StaticResource ManagementRowIconButton}">
+            <Setter Property="Background" Value="#FFF5E8" />
+            <Setter Property="BorderBrush" Value="#F2D9B2" />
+            <Setter Property="Foreground" Value="#B76A12" />
+        </Style>
+        <Style x:Key="ManagementFilterButton" TargetType="Button" BasedOn="{StaticResource ManagementIconButton}">
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+        </Style>
+        <Style x:Key="PrintStatusBadge" TargetType="Border">
+            <Setter Property="Background" Value="#FFF0F2"/>
+            <Setter Property="BorderBrush" Value="#F4CBD4"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding CardStatusLabel}" Value="متاحة">
-                    <Setter Property="Background" Value="#ECFDF5" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding CardStatusLabel}" Value="قيد الاستخدام">
-                    <Setter Property="Background" Value="#EFF6FF" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding CardStatusLabel}" Value="منتهية">
-                    <Setter Property="Background" Value="#F1F5F9" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding CardStatusLabel}" Value="موقوفة">
-                    <Setter Property="Background" Value="#FFF1F2" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding CardStatusLabel}" Value="مؤرشفة">
-                    <Setter Property="Background" Value="#E5E7EB" />
-                </DataTrigger>
+                <DataTrigger Binding="{Binding PrintStatusLabel}" Value="في قائمة الطباعة"><Setter Property="Background" Value="#EAF3FF"/><Setter Property="BorderBrush" Value="#C9DFFF"/></DataTrigger>
+                <DataTrigger Binding="{Binding PrintStatusLabel}" Value="مهمة طباعة مسجلة"><Setter Property="Background" Value="#E7FAF1"/><Setter Property="BorderBrush" Value="#BDEBD6"/></DataTrigger>
+                <DataTrigger Binding="{Binding PrintStatusLabel}" Value="مجهز للطباعة"><Setter Property="Background" Value="#FFF4E1"/><Setter Property="BorderBrush" Value="#F3D9A6"/></DataTrigger>
+                <DataTrigger Binding="{Binding PrintStatusLabel}" Value="تمت الطباعة"><Setter Property="Background" Value="#E7FAF1"/><Setter Property="BorderBrush" Value="#BDEBD6"/></DataTrigger>
+                <DataTrigger Binding="{Binding PrintStatusLabel}" Value="غير مضاف للطباعة"><Setter Property="Background" Value="#FFF0F2"/><Setter Property="BorderBrush" Value="#F4CBD4"/></DataTrigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="CardStatusText" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#047857" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
+        <Style x:Key="PrintStatusText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#B91C36"/>
+            <Setter Property="FontSize" Value="11.2"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding CardStatusLabel}" Value="قيد الاستخدام">
-                    <Setter Property="Foreground" Value="#1D4ED8" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding CardStatusLabel}" Value="منتهية">
-                    <Setter Property="Foreground" Value="#64748B" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding CardStatusLabel}" Value="موقوفة">
-                    <Setter Property="Foreground" Value="#BE123C" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding CardStatusLabel}" Value="مؤرشفة">
-                    <Setter Property="Foreground" Value="#4B5563" />
-                </DataTrigger>
+                <DataTrigger Binding="{Binding PrintStatusLabel}" Value="في قائمة الطباعة"><Setter Property="Foreground" Value="#1D4ED8"/></DataTrigger>
+                <DataTrigger Binding="{Binding PrintStatusLabel}" Value="مهمة طباعة مسجلة"><Setter Property="Foreground" Value="#047857"/></DataTrigger>
+                <DataTrigger Binding="{Binding PrintStatusLabel}" Value="مجهز للطباعة"><Setter Property="Foreground" Value="#B45309"/></DataTrigger>
+                <DataTrigger Binding="{Binding PrintStatusLabel}" Value="تمت الطباعة"><Setter Property="Foreground" Value="#047857"/></DataTrigger>
+                <DataTrigger Binding="{Binding PrintStatusLabel}" Value="غير مضاف للطباعة"><Setter Property="Foreground" Value="#B91C36"/></DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="PrintStatusIcon" TargetType="Path">
+            <Setter Property="FlowDirection" Value="LeftToRight"/>
+            <Setter Property="Data" Value="M4,8 L20,8 L20,20 L4,20 Z M2,4 L22,4 L22,8 L2,8 Z M9,12 L15,12"/>
+            <Setter Property="Width" Value="13"/>
+            <Setter Property="Height" Value="13"/>
+            <Setter Property="FlowDirection" Value="LeftToRight"/>
+            <Setter Property="Stretch" Value="Uniform"/>
+            <Setter Property="Fill" Value="Transparent"/>
+            <Setter Property="Stroke" Value="#B91C36"/>
+            <Setter Property="StrokeThickness" Value="1.7"/>
+            <Setter Property="StrokeStartLineCap" Value="Round"/>
+            <Setter Property="StrokeEndLineCap" Value="Round"/>
+            <Setter Property="StrokeLineJoin" Value="Round"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding PrintStatusLabel}" Value="في قائمة الطباعة"><Setter Property="Data" Value="M5,3 L19,3 L19,21 L5,21 Z M8,7 L16,7 M8,11 L16,11 M8,15 L13,15"/><Setter Property="Stroke" Value="#1D4ED8"/></DataTrigger>
+                <DataTrigger Binding="{Binding PrintStatusLabel}" Value="مهمة طباعة مسجلة"><Setter Property="Data" Value="M12,2 L12,2 A10,10 0 1 0 12,22 A10,10 0 1 0 12,2 M7,12 L10,15 L17,8"/><Setter Property="Stroke" Value="#047857"/></DataTrigger>
+                <DataTrigger Binding="{Binding PrintStatusLabel}" Value="مجهز للطباعة"><Setter Property="Data" Value="M12,2 A10,10 0 1 0 12,22 A10,10 0 1 0 12,2 M12,6 L12,12 L16,14"/><Setter Property="Stroke" Value="#B45309"/></DataTrigger>
+                <DataTrigger Binding="{Binding PrintStatusLabel}" Value="تمت الطباعة"><Setter Property="Data" Value="M4,8 L20,8 L20,20 L4,20 Z M2,4 L22,4 L22,8 L2,8 Z M9,12 L15,12"/><Setter Property="Stroke" Value="#047857"/></DataTrigger>
+                <DataTrigger Binding="{Binding PrintStatusLabel}" Value="غير مضاف للطباعة"><Setter Property="Data" Value="M4,8 L20,8 L20,20 L4,20 Z M2,4 L22,4 L22,8 L2,8 Z M5,5 L19,19"/><Setter Property="Stroke" Value="#B91C36"/></DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="ManagementGridHeaderStyle" TargetType="{x:Type DataGridColumnHeader}">
+            <Setter Property="Background" Value="#FBECEF"/>
+            <Setter Property="Foreground" Value="#26354D"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="BorderBrush" Value="#F2D6DD"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        </Style>
+        <Style x:Key="ManagementGridCellStyle" TargetType="{x:Type DataGridCell}">
+            <Setter Property="Padding" Value="3,0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="#EDF0F4"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#FCE2E8"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="ManagementGridTextCellStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+        </Style>
+        <Style x:Key="ManagementGridRowStyle" TargetType="{x:Type DataGridRow}">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="#EDF0F4"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="MinHeight" Value="33"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Style.Triggers>
+                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                    <Setter Property="Background" Value="#FFFFF8F9"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FFF5F7"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#FDE7EC"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="ManagementPagerButton" TargetType="Button" BasedOn="{StaticResource ManagementSmallButton}">
+            <Setter Property="Height" Value="28" />
+            <Setter Property="MinWidth" Value="30" />
+            <Setter Property="Padding" Value="5,0" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="FontSize" Value="11" />
+        </Style>
+        <Style x:Key="ManagementPagerButtonCurrent" TargetType="Button" BasedOn="{StaticResource ManagementPagerButton}">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+        </Style>
+        <Style x:Key="ManagementInlineButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+            <Setter Property="Padding" Value="2,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Right"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="11.5"/>
+        </Style>
+        <Style x:Key="CardStatusBadge" TargetType="Border">
+            <Setter Property="Background" Value="#F1F5F9"/>
+            <Setter Property="BorderBrush" Value="#DCE3EC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="7"/>
+            <Setter Property="Padding" Value="7,3"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="MinWidth" Value="86"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CardStatusLabel}" Value="متاحة"><Setter Property="Background" Value="#E4F8EF"/><Setter Property="BorderBrush" Value="#B8EBD5"/></DataTrigger>
+                <DataTrigger Binding="{Binding CardStatusLabel}" Value="قيد الاستخدام"><Setter Property="Background" Value="#E7F0FF"/><Setter Property="BorderBrush" Value="#C4DAFF"/></DataTrigger>
+                <DataTrigger Binding="{Binding CardStatusLabel}" Value="منتهية"><Setter Property="Background" Value="#EFF2F6"/><Setter Property="BorderBrush" Value="#D8DFE8"/></DataTrigger>
+                <DataTrigger Binding="{Binding CardStatusLabel}" Value="موقوفة"><Setter Property="Background" Value="#FFF0DE"/><Setter Property="BorderBrush" Value="#F4D1A0"/></DataTrigger>
+                <DataTrigger Binding="{Binding CardStatusLabel}" Value="مؤرشفة"><Setter Property="Background" Value="#EDF0F4"/><Setter Property="BorderBrush" Value="#D6DDE6"/></DataTrigger>
+                <DataTrigger Binding="{Binding CardStatusLabel}" Value="غير محددة"><Setter Property="Background" Value="#F1F3F6"/><Setter Property="BorderBrush" Value="#DCE2EA"/></DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="CardStatusDot" TargetType="Path">
+            <Setter Property="Data" Value="M12,2 A10,10 0 1 0 12,22 A10,10 0 1 0 12,2"/>
+            <Setter Property="Width" Value="13"/>
+            <Setter Property="Height" Value="13"/>
+            <Setter Property="FlowDirection" Value="LeftToRight"/>
+            <Setter Property="Stretch" Value="Uniform"/>
+            <Setter Property="Fill" Value="Transparent"/>
+            <Setter Property="Stroke" Value="#64748B"/>
+            <Setter Property="StrokeThickness" Value="1.8"/>
+            <Setter Property="StrokeStartLineCap" Value="Round"/>
+            <Setter Property="StrokeEndLineCap" Value="Round"/>
+            <Setter Property="StrokeLineJoin" Value="Round"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CardStatusLabel}" Value="متاحة"><Setter Property="Data" Value="M4,12 L9,17 L20,6"/><Setter Property="Stroke" Value="#00875A"/></DataTrigger>
+                <DataTrigger Binding="{Binding CardStatusLabel}" Value="قيد الاستخدام"><Setter Property="Data" Value="M12,12 A4,4 0 1 0 12,4 A4,4 0 1 0 12,12 M4,21 C4,17 7,15 12,15 C17,15 20,17 20,21"/><Setter Property="Stroke" Value="#2563EB"/></DataTrigger>
+                <DataTrigger Binding="{Binding CardStatusLabel}" Value="منتهية"><Setter Property="Data" Value="M12,2 A10,10 0 1 0 12,22 A10,10 0 1 0 12,2 M12,6 L12,12 L16,14"/><Setter Property="Stroke" Value="#64748B"/></DataTrigger>
+                <DataTrigger Binding="{Binding CardStatusLabel}" Value="موقوفة"><Setter Property="Data" Value="M7,4 L7,20 M17,4 L17,20"/><Setter Property="Stroke" Value="#C65A0B"/><Setter Property="StrokeThickness" Value="3"/></DataTrigger>
+                <DataTrigger Binding="{Binding CardStatusLabel}" Value="مؤرشفة"><Setter Property="Data" Value="M4,8 L20,8 L20,21 L4,21 Z M2,4 L22,4 L22,8 L2,8 Z M9,12 L15,12"/><Setter Property="Stroke" Value="#64748B"/></DataTrigger>
+                <DataTrigger Binding="{Binding CardStatusLabel}" Value="غير محددة"><Setter Property="Data" Value="M12,2 A10,10 0 1 0 12,22 A10,10 0 1 0 12,2 M12,7 L12,13 M12,17 L12,17.1"/><Setter Property="Stroke" Value="#64748B"/></DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="CardStatusText" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="Foreground" Value="#475569"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="11.2"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CardStatusLabel}" Value="متاحة"><Setter Property="Foreground" Value="#047857"/></DataTrigger>
+                <DataTrigger Binding="{Binding CardStatusLabel}" Value="قيد الاستخدام"><Setter Property="Foreground" Value="#1D4ED8"/></DataTrigger>
+                <DataTrigger Binding="{Binding CardStatusLabel}" Value="منتهية"><Setter Property="Foreground" Value="#64748B"/></DataTrigger>
+                <DataTrigger Binding="{Binding CardStatusLabel}" Value="موقوفة"><Setter Property="Foreground" Value="#B45309"/></DataTrigger>
+                <DataTrigger Binding="{Binding CardStatusLabel}" Value="مؤرشفة"><Setter Property="Foreground" Value="#475569"/></DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="DataGridCell">
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                </Trigger>
             </Style.Triggers>
         </Style>
         <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#F6F8FB" />
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="FontFamily" Value="Tahoma" />
-            <Setter Property="FontSize" Value="11.5" />
-            <Setter Property="Padding" Value="9,4" />
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}" />
-            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="Background" Value="#FBECEF"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Padding" Value="12,4"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
         </Style>
         <Style TargetType="DataGridRow">
-            <Setter Property="MinHeight" Value="42" />
-            <Setter Property="FontFamily" Value="Tahoma" />
-            <Setter Property="FontSize" Value="11.5" />
-            <Setter Property="Background" Value="White" />
-            <Setter Property="BorderBrush" Value="#EEF0F3" />
-            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="MinHeight" Value="31"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="BorderBrush" Value="#F3F5F8"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
             <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#FFFFF4F6"/></Trigger>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#FFF1F2" />
-                    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+                    <Setter Property="Background" Value="#FCEEF2"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
 
-    <Grid Margin="6">
+    <Grid Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="6" />
+            <RowDefinition Height="8" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="6" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="6" />
+            <RowDefinition Height="8" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="6" />
+            <RowDefinition Height="8" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- عنوان فرعي مسطّح؛ إصدار الكروت والاستيراد موجودان أصلًا في تبويبات الشاشة الرئيسية. -->
-        <Grid Grid.Row="0" Margin="3,0,3,1">
+        <!-- مؤشرات الحالة من سجل الكروت نفسه. -->
+        <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" /><ColumnDefinition Width="8" />
+                <ColumnDefinition Width="*" /><ColumnDefinition Width="8" />
+                <ColumnDefinition Width="*" /><ColumnDefinition Width="8" />
+                <ColumnDefinition Width="*" /><ColumnDefinition Width="8" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                <TextBlock Text="إدارة الكروت" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
-                <StackPanel Orientation="Horizontal" Margin="0,2,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="السجل العام للكروت الصادرة والمستوردة" FontSize="10.5" Foreground="{StaticResource MutedBrush}" />
-                    <TextBlock Text="  ·  " FontSize="10.5" Foreground="{StaticResource MutedBrush}" />
-                    <TextBlock x:Name="TargetSystemTextBlock" Text="النظام المحدد" FontSize="10.5" Foreground="{StaticResource PrimaryBrush}" FontWeight="SemiBold" />
+            <Border Grid.Column="0" Style="{StaticResource ManagementPanel}" Background="#F0F6FF" BorderBrush="#D7E7FF" BorderThickness="1" Padding="9,7">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <Border Width="36" Height="36" CornerRadius="10" Background="#EFF6FF" VerticalAlignment="Center">
+                        <Path Data="M3,5 L21,5 L21,19 L3,19 Z M3,9 L21,9 M6,14 L11,14" Width="21" Height="21" Stretch="Uniform" Fill="Transparent" Stroke="#2563EB" StrokeThickness="1.8" StrokeLineJoin="Round" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="إجمالي الكروت" FontSize="11.3" FontWeight="SemiBold" Foreground="#1E3A5F" />
+                        <TextBlock x:Name="TotalCardsCountTextBlock" Text="0" FontSize="22" FontWeight="Bold" Foreground="#1D4ED8" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <Border Grid.Column="2" Style="{StaticResource ManagementPanel}" Background="#ECFBF4" BorderBrush="#CDEFE0" BorderThickness="1" Padding="9,7">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <Border Width="36" Height="36" CornerRadius="10" Background="#ECFDF5" VerticalAlignment="Center">
+                        <Path Data="M4,12 L9,17 L20,6" Width="21" Height="21" FlowDirection="LeftToRight" Stretch="Uniform" Fill="Transparent" Stroke="#047857" StrokeThickness="2.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="متاحة" FontSize="11.3" FontWeight="SemiBold" Foreground="#047857" />
+                        <TextBlock x:Name="AvailableCardsCountTextBlock" Text="0" FontSize="22" FontWeight="Bold" Foreground="#047857" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <Border Grid.Column="4" Style="{StaticResource ManagementPanel}" Background="#EFF5FF" BorderBrush="#D8E6FF" BorderThickness="1" Padding="9,7">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <Border Width="36" Height="36" CornerRadius="10" Background="#EFF6FF" VerticalAlignment="Center">
+                        <Path Data="M12,12 A4,4 0 1 0 12,4 A4,4 0 1 0 12,12 M4,21 C4,17 7,15 12,15 C17,15 20,17 20,21" Width="21" Height="21" Stretch="Uniform" Fill="Transparent" Stroke="#2563EB" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="قيد الاستخدام" FontSize="11.3" FontWeight="SemiBold" Foreground="#1D4ED8" />
+                        <TextBlock x:Name="InUseCardsCountTextBlock" Text="0" FontSize="22" FontWeight="Bold" Foreground="#1D4ED8" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <Border Grid.Column="6" Style="{StaticResource ManagementPanel}" Background="#F3F5F8" BorderBrush="#E1E7EF" BorderThickness="1" Padding="9,7">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <Border Width="36" Height="36" CornerRadius="10" Background="#F1F5F9" VerticalAlignment="Center">
+                        <Path Data="M12,2 A10,10 0 1 0 12,22 A10,10 0 1 0 12,2 M12,6 L12,12 L16,14" Width="21" Height="21" Stretch="Uniform" Fill="Transparent" Stroke="#64748B" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="منتهية الصلاحية" FontSize="11.3" FontWeight="SemiBold" Foreground="#475569" />
+                        <TextBlock x:Name="ExpiredCardsCountTextBlock" Text="0" FontSize="22" FontWeight="Bold" Foreground="#64748B" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <Border Grid.Column="8" Style="{StaticResource ManagementPanel}" Background="#FFF1F2" BorderBrush="#F6D1D8" BorderThickness="1" Padding="9,7">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <Border Width="36" Height="36" CornerRadius="10" Background="#FFF1F2" VerticalAlignment="Center">
+                        <Path Data="M12,2 L22,21 L2,21 Z M12,8 L12,13 M12,17 L12,17.1" Width="21" Height="21" Stretch="Uniform" Fill="Transparent" Stroke="#BE123C" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="تحتاج مراجعة" FontSize="11.3" FontWeight="SemiBold" Foreground="#BE123C" />
+                        <TextBlock x:Name="ReviewCardsCountTextBlock" Text="0" FontSize="22" FontWeight="Bold" Foreground="#BE123C" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2" Style="{StaticResource ManagementPanel}" Padding="6,5">
+            <Grid FlowDirection="RightToLeft">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.0*" /><ColumnDefinition Width="6" />
+                    <ColumnDefinition Width="1.0*" /><ColumnDefinition Width="6" />
+                    <ColumnDefinition Width="1.0*" /><ColumnDefinition Width="6" />
+                    <ColumnDefinition Width="1.0*" /><ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="1.85*" /><ColumnDefinition Width="6" />
+                    <ColumnDefinition Width="Auto" /><ColumnDefinition Width="4" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="حالة الكرت" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,4" />
+                    <ComboBox x:Name="CardStatusFilterComboBox" Style="{StaticResource ManagementComboBox}" Height="33" SelectedValuePath="Tag" SelectionChanged="Filter_Changed">
+                        <ComboBoxItem Content="كل الحالات" Tag="all" IsSelected="True" />
+                        <ComboBoxItem Content="متاحة" Tag="متاحة" />
+                        <ComboBoxItem Content="قيد الاستخدام" Tag="قيد الاستخدام" />
+                        <ComboBoxItem Content="منتهية" Tag="منتهية" />
+                        <ComboBoxItem Content="موقوفة" Tag="موقوفة" />
+                        <ComboBoxItem Content="مؤرشفة" Tag="archived" />
+                    </ComboBox>
                 </StackPanel>
-            </StackPanel>
-            <Button Grid.Column="1" Content="↻" Style="{StaticResource ManagementIconButton}"
-                    ToolTip="تحديث سجل الكروت" AutomationProperties.Name="تحديث سجل الكروت"
-                    Click="RefreshButton_Click" />
-        </Grid>
-
-        <!-- مؤشرات تشغيلية محسوبة من سجل الكروت. -->
-        <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="8" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="8" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Border Grid.Column="0" Style="{StaticResource ManagementPanel}" Padding="9,7">
-                <Grid>
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                    <Border Width="34" Height="34" CornerRadius="9" Background="#ECFDF5" VerticalAlignment="Center">
-                        <TextBlock Text="✓" Foreground="#047857" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="الكروت المتاحة" FontSize="11.5" Foreground="{StaticResource MutedBrush}" />
-                        <TextBlock x:Name="AvailableCardsCountTextBlock" Text="0" FontSize="19" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
-                        <TextBlock Text="متاحة وغير مؤرشفة" FontSize="9.5" Foreground="{StaticResource MutedBrush}" />
-                    </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="الدفعة" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,4" />
+                    <ComboBox x:Name="BatchFilterComboBox" Style="{StaticResource ManagementComboBox}" Height="33" SelectedValuePath="Tag" SelectionChanged="Filter_Changed" />
+                </StackPanel>
+                <StackPanel Grid.Column="4">
+                    <TextBlock Text="الباقة" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,4" />
+                    <ComboBox x:Name="PackageFilterComboBox" Style="{StaticResource ManagementComboBox}" Height="33" SelectedValuePath="Tag" SelectionChanged="Filter_Changed" />
+                </StackPanel>
+                <StackPanel Grid.Column="6">
+                    <TextBlock Text="تاريخ الإنشاء" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,4" />
+                    <ComboBox x:Name="CreatedPeriodFilterComboBox" Style="{StaticResource ManagementComboBox}" Height="33" SelectedValuePath="Tag" SelectionChanged="Filter_Changed">
+                        <ComboBoxItem Content="كل الفترات" Tag="all" IsSelected="True" />
+                        <ComboBoxItem Content="اليوم" Tag="today" />
+                        <ComboBoxItem Content="آخر 7 أيام" Tag="7-days" />
+                        <ComboBoxItem Content="آخر 30 يوماً" Tag="30-days" />
+                    </ComboBox>
+                </StackPanel>
+                <Border Grid.Column="7" Width="1" Height="34" Background="#E7EAF0" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <Grid Grid.Column="8" Height="35" VerticalAlignment="Bottom">
+                    <TextBox x:Name="CardSearchTextBox" Style="{StaticResource ManagementTextBox}" Height="35" Padding="32,3,10,3" TextChanged="Filter_Changed" ToolTip="ابحث برقم الكرت أو اسم المستخدم" />
+                    <Path Data="M10,2 A8,8 0 1 0 10,18 A8,8 0 1 0 10,2 M16,16 L22,22" Width="17" Height="17" Stretch="Uniform" Fill="Transparent" Stroke="#52627A" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="12,0,0,0" IsHitTestVisible="False" />
+                    <TextBlock x:Name="CardSearchPlaceholderTextBlock" Text="ابحث برقم الكرت أو اسم المستخدم..." FontSize="11" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="38,0,12,0" TextAlignment="Right" IsHitTestVisible="False" />
                 </Grid>
-            </Border>
-            <Border Grid.Column="2" Style="{StaticResource ManagementPanel}" Padding="9,7">
-                <Grid>
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                    <Border Width="34" Height="34" CornerRadius="9" Background="#FFF1F2" VerticalAlignment="Center">
-                        <TextBlock Text="▤" Foreground="{StaticResource PrimaryBrush}" FontSize="19" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="إجمالي الكروت" FontSize="11.5" Foreground="{StaticResource MutedBrush}" />
-                        <TextBlock x:Name="TotalCardsCountTextBlock" Text="0" FontSize="19" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
-                        <TextBlock Text="ضمن النظام المحدد" FontSize="9.5" Foreground="{StaticResource MutedBrush}" />
-                    </StackPanel>
-                </Grid>
-            </Border>
-            <Border Grid.Column="4" Style="{StaticResource ManagementPanel}" Padding="9,7">
-                <Grid>
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                    <Border Width="34" Height="34" CornerRadius="9" Background="#FFF7ED" VerticalAlignment="Center">
-                        <TextBlock Text="!" Foreground="#C2410C" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="تحتاج مراجعة" FontSize="11.5" Foreground="{StaticResource MutedBrush}" />
-                        <TextBlock x:Name="ReviewCardsCountTextBlock" Text="0" FontSize="19" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
-                        <TextBlock Text="سجلات موقوفة أو عليها خطأ" FontSize="9.5" Foreground="{StaticResource MutedBrush}" />
-                    </StackPanel>
-                </Grid>
-            </Border>
-        </Grid>
-
-        <!-- البحث والفلاتر؛ مصدر النظام يُحدد من تبويبي HotSpot وUser Manager خارج هذه المنطقة. -->
-        <Border Grid.Row="4" Style="{StaticResource ManagementPanel}" Padding="9,8">
-            <Grid>
-                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-                <Grid Grid.Row="0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1.55*" /><ColumnDefinition Width="8" />
-                        <ColumnDefinition Width="1.1*" /><ColumnDefinition Width="8" />
-                        <ColumnDefinition Width="1.1*" /><ColumnDefinition Width="8" />
-                        <ColumnDefinition Width="1.15*" /><ColumnDefinition Width="8" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="بحث برقم الكرت أو المستخدم أو الدفعة أو الباقة" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,4" />
-                        <TextBox x:Name="CardSearchTextBox" Style="{StaticResource ManagementTextBox}" ToolTip="ابحث في رقم الكرت واسم المستخدم ورقم الدفعة واسم الباقة" TextChanged="Filter_Changed" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="2">
-                        <TextBlock Text="حالة الكرت" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,4" />
-                        <ComboBox x:Name="CardStatusFilterComboBox" Style="{StaticResource ManagementComboBox}" SelectionChanged="Filter_Changed">
-                            <ComboBoxItem Content="كل الحالات" Tag="all" IsSelected="True" />
-                            <ComboBoxItem Content="متاحة" Tag="متاحة" />
-                            <ComboBoxItem Content="قيد الاستخدام" Tag="قيد الاستخدام" />
-                            <ComboBoxItem Content="منتهية" Tag="منتهية" />
-                            <ComboBoxItem Content="موقوفة" Tag="موقوفة" />
-                            <ComboBoxItem Content="مؤرشفة" Tag="archived" />
-                        </ComboBox>
-                    </StackPanel>
-                    <StackPanel Grid.Column="4">
-                        <TextBlock Text="الباقة" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,4" />
-                        <ComboBox x:Name="PackageFilterComboBox" Style="{StaticResource ManagementComboBox}" SelectionChanged="Filter_Changed" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="6">
-                        <TextBlock Text="الدفعة" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,4" />
-                        <ComboBox x:Name="BatchFilterComboBox" Style="{StaticResource ManagementComboBox}" SelectionChanged="Filter_Changed" />
-                    </StackPanel>
-                    <Button Grid.Column="8" Content="× مسح الفلاتر" Style="{StaticResource ManagementSmallButton}" VerticalAlignment="Bottom" Click="ClearFiltersButton_Click" />
-                </Grid>
-                <Expander Grid.Row="1" Header="مزيد من الفلاتر" Foreground="{StaticResource PrimaryBrush}" FontWeight="SemiBold" Margin="0,7,0,0">
-                    <WrapPanel Margin="0,8,0,0" Orientation="Horizontal">
-                        <StackPanel Width="190" Margin="0,0,10,5">
-                            <TextBlock Text="مصدر السجل" FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,4" />
-                            <ComboBox x:Name="SourceFilterComboBox" Style="{StaticResource ManagementComboBox}" SelectionChanged="Filter_Changed">
-                                <ComboBoxItem Content="كل المصادر" Tag="all" IsSelected="True" />
-                                <ComboBoxItem Content="إصدار" Tag="local" />
-                                <ComboBoxItem Content="مستورد" Tag="import" />
-                            </ComboBox>
-                        </StackPanel>
-                        <StackPanel Width="205" Margin="0,0,10,5">
-                            <TextBlock Text="حالة الطباعة" FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,4" />
-                            <ComboBox x:Name="PrintFilterComboBox" Style="{StaticResource ManagementComboBox}" SelectionChanged="Filter_Changed">
-                                <ComboBoxItem Content="كل الحالات" Tag="all" IsSelected="True" />
-                                <ComboBoxItem Content="غير مضافة للطباعة" Tag="not-scheduled" />
-                                <ComboBoxItem Content="ضمن قائمة الطباعة" Tag="queued" />
-                                <ComboBoxItem Content="مهمة طباعة مسجلة" Tag="submitted" />
-                            </ComboBox>
-                        </StackPanel>
-                    </WrapPanel>
-                </Expander>
+                <Button x:Name="AdvancedFiltersButton" Grid.Column="10" Style="{StaticResource ManagementFilterButton}" VerticalAlignment="Bottom" Click="AdvancedFiltersButton_Click" ToolTip="فلاتر المصدر والطباعة" AutomationProperties.Name="فلاتر المصدر والطباعة">
+                    <Path Data="M3,4 L21,4 L14,12 L14,19 L10,21 L10,12 Z" Width="15" Height="15" Stretch="Uniform" Fill="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Button>
+                <Button Grid.Column="12" Style="{StaticResource ManagementIconButton}" VerticalAlignment="Bottom" Click="RefreshButton_Click" ToolTip="تحديث سجل الكروت" AutomationProperties.Name="تحديث سجل الكروت">
+                    <Path Data="M20,8 A8,8 0 1 0 20,14 M20,3 L20,8 L15,8" Width="15" Height="15" Stretch="Uniform" Fill="Transparent" Stroke="{StaticResource PrimaryBrush}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Button>
             </Grid>
         </Border>
 
-        <!-- السجل العام؛ مصدره DemoCardIssuanceService نفسه الذي تستخدمه شاشة الإصدار والاستيراد والدفعات. -->
-        <Grid Grid.Row="6">
+        <!-- السجل العام: يعرض صفحة واحدة، بينما يبقى الفرز والبحث على كامل النتائج. -->
+        <Grid Grid.Row="4">
             <Border Style="{StaticResource ManagementPanel}" Padding="0" ClipToBounds="True">
-                <DataGrid x:Name="CardsDataGrid"
-                          AutoGenerateColumns="False"
-                          IsReadOnly="False"
-                          CanUserAddRows="False"
-                          CanUserDeleteRows="False"
-                          CanUserResizeColumns="True"
-                          CanUserSortColumns="True"
-                          HeadersVisibility="Column"
-                          SelectionMode="Extended"
-                          SelectionUnit="FullRow"
-                          RowHeight="43"
-                          ColumnHeaderHeight="35"
-                          FontSize="11.5"
-                          BorderThickness="0"
-                          GridLinesVisibility="Horizontal"
-                          HorizontalGridLinesBrush="#EEF0F3"
-                          AlternationCount="2"
-                          EnableRowVirtualization="True"
-                          EnableColumnVirtualization="True"
-                          VirtualizingPanel.IsVirtualizing="True"
-                          VirtualizingPanel.VirtualizationMode="Recycling"
-                          ScrollViewer.CanContentScroll="True"
-                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                          ScrollViewer.VerticalScrollBarVisibility="Auto"
-                          MouseDoubleClick="CardsDataGrid_MouseDoubleClick">
+                <DataGrid x:Name="CardsDataGrid" AutoGenerateColumns="False" IsReadOnly="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeColumns="True" CanUserSortColumns="True" HeadersVisibility="Column" SelectionMode="Single" SelectionUnit="FullRow" RowHeight="33" ColumnHeaderHeight="36" FontSize="11.5" BorderThickness="0" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F3F5F8" AlternationCount="2" AlternatingRowBackground="#FFFFF8F9" ColumnHeaderStyle="{StaticResource ManagementGridHeaderStyle}" CellStyle="{StaticResource ManagementGridCellStyle}" RowStyle="{StaticResource ManagementGridRowStyle}" CanUserResizeRows="False" EnableRowVirtualization="True" EnableColumnVirtualization="True" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled" Sorting="CardsDataGrid_Sorting" MouseDoubleClick="CardsDataGrid_MouseDoubleClick">
                     <DataGrid.Columns>
-                        <DataGridTemplateColumn Header="تحديد" Width="48" CanUserSort="False" IsReadOnly="False">
+                        <DataGridTemplateColumn Header="رقم الكرت / المستخدم" Width="1.25*" SortMemberPath="CardNumber" IsReadOnly="True">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <CheckBox IsChecked="{Binding IsMarked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                              HorizontalAlignment="Center" VerticalAlignment="Center"
-                                              ToolTip="تحديد هذا الكرت للإجراءات الجماعية" />
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="رقم الكرت / المستخدم" Width="1.55*" SortMemberPath="CardNumber" IsReadOnly="True">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel VerticalAlignment="Center" Margin="5,2">
-                                        <TextBlock Text="{Binding CardNumber}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" />
-                                        <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" Visibility="{Binding ShowUsername, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,2,0,0">
-                                            <TextBlock Text="المستخدم: " FontSize="10" Foreground="{StaticResource MutedBrush}" />
-                                            <TextBlock Text="{Binding Username}" FontSize="10" Foreground="{StaticResource MutedBrush}" />
-                                        </StackPanel>
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="3,1">
+                                        <TextBlock Text="{Binding CardNumber}" FontSize="12.2" TextAlignment="Center" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                                        <TextBlock Text="{Binding Username}" FontSize="10.5" TextAlignment="Center" Foreground="{StaticResource MutedBrush}" Visibility="{Binding ShowUsername, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,2,0,0"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="الباقة" Binding="{Binding PackageName}" Width="1.25*" IsReadOnly="True" />
-                        <DataGridTemplateColumn Header="رقم الدفعة" Width="1.2*" SortMemberPath="BatchId" IsReadOnly="True">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Button Content="{Binding BatchId}" Style="{StaticResource ManagementInlineButton}" ToolTip="فتح الدفعة الأصلية" Click="RowBatchButton_Click" />
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="تاريخ الإنشاء" Binding="{Binding CreatedAtLabel}" Width="1.15*" IsReadOnly="True" />
+                        <DataGridTextColumn Header="الباقة" Binding="{Binding PackageName}" Width="1.15*" ElementStyle="{StaticResource ManagementGridTextCellStyle}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="رقم الدفعة" Binding="{Binding BatchId}" Width="1.25*" SortMemberPath="BatchId" ElementStyle="{StaticResource ManagementGridTextCellStyle}" IsReadOnly="True" />
+                        <DataGridTextColumn Header="تاريخ الإنشاء" Binding="{Binding CreatedAtLabel}" Width="1.2*" SortMemberPath="CreatedAt" ElementStyle="{StaticResource ManagementGridTextCellStyle}" IsReadOnly="True"/>
                         <DataGridTemplateColumn Header="حالة الكرت" Width="1.0*" SortMemberPath="CardStatusLabel" IsReadOnly="True">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Style="{StaticResource CardStatusBadge}">
-                                        <TextBlock Text="{Binding CardStatusLabel}" Style="{StaticResource CardStatusText}" />
+                                        <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center">
+                                            <Path Style="{StaticResource CardStatusDot}" Margin="0,0,6,0" />
+                                            <TextBlock Text="{Binding CardStatusLabel}" Style="{StaticResource CardStatusText}"/>
+                                        </StackPanel>
                                     </Border>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="المصدر" Binding="{Binding SourceLabel}" Width="0.8*" SortMemberPath="SourceLabel" IsReadOnly="True" />
-                        <DataGridTextColumn Header="حالة الطباعة" Binding="{Binding PrintStatusLabel}" Width="1.05*" SortMemberPath="PrintStatusLabel" IsReadOnly="True" />
-                        <DataGridTemplateColumn Header="الإجراءات" Width="104" CanUserSort="False" IsReadOnly="True">
+                        <DataGridTextColumn Header="المصدر" Binding="{Binding SourceLabel}" Width="0.65*" SortMemberPath="SourceLabel" ElementStyle="{StaticResource ManagementGridTextCellStyle}" IsReadOnly="True"/>
+                        <DataGridTemplateColumn Header="حالة الطباعة" Width="1.28*" SortMemberPath="PrintStatusLabel" IsReadOnly="True">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Button Content="ⓘ" Style="{StaticResource ManagementIconButton}" Width="29" Height="29" FontSize="15"
-                                                Click="RowDetailsButton_Click" ToolTip="عرض تفاصيل الكرت" AutomationProperties.Name="عرض تفاصيل الكرت" />
-                                        <Button Content="⋯" Style="{StaticResource ManagementIconButton}" Width="29" Height="29" FontSize="17"
-                                                Click="RowActionsButton_Click" ToolTip="إجراءات الكرت" AutomationProperties.Name="إجراءات الكرت" />
+                                    <Border Style="{StaticResource PrintStatusBadge}">
+                                        <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center">
+                                            <Path Style="{StaticResource PrintStatusIcon}" Margin="0,0,6,0" />
+                                            <TextBlock Text="{Binding PrintStatusLabel}" Style="{StaticResource PrintStatusText}" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="الإجراءات" Width="110" CanUserSort="False" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Button x:Name="ArchiveRestoreButton" Style="{StaticResource ManagementArchiveIconButton}" Click="RowArchiveRestoreButton_Click" ToolTip="{Binding ArchiveActionLabel}" AutomationProperties.Name="{Binding ArchiveActionLabel}">
+                                            <Path x:Name="ArchiveRestoreGlyph" Data="M4,8 L20,8 L20,21 L4,21 Z M2,4 L22,4 L22,8 L2,8 Z M12,11 L12,17 M9,14 L12,17 L15,14" Width="15" Height="15" Stretch="Uniform" Fill="Transparent" Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}" StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                        </Button>
+                                        <Button Style="{StaticResource ManagementPrintIconButton}" Click="RowPrintButton_Click" ToolTip="إضافة إلى قائمة الطباعة" AutomationProperties.Name="إضافة إلى قائمة الطباعة">
+                                            <Path Data="M6,8 L6,3 L18,3 L18,8 M6,17 L6,21 L18,21 L18,14 L6,14 Z M3,8 L21,8 L21,17 L18,17 M6,12 L8,12" Width="15" Height="15" Stretch="Uniform" Fill="Transparent" Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}" StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                        </Button>
+                                        <Button Style="{StaticResource ManagementRowIconButton}" Click="RowDetailsButton_Click" ToolTip="معاينة تفاصيل الكرت" AutomationProperties.Name="معاينة تفاصيل الكرت">
+                                            <Path Data="M2,12 C5,5 9,3 12,3 C15,3 19,5 22,12 C19,19 15,21 12,21 C9,21 5,19 2,12 Z M9,12 A3,3 0 1 0 15,12 A3,3 0 1 0 9,12" Width="16" Height="16" Stretch="Uniform" Fill="Transparent" Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}" StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                        </Button>
                                     </StackPanel>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding IsArchived}" Value="True">
+                                            <Setter TargetName="ArchiveRestoreButton" Property="Background" Value="#E5F8EF"/>
+                                            <Setter TargetName="ArchiveRestoreButton" Property="BorderBrush" Value="#B7EBD4"/>
+                                            <Setter TargetName="ArchiveRestoreButton" Property="Foreground" Value="#07865A"/>
+                                            <Setter TargetName="ArchiveRestoreGlyph" Property="Data" Value="M4,8 L20,8 L20,21 L4,21 Z M2,4 L22,4 L22,8 L2,8 Z M12,17 L12,11 M9,14 L12,11 L15,14"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -468,39 +587,67 @@
                 </DataGrid>
             </Border>
 
-            <Border x:Name="EmptyStatePanel" Visibility="Collapsed" Background="#FCFDFE" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="460" Padding="24">
+            <Border x:Name="EmptyStatePanel" Visibility="Collapsed" Background="#FFFFFF" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="460" Padding="24">
                 <StackPanel HorizontalAlignment="Center">
-                    <TextBlock Text="سجل الكروت" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" TextAlignment="Center" />
-                    <TextBlock x:Name="EmptyStateDescriptionTextBlock" Text="لا توجد سجلات مطابقة للفلاتر الحالية." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" TextAlignment="Center" Margin="0,6,0,0" FontSize="11.5" />
-                    <Button Content="× مسح الفلاتر" Style="{StaticResource ManagementSmallButton}" HorizontalAlignment="Center" Margin="0,12,0,0" Click="ClearFiltersButton_Click" />
+                    <TextBlock Text="سجل الكروت" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" TextAlignment="Center"/>
+                    <TextBlock x:Name="EmptyStateDescriptionTextBlock" Text="لا توجد سجلات مطابقة للفلاتر الحالية." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" TextAlignment="Center" Margin="0,6,0,0" FontSize="11.5"/>
+                    <Button Content="× مسح الفلاتر" Style="{StaticResource ManagementSmallButton}" HorizontalAlignment="Center" Margin="0,12,0,0" Click="ClearFiltersButton_Click"/>
                 </StackPanel>
             </Border>
         </Grid>
 
-        <!-- ملخص نتائج وتحديد جماعي؛ أزرار الإجراءات لا تظهر قبل تحديد سجل. -->
-        <Border Grid.Row="8" Style="{StaticResource ManagementPanel}" Padding="9,7">
-            <Grid>
-                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-                <Grid Grid.Row="0">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock x:Name="ResultSummaryTextBlock" Text="جارٍ تحميل السجل..." FontSize="10.5" Foreground="{StaticResource MutedBrush}" />
-                        <TextBlock x:Name="OperationStatusTextBlock" Text="" FontSize="10.5" Foreground="{StaticResource PrimaryBrush}" TextWrapping="Wrap" Margin="0,3,0,0" />
-                    </StackPanel>
-                    <TextBlock x:Name="SelectedCountTextBlock" Grid.Column="1" Text="المحدد: 0" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" Margin="10,0" />
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Content="تحديد الظاهر" Style="{StaticResource ManagementSmallButton}" Click="SelectVisibleButton_Click" />
-                        <Button Content="إلغاء التحديد" Style="{StaticResource ManagementSmallButton}" Click="ClearSelectionButton_Click" />
-                    </StackPanel>
-                </Grid>
-                <Border x:Name="BulkActionsBorder" Grid.Row="1" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="0,1,0,0" Margin="0,8,0,0" Padding="0,8,0,0" Visibility="Collapsed">
-                    <WrapPanel Orientation="Horizontal">
-                        <Button Content="إضافة المحددة لقائمة الطباعة" Style="{StaticResource ManagementSmallButton}" Click="BulkPrintButton_Click" />
-                        <Button x:Name="BulkArchiveButton" Content="أرشفة المحددة" Style="{StaticResource ManagementSmallButton}" Click="BulkArchiveButton_Click" />
-                        <Button x:Name="BulkRestoreButton" Content="استعادة المؤرشفة" Style="{StaticResource ManagementSmallButton}" Click="BulkRestoreButton_Click" />
-                    </WrapPanel>
-                </Border>
+        <!-- تذييل مختصر: نطاق النتائج وترقيم الصفحات فقط؛ الإجراءات متاحة لكل كرت في صفه. -->
+        <Border Grid.Row="6" Style="{StaticResource ManagementPanel}" Padding="7,5">
+            <Grid FlowDirection="RightToLeft">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <TextBlock x:Name="ResultSummaryTextBlock" Grid.Column="0" Text="جارٍ تحميل السجل..." FontSize="10.7" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
+                <StackPanel x:Name="PagerButtonsPanel" Grid.Column="1" Orientation="Horizontal" FlowDirection="LeftToRight" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,0,0">
+                    <TextBlock Text="عدد الصفوف" FontSize="10.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                    <ComboBox x:Name="PageSizeComboBox" Style="{StaticResource ManagementComboBox}" SelectedValuePath="Tag" Width="62" Height="30" SelectionChanged="PageSizeComboBox_SelectionChanged">
+                        <ComboBoxItem Content="5" Tag="5"/>
+                        <ComboBoxItem Content="7" Tag="7"/>
+                        <ComboBoxItem Content="10" Tag="10" IsSelected="True"/>
+                        <ComboBoxItem Content="20" Tag="20"/>
+                        <ComboBoxItem Content="50" Tag="50"/>
+                    </ComboBox>
+                </StackPanel>
+                <TextBlock x:Name="OperationStatusTextBlock" Grid.Column="3" Text="" FontSize="9.8" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="210" Margin="8,0,0,0" Visibility="Collapsed"/>
             </Grid>
         </Border>
+
+    <Popup x:Name="AdvancedFiltersPopup" PlacementTarget="{Binding ElementName=AdvancedFiltersButton}" Placement="Bottom" AllowsTransparency="True" StaysOpen="True" PopupAnimation="Fade" FlowDirection="RightToLeft">
+        <Border Width="380" Background="#FFFFFF" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="12" Padding="14">
+            <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <TextBlock Text="خيارات التصفية" FontSize="13.5" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="مصدر السجل" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,4" />
+                        <ComboBox x:Name="SourceFilterComboBox" Style="{StaticResource ManagementComboBox}" Height="31" SelectedValuePath="Tag" SelectionChanged="Filter_Changed">
+                            <ComboBoxItem Content="كل المصادر" Tag="all" IsSelected="True" />
+                            <ComboBoxItem Content="إصدار" Tag="local" />
+                            <ComboBoxItem Content="مستورد" Tag="import" />
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="حالة الطباعة" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,4" />
+                        <ComboBox x:Name="PrintFilterComboBox" Style="{StaticResource ManagementComboBox}" Height="31" SelectedValuePath="Tag" SelectionChanged="Filter_Changed">
+                            <ComboBoxItem Content="كل الحالات" Tag="all" IsSelected="True" />
+                            <ComboBoxItem Content="غير مضافة للطباعة" Tag="not-scheduled" />
+                            <ComboBoxItem Content="ضمن قائمة الطباعة" Tag="queued" />
+                            <ComboBoxItem Content="مهمة طباعة مسجلة" Tag="submitted" />
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+                <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Button Content="مسح الفلاتر" Style="{StaticResource ManagementSmallButton}" Click="ClearFiltersButton_Click" />
+                    <Button Content="إغلاق" Style="{StaticResource ManagementSmallButton}" Click="AdvancedFiltersCloseButton_Click" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Popup>
+
     </Grid>
 </UserControl>

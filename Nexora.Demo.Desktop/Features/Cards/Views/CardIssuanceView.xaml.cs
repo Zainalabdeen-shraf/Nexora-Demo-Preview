@@ -876,69 +876,81 @@ case "upload-print":
 
         var bodyLength = Math.Max(1, totalLength - prefix.Length - suffix.Length);
 
-        var body = new string('•', Math.Min(bodyLength, 16));
-
-        PreviewCardNumberTextBlock.Text = _previewCard?.CardNumber ?? $"{prefix}{body}{suffix}";
-
-
-
-        var usernameSample = _previewCard?.Username ?? $"{prefix}{new string('•', Math.Min(bodyLength, 16))}{suffix}";
-        PreviewUsernameTextBlock.Text = $"اسم المستخدم / رقم الكرت: {usernameSample}";
+        var cardPlaceholderChar = ReadTag(CardNumberCharacterSetComboBox) switch
+        {
+            "LettersOnly" => 'A',
+            "AlphaNumeric" => 'A',
+            _ => '0'
+        };
+        var body = new string(cardPlaceholderChar, Math.Min(bodyLength, 16));
+        var cardNumberSample = _previewCard?.CardNumber ?? $"{prefix}{body}{suffix}";
+        PreviewCardNumberTextBlock.Text = cardNumberSample;
+        var usernameSample = _previewCard?.Username ?? cardNumberSample;
+        PreviewUsernameTextBlock.Text = $"اسم المستخدم: {usernameSample}";
 
 
 
         var mode = ReadTag(PasswordModeComboBox);
 
+        var passwordPlaceholderChar = ReadTag(PasswordCharacterSetComboBox) switch
+        {
+            "LettersOnly" => 'A',
+            "AlphaNumeric" => 'A',
+            _ => '0'
+        };
         var passwordText = _previewCard is not null
-
-            ? _previewCard.PasswordDisplay
-
+            ? _previewCard.Password
             : mode switch
-
             {
-
-                "Empty" => "بدون كلمة مرور",
-
-                "Generated" => new string('•', Math.Clamp(TryParseInteger(PasswordLengthTextBox.Text, out var pLength) ? pLength : 8, 1, 12)),
-
+                "Empty" => string.Empty,
+                "Generated" => new string(passwordPlaceholderChar, Math.Clamp(TryParseInteger(PasswordLengthTextBox.Text, out var pLength) ? pLength : 8, 1, 12)),
                 _ => usernameSample
-
             };
+        PreviewPasswordTextBlock.Text = string.IsNullOrWhiteSpace(passwordText)
+            ? string.Empty
+            : $"كلمة المرور: {passwordText}";
 
-        PreviewPasswordTextBlock.Text = $"كلمة المرور: {passwordText}";
+        PreviewBrandNameTextBlock.Text = "زين نت";
+        PreviewBrandPanel.Visibility = Visibility.Visible;
+        PreviewBrandSubtitleTextBlock.Visibility = Visibility.Collapsed;
+        PreviewSourcePanel.Visibility = Visibility.Collapsed;
+        PreviewCredentialsCaptionTextBlock.Visibility = Visibility.Collapsed;
+        PreviewCardNumberRow.Visibility = Visibility.Collapsed;
+        PreviewCardNumberTextBlock.Visibility = Visibility.Collapsed;
+        PreviewUsernameTextBlock.Visibility = Visibility.Visible;
+        PreviewPasswordTextBlock.Visibility = string.IsNullOrWhiteSpace(passwordText) ? Visibility.Collapsed : Visibility.Visible;
+        PreviewHeaderDividerBorder.Visibility = Visibility.Collapsed;
+        PreviewFooterDividerBorder.Visibility = Visibility.Collapsed;
 
-        var templateParts = new List<string>();
-        if (IsTemplateElementVisible("الباقة"))
-            templateParts.Add(package.DisplayName.Split('—')[0].Trim());
-        if (IsTemplateElementVisible("السعر"))
-            templateParts.Add($"{package.PrintPrice:N0} ريال");
-        if (IsTemplateElementVisible("الصلاحية"))
-            templateParts.Add($"الصلاحية {package.Validity}");
-        if (IsTemplateElementVisible("الوقت"))
-            templateParts.Add($"الوقت {package.TimeLimit}");
-        if (IsTemplateElementVisible("التحميل"))
-            templateParts.Add($"البيانات {package.DataLimit}");
-        if (IsTemplateElementVisible("نقطة البيع"))
-            templateParts.Add($"نقطة البيع {PointOfSaleComboBox.Text}");
-        if (IsTemplateElementVisible("رقم الدفعة") && _previewCard is not null)
-            templateParts.Add($"الدفعة {_previewCard.BatchId}");
-        if (IsTemplateElementVisible("الرقم التسلسلي") && _previewCard is not null)
-            templateParts.Add($"م {_previewCard.CardNumber}");
-        if (IsTemplateElementVisible("تاريخ الطباعة"))
-            templateParts.Add(DateTime.Now.ToString("yyyy/MM/dd", CultureInfo.InvariantCulture));
-        if (IsTemplateElementVisible("معلومات إضافية") && !string.IsNullOrWhiteSpace(CommentTextBox.Text))
-            templateParts.Add(CommentTextBox.Text.Trim());
-        if (IsTemplateElementVisible("كود المكافأة"))
-            templateParts.Add("المكافأة");
+        if (CardPreviewBorder.Child is Grid previewCardLayout && previewCardLayout.RowDefinitions.Count >= 4)
+        {
+            previewCardLayout.RowDefinitions[1].Height = new GridLength(0);
+            previewCardLayout.RowDefinitions[3].Height = new GridLength(0);
+        }
 
-        PreviewPackageTextBlock.Text = string.Join(" · ", templateParts);
-        PreviewPackageTextBlock.Visibility = templateParts.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        PreviewCardNumberTextBlock.Visibility = IsTemplateElementVisible("رمز الدخول") ? Visibility.Visible : Visibility.Collapsed;
-        PreviewUsernameTextBlock.Visibility = IsTemplateElementVisible("اسم المستخدم") ? Visibility.Visible : Visibility.Collapsed;
-        PreviewPasswordTextBlock.Visibility = IsTemplateElementVisible("كلمة المرور") ? Visibility.Visible : Visibility.Collapsed;
-        PreviewCredentialsCaptionTextBlock.Visibility =
-            IsTemplateElementVisible("رمز الدخول") || IsTemplateElementVisible("اسم المستخدم") || IsTemplateElementVisible("كلمة المرور")
-                ? Visibility.Visible : Visibility.Collapsed;
+        var packageName = package.DisplayName.Split('—')[0].Trim();
+        var packageParts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(packageName))
+            packageParts.Add(packageName);
+        if (package.PrintPrice > 0)
+            packageParts.Add($"{package.PrintPrice:N0} ريال");
+        PreviewPackageTextBlock.Text = string.Join(" · ", packageParts);
+        PreviewPackageTextBlock.Visibility = packageParts.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+
+        var timingParts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(package.TimeLimit) &&
+            (string.IsNullOrWhiteSpace(packageName) || packageName.IndexOf(package.TimeLimit, StringComparison.OrdinalIgnoreCase) < 0))
+            timingParts.Add(package.TimeLimit.Trim());
+        if (!string.IsNullOrWhiteSpace(package.Validity))
+        {
+            var validityText = package.Validity.Trim();
+            if (!validityText.StartsWith("صلاحية", StringComparison.Ordinal))
+                validityText = $"صلاحية {validityText}";
+            timingParts.Add(validityText);
+        }
+        PreviewBatchTextBlock.Text = string.Join(" · ", timingParts);
+        PreviewBatchTextBlock.Visibility = timingParts.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+
         var qrVisible = IsTemplateElementVisible("رمز QR");
         var barcodeVisible = IsTemplateElementVisible("الباركود");
         PreviewQrBorder.Visibility = qrVisible ? Visibility.Visible : Visibility.Collapsed;
@@ -950,23 +962,6 @@ case "upload-print":
             previewFieldsGrid.ColumnDefinitions[2].Width = barcodeVisible ? new GridLength(54) : new GridLength(0);
             previewFieldsGrid.ColumnDefinitions[3].Width = barcodeVisible ? new GridLength(5) : new GridLength(0);
         }
-        PreviewBrandPanel.Visibility = IsTemplateElementVisible("شعار الشبكة") ? Visibility.Visible : Visibility.Collapsed;
-        PreviewSourcePanel.Visibility = IsTemplateElementVisible("الشريط العلوي") ? Visibility.Visible : Visibility.Collapsed;
-        var dividerVisible = IsTemplateElementVisible("الفاصل");
-        PreviewHeaderDividerBorder.Visibility = dividerVisible ? Visibility.Visible : Visibility.Collapsed;
-        PreviewFooterDividerBorder.Visibility = dividerVisible ? Visibility.Visible : Visibility.Collapsed;
-
-
-
-        PreviewCredentialsCaptionTextBlock.Text = _targetSystem == DemoAccountSystem.UserManager
-
-            ? (mode == "Empty" ? "رقم الكرت / اسم المستخدم — كلمة المرور فارغة" : "رقم الكرت / اسم المستخدم")
-
-            : (mode == "Empty" ? "بيانات دخول دون كلمة مرور" : "بيانات الدخول");
-
-        PreviewBatchTextBlock.Text = _previewCard is null
-            ? $"المعاينة تتبع عناصر القالب «{_designerTemplateName}»."
-            : $"عينة من الدفعة {_previewCard.BatchId} · القالب «{_designerTemplateName}».";
 
     }
 

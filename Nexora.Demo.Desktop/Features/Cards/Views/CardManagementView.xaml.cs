@@ -1,8 +1,8 @@
 using System.ComponentModel;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Media;
 using Nexora.Demo.Desktop.Features.Cards.Models;
@@ -19,10 +19,16 @@ public partial class CardManagementView : UserControl
 {
     private readonly DemoCardIssuanceService _issuanceService;
     private readonly DemoCardWorkflowStore _workflowStore = new();
-    private readonly DemoAccountSystem _targetSystem;
     private readonly string _targetName;
     private List<CardManagementRow> _rows = [];
     private ListCollectionView _view;
+    private readonly ObservableCollection<CardManagementRow> _pageRows = [];
+    private int _currentPage = 1;
+    private int _pageSize = 7;
+    private int _lastVisibleRowCapacity;
+    private bool _updatingPageSizeOptions;
+    private string? _sortMemberPath;
+    private ListSortDirection _sortDirection = ListSortDirection.Ascending;
     private bool _filtersReady;
     private bool _suppressFilters;
     private bool _isSubscribed;
@@ -32,17 +38,16 @@ public partial class CardManagementView : UserControl
     {
         ArgumentNullException.ThrowIfNull(issuanceService);
         _issuanceService = issuanceService;
-        _targetSystem = targetSystem;
         _targetName = targetSystem == DemoAccountSystem.HotSpot ? "مستخدمو الهوتسبوت" : "مدير المستخدمين";
 
         InitializeComponent();
-        TargetSystemTextBlock.Text = targetSystem == DemoAccountSystem.HotSpot
-            ? "النظام الحالي: هوتسبوت"
-            : "النظام الحالي: يوزر منجر";
+        UpdateSearchPlaceholder();
+        CardsDataGrid.Loaded += CardsDataGrid_Loaded;
+        CardsDataGrid.SizeChanged += CardsDataGrid_SizeChanged;
 
         _view = new ListCollectionView(_rows);
         _view.Filter = MatchesCard;
-        CardsDataGrid.ItemsSource = _view;
+        CardsDataGrid.ItemsSource = _pageRows;
         _filtersReady = true;
         RefreshFromSource(preserveSelection: false);
         Loaded += CardManagementView_Loaded;
@@ -118,8 +123,10 @@ public partial class CardManagementView : UserControl
             }
 
             _view = new ListCollectionView(_rows) { Filter = MatchesCard };
-            CardsDataGrid.ItemsSource = _view;
+            if (!string.IsNullOrWhiteSpace(_sortMemberPath))
+                _view.SortDescriptions.Add(new SortDescription(_sortMemberPath, _sortDirection));
             _view.Refresh();
+            ApplyPaging();
             UpdateMetrics();
             UpdateFooter();
 
@@ -134,16 +141,19 @@ public partial class CardManagementView : UserControl
             {
                 OperationStatusTextBlock.Text = string.Join(" ", notices);
                 OperationStatusTextBlock.Foreground = (Brush)FindResource("WarningBrush");
+                OperationStatusTextBlock.Visibility = Visibility.Visible;
             }
             else
             {
                 OperationStatusTextBlock.Text = string.Empty;
+                OperationStatusTextBlock.Visibility = Visibility.Collapsed;
             }
         }
         catch (Exception)
         {
             OperationStatusTextBlock.Text = "تعذر تحديث سجل الكروت. حاول التحديث مرة أخرى.";
             OperationStatusTextBlock.Foreground = (Brush)FindResource("DangerBrush");
+            OperationStatusTextBlock.Visibility = Visibility.Visible;
             ResultSummaryTextBlock.Text = "لم يكتمل تحديث السجل.";
         }
     }
@@ -177,8 +187,19 @@ public partial class CardManagementView : UserControl
         SetComboTag(BatchFilterComboBox, selectedBatch);
     }
 
-    private static string SelectedTag(ComboBox combo) =>
-        (combo.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "all";
+    private static string SelectedTag(ComboBox combo)
+    {
+        var selectedValue = combo.SelectedValue?.ToString();
+        if (!string.IsNullOrWhiteSpace(selectedValue)) return selectedValue;
+        if (combo.SelectedItem is ComboBoxItem item)
+        {
+            var tag = item.Tag?.ToString();
+            if (!string.IsNullOrWhiteSpace(tag)) return tag;
+            var content = item.Content?.ToString();
+            if (!string.IsNullOrWhiteSpace(content)) return content;
+        }
+        return "all";
+    }
 
     private static void SetComboTag(ComboBox combo, string tag)
     {
@@ -210,6 +231,13 @@ public partial class CardManagementView : UserControl
         var batch = SelectedTag(BatchFilterComboBox);
         if (batch != "all" && !string.Equals(card.BatchId, batch, StringComparison.OrdinalIgnoreCase)) return false;
 
+        var createdPeriod = SelectedTag(CreatedPeriodFilterComboBox);
+        var createdDate = card.CreatedAt.ToLocalTime().Date;
+        var today = DateTime.Today;
+        if (createdPeriod == "today" && createdDate != today) return false;
+        if (createdPeriod == "7-days" && createdDate < today.AddDays(-6)) return false;
+        if (createdPeriod == "30-days" && createdDate < today.AddDays(-29)) return false;
+
         var source = SelectedTag(SourceFilterComboBox);
         if (source != "all" && !string.Equals(row.SourceKey, source, StringComparison.Ordinal)) return false;
 
@@ -225,8 +253,11 @@ public partial class CardManagementView : UserControl
 
     private void Filter_Changed(object sender, EventArgs e)
     {
+        UpdateSearchPlaceholder();
         if (!_filtersReady || _suppressFilters || _view is null) return;
         _view.Refresh();
+        _currentPage = 1;
+        ApplyPaging();
         UpdateFooter();
     }
 
@@ -239,6 +270,7 @@ public partial class CardManagementView : UserControl
             SetComboTag(CardStatusFilterComboBox, "all");
             SetComboTag(PackageFilterComboBox, "all");
             SetComboTag(BatchFilterComboBox, "all");
+            SetComboTag(CreatedPeriodFilterComboBox, "all");
             SetComboTag(SourceFilterComboBox, "all");
             SetComboTag(PrintFilterComboBox, "all");
         }
@@ -247,8 +279,76 @@ public partial class CardManagementView : UserControl
             _suppressFilters = false;
         }
         _view.Refresh();
+        _currentPage = 1;
+        ApplyPaging();
         UpdateFooter();
         SetOperationStatus("تمت إعادة الفلاتر إلى القيم الافتراضية.", false);
+        if (AdvancedFiltersPopup is not null) AdvancedFiltersPopup.IsOpen = false;
+    }
+
+    private void UpdateSearchPlaceholder()
+    {
+        if (CardSearchPlaceholderTextBlock is null || CardSearchTextBox is null) return;
+        CardSearchPlaceholderTextBlock.Visibility = string.IsNullOrEmpty(CardSearchTextBox.Text) ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void SearchButton_Click(object sender, RoutedEventArgs e) => Filter_Changed(sender, e);
+
+    private void AdvancedFiltersButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (AdvancedFiltersPopup is not null)
+            AdvancedFiltersPopup.IsOpen = !AdvancedFiltersPopup.IsOpen;
+    }
+
+    private void AdvancedFiltersCloseButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (AdvancedFiltersPopup is not null) AdvancedFiltersPopup.IsOpen = false;
+    }
+
+    private void CardsDataGrid_Loaded(object sender, RoutedEventArgs e) => RebuildPageSizeOptions();
+
+    private void CardsDataGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (!IsLoaded) return;
+        Dispatcher.BeginInvoke(new Action(RebuildPageSizeOptions));
+    }
+
+    private void RebuildPageSizeOptions()
+    {
+        if (CardsDataGrid is null || PageSizeComboBox is null || CardsDataGrid.ActualHeight < 40) return;
+        var rowHeight = CardsDataGrid.RowHeight > 0 ? CardsDataGrid.RowHeight : 36;
+        var headerHeight = CardsDataGrid.ColumnHeaderHeight > 0 ? CardsDataGrid.ColumnHeaderHeight : 36;
+        var visibleCapacity = Math.Max(1, (int)Math.Floor((CardsDataGrid.ActualHeight - headerHeight - 2) / rowHeight));
+        visibleCapacity = Math.Min(50, visibleCapacity);
+        if (visibleCapacity == _lastVisibleRowCapacity && PageSizeComboBox.Items.Count > 0) return;
+        _lastVisibleRowCapacity = visibleCapacity;
+
+        var previousSize = _pageSize;
+        _pageSize = Math.Clamp(_pageSize, 1, visibleCapacity);
+        var choices = new SortedSet<int> { _pageSize, visibleCapacity };
+        foreach (var choice in new[] { 5, 7, 10, 20, 50 })
+            if (choice <= visibleCapacity) choices.Add(choice);
+
+        _updatingPageSizeOptions = true;
+        try
+        {
+            PageSizeComboBox.Items.Clear();
+            foreach (var size in choices)
+                PageSizeComboBox.Items.Add(new ComboBoxItem { Content = size.ToString(CultureInfo.CurrentCulture), Tag = size.ToString(CultureInfo.InvariantCulture) });
+            PageSizeComboBox.SelectedItem = PageSizeComboBox.Items.OfType<ComboBoxItem>()
+                .FirstOrDefault(item => string.Equals(item.Tag?.ToString(), _pageSize.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal));
+        }
+        finally
+        {
+            _updatingPageSizeOptions = false;
+        }
+
+        if (previousSize != _pageSize)
+        {
+            _currentPage = 1;
+            ApplyPaging();
+            UpdateFooter();
+        }
     }
 
     private void RefreshButton_Click(object sender, RoutedEventArgs e)
@@ -259,7 +359,7 @@ public partial class CardManagementView : UserControl
 
     private void SelectVisibleButton_Click(object sender, RoutedEventArgs e)
     {
-        foreach (var row in _view.Cast<object>().OfType<CardManagementRow>())
+        foreach (var row in _pageRows)
             row.IsMarked = true;
         UpdateFooter();
     }
@@ -282,29 +382,123 @@ public partial class CardManagementView : UserControl
 
     private void UpdateMetrics()
     {
-        AvailableCardsCountTextBlock.Text = _rows.Count(row => !row.Card.IsArchived && string.Equals(row.Card.DemoStatus, "متاحة", StringComparison.Ordinal)).ToString("N0", CultureInfo.CurrentCulture);
-        ReviewCardsCountTextBlock.Text = _rows.Count(row => row.NeedsReview).ToString("N0", CultureInfo.CurrentCulture);
         TotalCardsCountTextBlock.Text = _rows.Count.ToString("N0", CultureInfo.CurrentCulture);
+        AvailableCardsCountTextBlock.Text = _rows.Count(row => !row.Card.IsArchived && string.Equals(row.Card.DemoStatus, "متاحة", StringComparison.Ordinal)).ToString("N0", CultureInfo.CurrentCulture);
+        InUseCardsCountTextBlock.Text = _rows.Count(row => !row.Card.IsArchived && string.Equals(row.Card.DemoStatus, "قيد الاستخدام", StringComparison.Ordinal)).ToString("N0", CultureInfo.CurrentCulture);
+        ExpiredCardsCountTextBlock.Text = _rows.Count(row => !row.Card.IsArchived && string.Equals(row.Card.DemoStatus, "منتهية", StringComparison.Ordinal)).ToString("N0", CultureInfo.CurrentCulture);
+        ReviewCardsCountTextBlock.Text = _rows.Count(row => row.NeedsReview).ToString("N0", CultureInfo.CurrentCulture);
+    }
+
+    private int FilteredCount => _view.Cast<object>().OfType<CardManagementRow>().Count();
+    private int PageCount => Math.Max(1, (FilteredCount + _pageSize - 1) / _pageSize);
+
+    private void ApplyPaging()
+    {
+        if (_view is null || PagerButtonsPanel is null) return;
+        var filtered = _view.Cast<object>().OfType<CardManagementRow>().ToList();
+        var pageCount = Math.Max(1, (filtered.Count + _pageSize - 1) / _pageSize);
+        _currentPage = Math.Clamp(_currentPage, 1, pageCount);
+        var pageRows = filtered.Skip((_currentPage - 1) * _pageSize).Take(_pageSize).ToList();
+        _pageRows.Clear();
+        foreach (var row in pageRows) _pageRows.Add(row);
+        BuildPagerButtons(pageCount);
+    }
+
+    private void BuildPagerButtons(int pageCount)
+    {
+        PagerButtonsPanel.Children.Clear();
+        AddPagerButton("«", "first", _currentPage > 1, false, "الصفحة الأولى");
+        AddPagerButton("‹", "previous", _currentPage > 1, false, "الصفحة السابقة");
+        var pages = new SortedSet<int> { 1, pageCount };
+        for (var page = Math.Max(1, _currentPage - 1); page <= Math.Min(pageCount, _currentPage + 1); page++) pages.Add(page);
+        var previousPage = 0;
+        foreach (var page in pages)
+        {
+            if (previousPage > 0 && page - previousPage > 1)
+                PagerButtonsPanel.Children.Add(new TextBlock { Text = "…", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(5, 0, 5, 0), Foreground = (Brush)FindResource("MutedBrush") });
+            AddPagerButton(page.ToString(CultureInfo.CurrentCulture), page.ToString(CultureInfo.InvariantCulture), true, page == _currentPage, $"الصفحة {page}");
+            previousPage = page;
+        }
+        AddPagerButton("›", "next", _currentPage < pageCount, false, "الصفحة التالية");
+        AddPagerButton("»", "last", _currentPage < pageCount, false, "الصفحة الأخيرة");
+    }
+
+    private void AddPagerButton(string label, string tag, bool enabled, bool current, string tooltip)
+    {
+        var button = new Button
+        {
+            Content = label,
+            Tag = tag,
+            IsEnabled = enabled,
+            ToolTip = tooltip,
+            Style = (Style)FindResource(current ? "ManagementPagerButtonCurrent" : "ManagementPagerButton"),
+            Height = 32,
+            MinWidth = 34,
+            Margin = new Thickness(2, 0, 2, 0),
+            Padding = new Thickness(5, 0, 5, 0)
+        };
+        button.Click += PagerButton_Click;
+        PagerButtonsPanel.Children.Add(button);
+    }
+
+    private void PagerButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string tag) return;
+        var pageCount = PageCount;
+        if (tag == "first") _currentPage = 1;
+        else if (tag == "previous") _currentPage = Math.Max(1, _currentPage - 1);
+        else if (tag == "next") _currentPage = Math.Min(pageCount, _currentPage + 1);
+        else if (tag == "last") _currentPage = pageCount;
+        else if (int.TryParse(tag, NumberStyles.Integer, CultureInfo.InvariantCulture, out var page)) _currentPage = Math.Clamp(page, 1, pageCount);
+        ApplyPaging();
+        UpdateFooter();
+    }
+
+    private void PageSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_updatingPageSizeOptions) return;
+        if (!_filtersReady || _view is null || PageSizeComboBox.SelectedItem is not ComboBoxItem item) return;
+        if (!int.TryParse(item.Tag?.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var size)) return;
+        if (size == _pageSize) return;
+        _pageSize = size;
+        _currentPage = 1;
+        ApplyPaging();
+        UpdateFooter();
+    }
+
+    private void CardsDataGrid_Sorting(object sender, DataGridSortingEventArgs e)
+    {
+        if (_view is null || string.IsNullOrWhiteSpace(e.Column.SortMemberPath)) return;
+        e.Handled = true;
+        var member = e.Column.SortMemberPath;
+        _sortDirection = string.Equals(_sortMemberPath, member, StringComparison.Ordinal)
+            && _sortDirection == ListSortDirection.Ascending
+            ? ListSortDirection.Descending
+            : ListSortDirection.Ascending;
+        _sortMemberPath = member;
+        _view.SortDescriptions.Clear();
+        _view.SortDescriptions.Add(new SortDescription(member, _sortDirection));
+        _view.Refresh();
+        foreach (var column in CardsDataGrid.Columns)
+            column.SortDirection = ReferenceEquals(column, e.Column) ? _sortDirection : null;
+        _currentPage = 1;
+        ApplyPaging();
+        UpdateFooter();
     }
 
     private void UpdateFooter()
     {
         if (ResultSummaryTextBlock is null || CardsDataGrid is null) return;
-        var visibleCount = _view.Cast<object>().OfType<CardManagementRow>().Count();
-        var selected = GetMarkedRows();
-        var visibleSelected = _view.Cast<object>().OfType<CardManagementRow>().Count(row => row.IsMarked);
-        var batchCount = _issuanceService.Batches.Count(batch => string.Equals(batch.TargetSystem, _targetName, StringComparison.Ordinal));
-        ResultSummaryTextBlock.Text = $"المعروض: {visibleCount:N0} من {_rows.Count:N0} كرت · الدفعات ضمن النظام: {batchCount:N0}";
-        SelectedCountTextBlock.Text = selected.Count == visibleSelected
-            ? $"المحدد: {selected.Count:N0}"
-            : $"المحدد: {selected.Count:N0} (داخل النتائج: {visibleSelected:N0})";
-        BulkActionsBorder.Visibility = selected.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        BulkArchiveButton.Visibility = selected.Any(row => !row.Card.IsArchived) ? Visibility.Visible : Visibility.Collapsed;
-        BulkRestoreButton.Visibility = selected.Any(row => row.Card.IsArchived) ? Visibility.Visible : Visibility.Collapsed;
+        var visibleCount = FilteredCount;
+        var start = visibleCount == 0 ? 0 : ((_currentPage - 1) * _pageSize) + 1;
+        var end = Math.Min(_currentPage * _pageSize, visibleCount);
+        ResultSummaryTextBlock.Text = visibleCount == 0
+            ? "لا توجد نتائج مطابقة"
+            : $"عرض {start:N0}–{end:N0} من {visibleCount:N0} كرت";
         EmptyStatePanel.Visibility = visibleCount == 0 ? Visibility.Visible : Visibility.Collapsed;
         EmptyStateDescriptionTextBlock.Text = _rows.Count == 0
-            ? "لا توجد كروت مسجلة لهذا النظام حتى الآن. يمكنك إصدار كروت أو استيراد سجل موجود."
-            : "لا توجد سجلات تطابق البحث أو الفلاتر الحالية. امسح الفلاتر لعرض السجل مرة أخرى.";
+            ? "لا توجد كروت مسجلة لهذا النظام."
+            : "لا توجد سجلات تطابق البحث والفلاتر الحالية.";
         CardsDataGrid.Visibility = visibleCount == 0 ? Visibility.Collapsed : Visibility.Visible;
     }
 
@@ -313,45 +507,31 @@ public partial class CardManagementView : UserControl
         if (CardsDataGrid.SelectedItem is CardManagementRow row) ShowCardDetails(row.Card);
     }
 
+    private void RowPrintButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement element && element.DataContext is CardManagementRow row)
+            QueueForPrinting(new[] { row.Card });
+    }
+
     private void RowDetailsButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement element && element.DataContext is CardManagementRow row)
             ShowCardDetails(row.Card);
     }
 
-    private void RowBatchButton_Click(object sender, RoutedEventArgs e)
+    private void RowArchiveRestoreButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement element && element.DataContext is CardManagementRow row)
-            OpenBatch(row.Card);
+        if (sender is not FrameworkElement element || element.DataContext is not CardManagementRow row)
+            return;
+
+        if (row.Card.IsArchived)
+            RestoreCards(new[] { row.Card });
+        else
+            ArchiveCards(new[] { row.Card });
     }
 
     private void OpenBatch(GeneratedDemoCard card) =>
         NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("cards", "إدارة الدفعات", card.BatchId, "batch", SystemKey(card.TargetSystem)));
-
-    private void RowActionsButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button button || button.DataContext is not CardManagementRow row) return;
-        var card = row.Card;
-        var menu = new ContextMenu { FlowDirection = FlowDirection.RightToLeft, PlacementTarget = button, Placement = PlacementMode.Bottom };
-        AddMenuItem(menu, "عرض التفاصيل", () => ShowCardDetails(card));
-        AddMenuItem(menu, "فتح الدفعة الأصلية", () => OpenBatch(card));
-        AddMenuItem(menu, row.Workflow?.PrintQueued == true ? "فتح قائمة الطباعة" : "إضافة إلى قائمة الطباعة", () => QueueForPrinting(new[] { card }));
-        menu.Items.Add(new Separator());
-        if (card.IsArchived)
-            AddMenuItem(menu, "استعادة من الأرشيف", () => RestoreCards(new[] { card }));
-        else
-            AddMenuItem(menu, "أرشفة", () => ArchiveCards(new[] { card }));
-
-        button.ContextMenu = menu;
-        menu.IsOpen = true;
-    }
-
-    private static void AddMenuItem(ContextMenu menu, string label, Action action)
-    {
-        var item = new MenuItem { Header = label, Padding = new Thickness(10, 6, 10, 6) };
-        item.Click += (_, _) => action();
-        menu.Items.Add(item);
-    }
 
     private void BulkPrintButton_Click(object sender, RoutedEventArgs e) => QueueForPrinting(GetMarkedRows().Select(row => row.Card));
 
@@ -431,6 +611,7 @@ public partial class CardManagementView : UserControl
     {
         OperationStatusTextBlock.Text = message;
         OperationStatusTextBlock.Foreground = (Brush)FindResource(isError ? "DangerBrush" : "MutedBrush");
+        OperationStatusTextBlock.Visibility = string.IsNullOrWhiteSpace(message) ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void ShowCardDetails(GeneratedDemoCard card)
@@ -584,9 +765,11 @@ public sealed class CardManagementRow : INotifyPropertyChanged
     public string PackageName => Card.PackageName;
     public string BatchId => Card.BatchId;
     public string CreatedAtLabel => Card.CreatedAtLabel;
+    public DateTimeOffset CreatedAt => Card.CreatedAt;
     public string SourceKey { get; }
     public string SourceLabel => SourceKey == "import" ? "مستورد" : "إصدار";
     public bool IsArchived => Card.IsArchived;
+    public string ArchiveActionLabel => Card.IsArchived ? "استعادة الكرت من الأرشيف" : "أرشفة الكرت";
     public string CardStatusLabel => Card.IsArchived ? "مؤرشفة" : string.IsNullOrWhiteSpace(Card.DemoStatus) ? "غير محددة" : Card.DemoStatus;
     public string PrintStatusLabel => CardManagementView.PrintStatusLabelFor(Workflow);
     public bool NeedsReview => !Card.IsArchived && (string.Equals(Card.DemoStatus, "موقوفة", StringComparison.Ordinal) ||

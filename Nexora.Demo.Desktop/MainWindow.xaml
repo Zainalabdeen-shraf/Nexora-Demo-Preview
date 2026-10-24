@@ -1,4 +1,10 @@
-<Window x:Class="Nexora.Demo.Desktop.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Nexora | إدارة شبكات الإنترنت" Width="660" Height="630" MinWidth="520" MinHeight="480" MaxWidth="920" MaxHeight="820" WindowStartupLocation="CenterScreen" ResizeMode="CanResize" Background="{StaticResource AppBgBrush}" FlowDirection="RightToLeft" FontFamily="Segoe UI" xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"><Window.Resources><LinearGradientBrush x:Key="CardSystemInactiveBrush" StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0" /><GradientStop Color="#FFFDFD" Offset="0.30" /><GradientStop Color="#F9EDED" Offset="0.72" /><GradientStop Color="#F3DADD" Offset="1" /></LinearGradientBrush><SolidColorBrush x:Key="CardSystemTabBorderBrush" Color="#E2C7C9" /><Style x:Key="CardSystemSelectorTabStyle" TargetType="RadioButton"><Setter Property="Height" Value="34" /><Setter Property="MinWidth" Value="110" /><Setter Property="Padding" Value="12,0" /><Setter Property="Margin" Value="2,0" /><Setter Property="FontSize" Value="12" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{StaticResource TextBrush}" /><Setter Property="Background" Value="{StaticResource SurfaceBrush}" /><Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="Cursor" Value="Hand" /><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RadioButton"><Border x:Name="SystemTabChrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}" TextElement.FontWeight="{TemplateBinding FontWeight}" /></Border><ControlTemplate.Triggers><Trigger Property="IsChecked" Value="True"><Setter TargetName="SystemTabChrome" Property="Background" Value="{StaticResource PrimaryBrush}" /><Setter TargetName="SystemTabChrome" Property="BorderBrush" Value="{StaticResource PrimaryBrush}" /><Setter Property="Foreground" Value="White" /></Trigger><MultiTrigger><MultiTrigger.Conditions><Condition Property="IsMouseOver" Value="True" /><Condition Property="IsChecked" Value="False" /></MultiTrigger.Conditions><Setter TargetName="SystemTabChrome" Property="Background" Value="#EEF4FC" /><Setter TargetName="SystemTabChrome" Property="BorderBrush" Value="#C7D9EF" /></MultiTrigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.55" /></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style><Style x:Key="SectionTabButtonStyle" TargetType="Button"><Setter Property="Background" Value="Transparent" /><Setter Property="Foreground" Value="{StaticResource TextBrush}" /><Setter Property="BorderBrush" Value="Transparent" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Padding" Value="12,0" /><Setter Property="HorizontalContentAlignment" Value="Center" /><Setter Property="VerticalContentAlignment" Value="Center" /><Setter Property="Cursor" Value="Hand" /><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="SectionTabChrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True" TextElement.Foreground="{TemplateBinding Foreground}" TextElement.FontWeight="{TemplateBinding FontWeight}" /></Border><ControlTemplate.Triggers><Trigger Property="IsEnabled" Value="False"><Setter TargetName="SectionTabChrome" Property="Opacity" Value="0.55" /></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style><Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Key="ShellQuickActionButtonStyle" TargetType="Button">
+<Window x:Class="Nexora.Demo.Desktop.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Nexora | إدارة شبكات الإنترنت" Width="1360"
+Height="800"
+MinWidth="1024"
+MinHeight="650"
+WindowStartupLocation="CenterScreen"
+WindowState="Maximized"
+ResizeMode="CanResize" Background="{StaticResource AppBgBrush}" FlowDirection="RightToLeft" FontFamily="Segoe UI" xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"><Window.Resources><LinearGradientBrush x:Key="CardSystemInactiveBrush" StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0" /><GradientStop Color="#FFFDFD" Offset="0.30" /><GradientStop Color="#F9EDED" Offset="0.72" /><GradientStop Color="#F3DADD" Offset="1" /></LinearGradientBrush><SolidColorBrush x:Key="CardSystemTabBorderBrush" Color="#E2C7C9" /><Style x:Key="CardSystemSelectorTabStyle" TargetType="RadioButton"><Setter Property="Height" Value="34" /><Setter Property="MinWidth" Value="110" /><Setter Property="Padding" Value="12,0" /><Setter Property="Margin" Value="2,0" /><Setter Property="FontSize" Value="12" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{StaticResource TextBrush}" /><Setter Property="Background" Value="{StaticResource SurfaceBrush}" /><Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="Cursor" Value="Hand" /><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RadioButton"><Border x:Name="SystemTabChrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}" TextElement.FontWeight="{TemplateBinding FontWeight}" /></Border><ControlTemplate.Triggers><Trigger Property="IsChecked" Value="True"><Setter TargetName="SystemTabChrome" Property="Background" Value="{StaticResource PrimaryBrush}" /><Setter TargetName="SystemTabChrome" Property="BorderBrush" Value="{StaticResource PrimaryBrush}" /><Setter Property="Foreground" Value="White" /></Trigger><MultiTrigger><MultiTrigger.Conditions><Condition Property="IsMouseOver" Value="True" /><Condition Property="IsChecked" Value="False" /></MultiTrigger.Conditions><Setter TargetName="SystemTabChrome" Property="Background" Value="#EEF4FC" /><Setter TargetName="SystemTabChrome" Property="BorderBrush" Value="#C7D9EF" /></MultiTrigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.55" /></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style><Style x:Key="SectionTabButtonStyle" TargetType="Button"><Setter Property="Background" Value="Transparent" /><Setter Property="Foreground" Value="{StaticResource TextBrush}" /><Setter Property="BorderBrush" Value="Transparent" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Padding" Value="12,0" /><Setter Property="HorizontalContentAlignment" Value="Center" /><Setter Property="VerticalContentAlignment" Value="Center" /><Setter Property="Cursor" Value="Hand" /><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="SectionTabChrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True" TextElement.Foreground="{TemplateBinding Foreground}" TextElement.FontWeight="{TemplateBinding FontWeight}" /></Border><ControlTemplate.Triggers><Trigger Property="IsEnabled" Value="False"><Setter TargetName="SectionTabChrome" Property="Opacity" Value="0.55" /></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style><Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Key="ShellQuickActionButtonStyle" TargetType="Button">
   <Setter Property="Width" Value="36" /><Setter Property="Height" Value="34" /><Setter Property="Margin" Value="3,0" /><Setter Property="Padding" Value="0" />
   <Setter Property="Background" Value="#20FFFFFF" /><Setter Property="Foreground" Value="White" /><Setter Property="BorderBrush" Value="#45FFFFFF" /><Setter Property="BorderThickness" Value="1" /><Setter Property="Cursor" Value="Hand" />
   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="Chrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="7"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}" /></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Chrome" Property="Background" Value="#4AFFFFFF" /><Setter TargetName="Chrome" Property="BorderBrush" Value="#85FFFFFF" /></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="Chrome" Property="Opacity" Value="0.78" /></Trigger><Trigger Property="IsEnabled" Value="False"><Setter TargetName="Chrome" Property="Opacity" Value="0.45" /></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
@@ -13,7 +19,14 @@
   </Border>
   <Border Grid.Column="1" Background="#9D1821" BorderBrush="#35FFFFFF" BorderThickness="0,0,1,0" Padding="8,0">
     <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight" VerticalAlignment="Center" HorizontalAlignment="Center">
-      <Button Tag="network-center" Style="{StaticResource ShellQuickActionButtonStyle}" Click="NavigationButton_Click" ToolTip="فتح مركز الشبكة" shell:WindowChrome.IsHitTestVisibleInChrome="True"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="White" /></Button>
+      <Button x:Name="SidebarToggleButton"
+        Style="{StaticResource ShellQuickActionButtonStyle}"
+        Click="ToggleSidebarButton_Click"
+        ToolTip="طي القائمة الجانبية أو توسيعها"
+        shell:WindowChrome.IsHitTestVisibleInChrome="True">
+      <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="White" />
+    </Button>
+    <Button Tag="network-center" Style="{StaticResource ShellQuickActionButtonStyle}" Click="NavigationButton_Click" ToolTip="فتح مركز الشبكة" shell:WindowChrome.IsHitTestVisibleInChrome="True"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="White" /></Button>
       <Button Tag="reports" Style="{StaticResource ShellQuickActionButtonStyle}" Click="NavigationButton_Click" ToolTip="فتح مركز التقارير" shell:WindowChrome.IsHitTestVisibleInChrome="True"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="White" /></Button>
       <Button Tag="settings" Style="{StaticResource ShellQuickActionButtonStyle}" Click="NavigationButton_Click" ToolTip="فتح الإعدادات والصيانة" shell:WindowChrome.IsHitTestVisibleInChrome="True"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="White" /></Button>
       <Button x:Name="OpenRouterConnectionButton" Style="{StaticResource ShellQuickActionButtonStyle}" Click="OpenRouterConnectionOverlay_Click" ToolTip="إدارة اتصال الراوتر وحفظ بياناته" shell:WindowChrome.IsHitTestVisibleInChrome="True"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="White" /></Button>
@@ -26,7 +39,7 @@
       <TextBlock Text="{Binding Text, ElementName=OwnerPhoneTextBox}" Foreground="#FFF0F0" FontSize="10" Margin="0,1,0,0" TextAlignment="Right" />
     </StackPanel>
   </Border>
-</Grid><Border Grid.Row="1" Grid.Column="0" Background="{StaticResource PrimaryBrush}"><DockPanel LastChildFill="True"><StackPanel DockPanel.Dock="Top" Margin="13,12,13,12"><Grid FlowDirection="RightToLeft"><Grid.ColumnDefinitions><ColumnDefinition Width="50" /><ColumnDefinition Width="8" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><Border Grid.Column="0" Width="48" Height="46" Background="White" BorderBrush="#55FFFFFF" BorderThickness="1" CornerRadius="9" Padding="3" VerticalAlignment="Center"><Image Source="pack://application:,,,/Nexora.Demo.Desktop;component/Assets/Brand/nexora-network-card-mark.png" Stretch="Uniform" /></Border><StackPanel Grid.Column="2" VerticalAlignment="Center"><TextBlock Text="تاب كارد" Foreground="White" FontSize="19" FontWeight="Bold" /><TextBlock Text="إدارة الشبكات والكروت" Foreground="White" FontSize="10.5" Margin="0,3,0,0" /></StackPanel></Grid></StackPanel><StackPanel DockPanel.Dock="Bottom" Margin="14,12"><Border Background="#20FFFFFF" CornerRadius="8" Padding="10,8" Margin="0,0,0,8" BorderBrush="#58FFFFFF" BorderThickness="1"><TextBlock Text="إدارة شبكة الإنترنت" Foreground="White" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" /></Border><Button Content="تسجيل الخروج" Style="{StaticResource SecondaryButton}" Click="SignOutButton_Click" /></StackPanel><ScrollViewer xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="True" Focusable="False">
+</Grid><Border Grid.Row="1" Grid.Column="0" Background="{StaticResource PrimaryBrush}"><DockPanel LastChildFill="True"><StackPanel DockPanel.Dock="Top" Margin="13,12,13,12" x:Name="SidebarBrandTopPanel"><Grid x:Name="SidebarBrandGrid" FlowDirection="RightToLeft"><Grid.ColumnDefinitions><ColumnDefinition Width="50" /><ColumnDefinition Width="8" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><Border x:Name="SidebarBrandMarkBorder" Grid.Column="0" Width="48" Height="46" Background="White" BorderBrush="#55FFFFFF" BorderThickness="1" CornerRadius="9" Padding="3" VerticalAlignment="Center"><Image Source="pack://application:,,,/Nexora.Demo.Desktop;component/Assets/Brand/nexora-network-card-mark.png" Stretch="Uniform" /></Border><StackPanel x:Name="SidebarBrandDetails" Grid.Column="2" VerticalAlignment="Center"><TextBlock Text="تاب كارد" Foreground="White" FontSize="19" FontWeight="Bold" /><TextBlock Text="إدارة الشبكات والكروت" Foreground="White" FontSize="10.5" Margin="0,3,0,0" /></StackPanel></Grid></StackPanel><StackPanel x:Name="SidebarBottomPanel" DockPanel.Dock="Bottom" Margin="14,12"><Border x:Name="SidebarNetworkFooterBorder" Background="#20FFFFFF" CornerRadius="8" Padding="10,8" Margin="0,0,0,8" BorderBrush="#58FFFFFF" BorderThickness="1"><TextBlock Text="إدارة شبكة الإنترنت" Foreground="White" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" /></Border><Button x:Name="SignOutButton" Content="تسجيل الخروج" Style="{StaticResource SecondaryButton}" Click="SignOutButton_Click" /></StackPanel><ScrollViewer xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="True" Focusable="False">
   <StackPanel x:Name="SidebarItemsPanel" Margin="9,0,9,8" FlowDirection="RightToLeft">
     <!-- <TextBlock Text="مساحة العمل" Foreground="#FFD1D5" FontSize="10.5" FontWeight="Bold" Margin="10,2,8,5" /> -->
     <Button Tag="networks" Style="{StaticResource SidebarNavButtonStyle}" Click="NavigationButton_Click" Height="39" Margin="0,2" Padding="10,3"><Grid FlowDirection="RightToLeft"><Grid.ColumnDefinitions><ColumnDefinition Width="30" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Grid.Column="0" Text="" Foreground="White" FontFamily="Segoe MDL2 Assets" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center" /><TextBlock Grid.Column="1" Text="الشبكات ومصادر المصادقة" Foreground="White" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" TextAlignment="Right" /></Grid></Button>
@@ -46,5 +59,1440 @@
     <Button Tag="reports" Style="{StaticResource SidebarNavButtonStyle}" Click="NavigationButton_Click" Height="39" Margin="0,2" Padding="10,3"><Grid FlowDirection="RightToLeft"><Grid.ColumnDefinitions><ColumnDefinition Width="30" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Grid.Column="0" Text="" Foreground="White" FontFamily="Segoe MDL2 Assets" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center" /><TextBlock Grid.Column="1" Text="مركز التقارير" Foreground="White" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" TextAlignment="Right" /></Grid></Button>
     <Button Tag="settings" Style="{StaticResource SidebarNavButtonStyle}" Click="NavigationButton_Click" Height="39" Margin="0,2" Padding="10,3"><Grid FlowDirection="RightToLeft"><Grid.ColumnDefinitions><ColumnDefinition Width="30" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Grid.Column="0" Text="" Foreground="White" FontFamily="Segoe MDL2 Assets" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center" /><TextBlock Grid.Column="1" Text="الإعدادات والصيانة" Foreground="White" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" TextAlignment="Right" /></Grid></Button>
   </StackPanel>
-</ScrollViewer></DockPanel></Border><Grid Grid.Row="1" Grid.Column="1" Margin="14,12,14,8" ClipToBounds="True"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-<Grid Grid.Row="0" FlowDirection="LeftToRight" Margin="0,0,0,7" MinHeight="74"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><Border Grid.Column="0" Visibility="{Binding Visibility, ElementName=LocationBadgeTextBlock}" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="{StaticResource RadiusControl}" Padding="10,6" VerticalAlignment="Center"><TextBlock x:Name="LocationBadgeTextBlock" Text="الموقع لم يُحدد" FontSize="11" Foreground="{StaticResource PrimaryBrush}" /></Border><Grid Grid.Column="1" HorizontalAlignment="Right" FlowDirection="RightToLeft" VerticalAlignment="Center"><Grid.ColumnDefinitions><ColumnDefinition Width="52" /><ColumnDefinition Width="14" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><Border Grid.Column="0" Width="52" Height="52" Background="{StaticResource PrimaryLightBrush}" CornerRadius="26" VerticalAlignment="Center"><TextBlock x:Name="PageTitleIconTextBlock" Text="" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border><StackPanel Grid.Column="2" HorizontalAlignment="Right" FlowDirection="RightToLeft" VerticalAlignment="Center" Margin="0"><TextBlock x:Name="PageTitleTextBlock" Style="{StaticResource WorkspacePageTitleStyle}" Text="الرئيسية" TextAlignment="Right" HorizontalAlignment="Right" /><TextBlock x:Name="PageSubtitleTextBlock" Style="{StaticResource WorkspacePageSubtitleStyle}" Text="نظرة موحدة على الشبكة والكروت والمبيعات" Margin="0,3,0,0" TextAlignment="Right" HorizontalAlignment="Right" /></StackPanel></Grid></Grid><!-- Required location is collected in the blocking modal overlay below. --><Grid x:Name="PageHost" Grid.Row="2" ClipToBounds="True"><Grid x:Name="DashboardPage" Visibility="Visible" ClipToBounds="True" Margin="0,0,0,12"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions><UniformGrid Grid.Row="1" Columns="4" Height="120" Margin="0,0,0,12"><Button Style="{StaticResource DashboardMetricButtonStyle}" Tag="cards|إدارة الكروت|all" Click="DashboardMetric_Click" Margin="0,0,7,0"><Grid FlowDirection="LeftToRight"><Grid.ColumnDefinitions><ColumnDefinition Width="56" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><Border Grid.Column="0" Width="48" Height="48" Background="#FCEDEF" CornerRadius="24" VerticalAlignment="Top"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border><StackPanel Grid.Column="1" FlowDirection="RightToLeft" Margin="16,0,0,0" VerticalAlignment="Center"><TextBlock Text="إجمالي سجلات الكروت" Foreground="{StaticResource MutedBrush}" FontSize="12.5" /><TextBlock x:Name="TotalCardsMetricTextBlock" Style="{StaticResource DashboardMetricValueStyle}" Text="—" Margin="0,4,0,0" /><TextBlock Text="من جميع جهات الإصدار" FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,1,0,0" /></StackPanel></Grid></Button><Button Style="{StaticResource DashboardMetricButtonStyle}" Tag="cards|إدارة الكروت|all" Click="DashboardMetric_Click" Margin="3,0"><Grid FlowDirection="LeftToRight"><Grid.ColumnDefinitions><ColumnDefinition Width="56" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><Border Grid.Column="0" Width="48" Height="48" Background="#E8F7F0" CornerRadius="24" VerticalAlignment="Top"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="#14845D" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border><StackPanel Grid.Column="1" FlowDirection="RightToLeft" Margin="16,0,0,0" VerticalAlignment="Center"><TextBlock Text="الكروت المتاحة" Foreground="{StaticResource MutedBrush}" FontSize="12.5" /><TextBlock x:Name="AvailableCardsMetricTextBlock" Style="{StaticResource DashboardMetricValueStyle}" Text="—" Margin="0,4,0,0" /><TextBlock x:Name="AvailableCardsMetricDetailTextBlock" Text="بحسب سجلات الكروت" FontSize="10.5" Foreground="#14845D" Margin="0,1,0,0" /></StackPanel></Grid></Button><Button Style="{StaticResource DashboardMetricButtonStyle}" Tag="cards|إدارة الكروت|all" Click="DashboardMetric_Click" Margin="3,0"><Grid FlowDirection="LeftToRight"><Grid.ColumnDefinitions><ColumnDefinition Width="56" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><Border Grid.Column="0" Width="48" Height="48" Background="#EAF2FD" CornerRadius="24" VerticalAlignment="Top"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="#2878C8" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border><StackPanel Grid.Column="1" FlowDirection="RightToLeft" Margin="16,0,0,0" VerticalAlignment="Center"><TextBlock Text="الكروت قيد الاستخدام" Foreground="{StaticResource MutedBrush}" FontSize="12.5" /><TextBlock x:Name="InUseCardsMetricTextBlock" Style="{StaticResource DashboardMetricValueStyle}" Text="—" Margin="0,4,0,0" /><TextBlock Text="بحسب الحالة المسجلة" FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,1,0,0" /></StackPanel></Grid></Button><Button Style="{StaticResource DashboardMetricButtonStyle}" Tag="sales|ملخص المبيعات" Click="DashboardMetric_Click" Margin="7,0,0,0"><Grid FlowDirection="LeftToRight"><Grid.ColumnDefinitions><ColumnDefinition Width="56" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><Border Grid.Column="0" Width="48" Height="48" Background="#FFF4E4" CornerRadius="24" VerticalAlignment="Top"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="#A96500" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border><StackPanel Grid.Column="1" FlowDirection="RightToLeft" Margin="16,0,0,0" VerticalAlignment="Center"><TextBlock Text="مبيعات آخر يوم مسجل" Foreground="{StaticResource MutedBrush}" FontSize="12.5" /><TextBlock x:Name="LastDaySalesMetricTextBlock" Style="{StaticResource DashboardMetricValueStyle}" Text="—" Margin="0,4,0,0" /><TextBlock Text="ريال يمني" FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,1,0,0" /></StackPanel></Grid></Button></UniformGrid><Grid Grid.Row="2" Margin="0" MinHeight="190" ClipToBounds="True"><Grid.ColumnDefinitions><ColumnDefinition Width="0.9*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="1.1*" /></Grid.ColumnDefinitions><Border Grid.Column="0" Style="{StaticResource DashboardPanelStyle}"><Grid><Border Height="4" VerticalAlignment="Top" Background="{StaticResource PrimaryBrush}" CornerRadius="12,12,0,0" Margin="-14,-14,-14,0" /><StackPanel Margin="0,5,0,0"><DockPanel Margin="0,0,0,14"><TextBlock Text="حالة الكروت" Style="{StaticResource DashboardCardHeadingStyle}" /><Button DockPanel.Dock="Left" Content="عرض إدارة الكروت ←" Style="{StaticResource SecondaryButton}" Height="32" Padding="10,0" FontSize="10.5" Tag="cards|إدارة الكروت" Click="DashboardMetric_Click" /></DockPanel><TextBlock x:Name="CardStatusTotalTextBlock" Text="إجمالي الكروت: —" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,12" /><Button Style="{StaticResource CardStatusRowButtonStyle}" Padding="4,8" Tag="متاحة" Click="CardStatusDrilldown_Click" ToolTip="عرض سجلات الكروت: متاحة"><Grid FlowDirection="RightToLeft"><Grid.ColumnDefinitions><ColumnDefinition Width="110" /><ColumnDefinition Width="*" /><ColumnDefinition Width="55" /></Grid.ColumnDefinitions><TextBlock Grid.Column="0" Text="متاحة" FontSize="13" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}" /><ProgressBar x:Name="AvailableCardsProgressBar" Grid.Column="1" Value="0" Maximum="100" Height="12" VerticalAlignment="Center" Foreground="#16845B" Background="#E8F4EE" IsHitTestVisible="False" /><TextBlock x:Name="AvailableCardCountTextBlock" Grid.Column="2" Text="0" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}" /></Grid></Button><Button Style="{StaticResource CardStatusRowButtonStyle}" Padding="4,8" Tag="قيد الاستخدام" Click="CardStatusDrilldown_Click" ToolTip="عرض سجلات الكروت: قيد الاستخدام"><Grid FlowDirection="RightToLeft"><Grid.ColumnDefinitions><ColumnDefinition Width="110" /><ColumnDefinition Width="*" /><ColumnDefinition Width="55" /></Grid.ColumnDefinitions><TextBlock Grid.Column="0" Text="قيد الاستخدام" FontSize="13" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}" /><ProgressBar x:Name="InUseCardsProgressBar" Grid.Column="1" Value="0" Maximum="100" Height="12" VerticalAlignment="Center" Foreground="#2878C8" Background="#EAF2FB" IsHitTestVisible="False" /><TextBlock x:Name="InUseCardCountTextBlock" Grid.Column="2" Text="0" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}" /></Grid></Button><Button Style="{StaticResource CardStatusRowButtonStyle}" Padding="4,8" Tag="منتهية" Click="CardStatusDrilldown_Click" ToolTip="عرض سجلات الكروت: منتهية"><Grid FlowDirection="RightToLeft"><Grid.ColumnDefinitions><ColumnDefinition Width="110" /><ColumnDefinition Width="*" /><ColumnDefinition Width="55" /></Grid.ColumnDefinitions><TextBlock Grid.Column="0" Text="منتهية" FontSize="13" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}" /><ProgressBar x:Name="ExpiredCardsProgressBar" Grid.Column="1" Value="0" Maximum="100" Height="12" VerticalAlignment="Center" Foreground="#7B8491" Background="#F0F1F3" IsHitTestVisible="False" /><TextBlock x:Name="ExpiredCardCountTextBlock" Grid.Column="2" Text="0" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}" /></Grid></Button><Button Style="{StaticResource CardStatusRowButtonStyle}" Padding="4,8" Tag="موقوفة" Click="CardStatusDrilldown_Click" ToolTip="عرض سجلات الكروت: موقوفة"><Grid FlowDirection="RightToLeft"><Grid.ColumnDefinitions><ColumnDefinition Width="110" /><ColumnDefinition Width="*" /><ColumnDefinition Width="55" /></Grid.ColumnDefinitions><TextBlock Grid.Column="0" Text="موقوفة" FontSize="13" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}" /><ProgressBar x:Name="SuspendedCardsProgressBar" Grid.Column="1" Value="0" Maximum="100" Height="12" VerticalAlignment="Center" Foreground="#B9363E" Background="#FBEDEF" IsHitTestVisible="False" /><TextBlock x:Name="SuspendedCardCountTextBlock" Grid.Column="2" Text="0" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}" /></Grid></Button></StackPanel></Grid></Border><Border Grid.Column="2" Style="{StaticResource DashboardPanelStyle}"><Grid><Border Height="4" VerticalAlignment="Top" Background="{StaticResource PrimaryBrush}" CornerRadius="12,12,0,0" Margin="-14,-14,-14,0" /><Grid Margin="0,5,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions><DockPanel Grid.Row="0" Margin="0,0,0,3"><Border DockPanel.Dock="Right" Width="30" Height="30" Background="{StaticResource PrimaryLightBrush}" CornerRadius="15"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="15" Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border><TextBlock Text="مبيعات آخر 7 أيام" Style="{StaticResource DashboardCardHeadingStyle}" VerticalAlignment="Center" Margin="8,0,0,0" /><TextBlock DockPanel.Dock="Left" Text="ريال يمني" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" /></DockPanel><TextBlock Grid.Row="1" x:Name="DashboardSalesTotalTextBlock" Text="إجمالي المبيعات: —" Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,0,0,2" /><Grid Grid.Row="2" Margin="0,2,0,3" MinHeight="100" ClipToBounds="True" FlowDirection="LeftToRight"><Grid.ColumnDefinitions><ColumnDefinition Width="32" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><Grid Grid.Column="1" Margin="0,18,0,28" IsHitTestVisible="False"><Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="*" /><RowDefinition Height="*" /><RowDefinition Height="*" /><RowDefinition Height="*" /><RowDefinition Height="*" /></Grid.RowDefinitions><Border Grid.Row="0" BorderBrush="#E7EBF0" BorderThickness="0,1,0,0" VerticalAlignment="Center" /><Border Grid.Row="1" BorderBrush="#E7EBF0" BorderThickness="0,1,0,0" VerticalAlignment="Center" /><Border Grid.Row="2" BorderBrush="#E7EBF0" BorderThickness="0,1,0,0" VerticalAlignment="Center" /><Border Grid.Row="3" BorderBrush="#E7EBF0" BorderThickness="0,1,0,0" VerticalAlignment="Center" /><Border Grid.Row="4" BorderBrush="#E7EBF0" BorderThickness="0,1,0,0" VerticalAlignment="Center" /><Border Grid.Row="5" BorderBrush="#E7EBF0" BorderThickness="0,1,0,0" VerticalAlignment="Center" /></Grid><Grid Grid.Column="0" Margin="0,18,4,28" IsHitTestVisible="False"><Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="*" /><RowDefinition Height="*" /><RowDefinition Height="*" /><RowDefinition Height="*" /><RowDefinition Height="*" /></Grid.RowDefinitions><TextBlock Grid.Row="0" Text="100" FontSize="9.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Right" /><TextBlock Grid.Row="1" Text="80" FontSize="9.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Right" /><TextBlock Grid.Row="2" Text="60" FontSize="9.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Right" /><TextBlock Grid.Row="3" Text="40" FontSize="9.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Right" /><TextBlock Grid.Row="4" Text="20" FontSize="9.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Right" /><TextBlock Grid.Row="5" Text="0" FontSize="9.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Right" /></Grid><ItemsControl Grid.Column="1" x:Name="DashboardSalesDaysItemsControl" Margin="0,2,0,3" VerticalAlignment="Stretch" MinHeight="100" FlowDirection="RightToLeft" ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="7" /></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate><Button Tag="{Binding Day}" Click="SalesChartDay_Click" Background="Transparent" BorderThickness="0" Padding="1" Cursor="Hand" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Bottom" ToolTip="فتح عمليات المبيعات لهذا اليوم"><StackPanel VerticalAlignment="Bottom" Margin="2"><TextBlock Text="{Binding AmountShortLabel}" FontSize="10.5" HorizontalAlignment="Center" /><Border Background="{StaticResource SalesBarBrush}" Height="{Binding BarHeight}" MinHeight="8" CornerRadius="4,4,0,0" Margin="2,4,2,0" /><TextBlock Text="{Binding DayLabel}" FontSize="10" HorizontalAlignment="Center" Margin="0,5,0,0" /><TextBlock Text="{Binding DateLabel}" FontSize="9" Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center" /></StackPanel></Button></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></Grid><!-- The chart above is bound to the same deterministic sales service as the sales report. --><Button Grid.Row="3" Content="فتح مركز التقارير" Style="{StaticResource SecondaryButton}" Tag="reports|مركز التقارير" Click="DashboardMetric_Click" Height="32" Margin="0,4,0,0" /></Grid></Grid></Border></Grid><Border Grid.Row="3" Background="White" BorderBrush="{StaticResource PrimaryBorderBrush}" BorderThickness="1" CornerRadius="11" Padding="12,5" Margin="0,6,0,0" Effect="{StaticResource CardShadowEffect}"><StackPanel><DockPanel Margin="0,0,0,6" FlowDirection="RightToLeft"><Border DockPanel.Dock="Right" Width="26" Height="26" Background="{StaticResource PrimaryLightBrush}" CornerRadius="13" Margin="0,0,8,0"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border><TextBlock Text="انتقال سريع إلى العمل" FontSize="15.5" FontWeight="Bold" VerticalAlignment="Center" /><TextBlock DockPanel.Dock="Left" Text="اختصارات للأعمال الأكثر استخدامًا" FontSize="11" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" /></DockPanel><UniformGrid Columns="4" Height="40"><Button Tag="cards|إصدار الكروت" Style="{StaticResource PrimaryButton}" Click="DashboardMetric_Click" Height="40" Margin="0,0,5,0" Padding="7,0"><Grid FlowDirection="RightToLeft"><Grid.ColumnDefinitions><ColumnDefinition Width="25" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Grid.Column="0" Text="" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" /><TextBlock Grid.Column="1" Text="إضافة دفعة كروت" FontSize="11.5" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" /></Grid></Button><Button Tag="packages|كتالوج الباقات" Style="{StaticResource SecondaryButton}" Click="DashboardMetric_Click" Height="40" Margin="3,0" Padding="7,0"><Grid FlowDirection="RightToLeft"><Grid.ColumnDefinitions><ColumnDefinition Width="25" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Grid.Column="0" Text="" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" /><TextBlock Grid.Column="1" Text="إدارة الباقات" FontSize="11.5" VerticalAlignment="Center" HorizontalAlignment="Center" /></Grid></Button><Button Tag="network-users|النشطون الآن" Style="{StaticResource SecondaryButton}" Click="DashboardMetric_Click" Height="40" Margin="3,0" Padding="7,0"><Grid FlowDirection="RightToLeft"><Grid.ColumnDefinitions><ColumnDefinition Width="25" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Grid.Column="0" Text="" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" /><TextBlock Grid.Column="1" Text="المستخدمون النشطون" FontSize="11.5" VerticalAlignment="Center" HorizontalAlignment="Center" /></Grid></Button></UniformGrid></StackPanel></Border></Grid><Grid x:Name="SectionPage" Visibility="Collapsed"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions><Border x:Name="CardSystemSelectorPanel" Grid.Row="0" Visibility="Collapsed" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="6" Margin="0,0,0,7"><Grid FlowDirection="LeftToRight"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><RadioButton x:Name="HotSpotCardSystemTab" Grid.Column="1" GroupName="CardSystemSelection" Tag="hotspot" Content="هوتسبوت" Style="{StaticResource CardSystemSelectorTabStyle}" Checked="CardSystemTab_Checked" HorizontalAlignment="Stretch" FlowDirection="RightToLeft" Margin="4,0,4,0" IsChecked="True" /><RadioButton x:Name="UserManagerCardSystemTab" Grid.Column="0" GroupName="CardSystemSelection" Tag="user-manager" Content="يوزر منجر" Style="{StaticResource CardSystemSelectorTabStyle}" Checked="CardSystemTab_Checked" HorizontalAlignment="Stretch" FlowDirection="RightToLeft" Margin="4,0,4,0" IsChecked="False" /></Grid></Border><ScrollViewer x:Name="SectionTabsScrollViewer" Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled" FlowDirection="RightToLeft" Margin="0,0,0,12"><Border Background="{StaticResource AppBgBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="3"><UniformGrid x:Name="SectionTabsPanel" Rows="1" FlowDirection="RightToLeft" /></Border></ScrollViewer><Border x:Name="SectionContentBorder" Grid.Row="2" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="12" Padding="14"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions><Grid x:Name="SectionContentPanel" Grid.Row="0" Margin="3,2,3,10"><StackPanel><TextBlock x:Name="SectionContentTitleTextBlock" FontSize="21" FontWeight="Bold" Foreground="{StaticResource TextBrush}" /><TextBlock x:Name="SectionContentDescriptionTextBlock" FontSize="11.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,5,0,0" /></StackPanel></Grid><Grid Grid.Row="1"><Border x:Name="SectionPlaceholderCard" Background="{StaticResource AppBgBrush}" CornerRadius="10" Padding="18"><StackPanel VerticalAlignment="Top"><TextBlock Text="مساحة القسم" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" /><TextBlock x:Name="SectionPlaceholderTextBlock" Text="سيتم إضافة وظائف هذا القسم على مراحل، مع الحفاظ على الهيكل والتنقل الحاليين." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,7,0,0" /></StackPanel></Border><ContentControl x:Name="SectionFeatureContentHost" Visibility="Collapsed" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" /><ContentControl x:Name="SectionBodyHost" Visibility="Collapsed" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" /></Grid></Grid></Border></Grid></Grid><DockPanel Grid.Row="3" Margin="0,10,0,0"><TextBlock Text="تاب كارد · إدارة شبكات الإنترنت" FontSize="10" Foreground="{StaticResource MutedBrush}" /><TextBlock DockPanel.Dock="Left" Text="إدارة كروت الشبكات" FontSize="10" Foreground="{StaticResource MutedBrush}" /></DockPanel></Grid></Grid><Grid x:Name="CardStatusDrilldownOverlay" Visibility="Collapsed" Panel.ZIndex="998" Background="#990F172A" Focusable="True" KeyboardNavigation.TabNavigation="Cycle" FlowDirection="RightToLeft"><Border x:Name="CardStatusDrilldownDialogBorder" Width="1000" MaxWidth="1260" Height="620" MaxHeight="720" MinWidth="420" MinHeight="350" Padding="14" Background="White" BorderBrush="#E5D8D9" BorderThickness="1" CornerRadius="15" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions><DockPanel Grid.Row="0" Margin="0,0,0,12" LastChildFill="True"><Button DockPanel.Dock="Left" Content="إغلاق" Style="{StaticResource SecondaryButton}" Width="90" Height="36" Click="CloseCardStatusDrilldown_Click" /><StackPanel><TextBlock x:Name="CardStatusDrilldownTitleTextBlock" Text="تفاصيل الكروت" FontSize="21" FontWeight="Bold" Foreground="{StaticResource TextBrush}" /><TextBlock x:Name="CardStatusDrilldownSummaryTextBlock" Text="سجلات العرض" FontSize="11.5" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" TextWrapping="Wrap" /></StackPanel></DockPanel><Border Grid.Row="1" Background="#FFF8F8" BorderBrush="#F0CDD0" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,10"><TextBlock Text="تعكس هذه القائمة سجلات الكروت وحالاتها المسجلة؛ وتظهر تفاصيل الجلسة حسب البيانات المتاحة من مصدر المصادقة." FontSize="11.5" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" /></Border><DataGrid x:Name="CardStatusDrilldownGrid" Grid.Row="2" FlowDirection="RightToLeft" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" SelectionMode="Single" SelectionUnit="FullRow" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" EnableRowVirtualization="True" RowHeight="36" ColumnHeaderHeight="43" FontSize="11.5"><DataGrid.Columns><DataGridTextColumn Header="رقم الدفعة" Binding="{Binding BatchId}" Width="150" /><DataGridTextColumn Header="رقم الكرت" Binding="{Binding CardNumber}" Width="120" /><DataGridTextColumn Header="اسم المستخدم" Binding="{Binding Username}" Width="120" /><DataGridTextColumn Header="النظام" Binding="{Binding TargetSystem}" Width="135" /><DataGridTextColumn Header="الباقة" Binding="{Binding PackageName}" Width="180" /><DataGridTextColumn Header="ملف الاستخدام" Binding="{Binding RouterProfile}" Width="145" /><DataGridTextColumn Header="الصلاحية" Binding="{Binding PackageValidity}" Width="100" /><DataGridTextColumn Header="حد الوقت" Binding="{Binding TimeLimit}" Width="100" /><DataGridTextColumn Header="حد البيانات" Binding="{Binding DataLimit}" Width="110" /><DataGridTextColumn Header="السرعة" Binding="{Binding RateLimit}" Width="100" /><DataGridTextColumn Header="نقطة البيع" Binding="{Binding PointOfSale}" Width="130" /><DataGridTextColumn Header="حالة الحساب" Binding="{Binding DemoStatus}" Width="115" /><DataGridTextColumn Header="حالة السجل" Binding="{Binding LocalStatus}" Width="210" /></DataGrid.Columns></DataGrid><DockPanel Grid.Row="3" Margin="0,12,0,0" LastChildFill="True"><TextBlock DockPanel.Dock="Right" Text="تُعرض معلومات الحساب دون كشف كلمات المرور." FontSize="10.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" /><Button DockPanel.Dock="Left" Content="العودة إلى لوحة المعلومات" Style="{StaticResource SecondaryButton}" Height="36" Padding="14,0" Click="CloseCardStatusDrilldown_Click" /></DockPanel></Grid></Border></Grid><Grid x:Name="LocationModalOverlay" Visibility="Collapsed" Panel.ZIndex="999" Background="#990F172A" Focusable="True" KeyboardNavigation.TabNavigation="Cycle"><Border x:Name="LocationModalBorder" Width="760" MaxWidth="900" MaxHeight="470" Padding="24" Background="White" BorderBrush="#E5D8D9" BorderThickness="1" CornerRadius="16" HorizontalAlignment="Center" VerticalAlignment="Center"><ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel><DockPanel Margin="0,0,0,8"><Border DockPanel.Dock="Right" Width="46" Height="46" Background="{StaticResource PrimaryLightBrush}" CornerRadius="10" Padding="6"><TextBlock Text="⌖" FontSize="26" Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border><StackPanel Margin="12,0,0,0" VerticalAlignment="Center"><TextBlock Text="تحديد موقع الشبكة" FontSize="21" FontWeight="Bold" /><TextBlock Text="بيانات موقع الشبكة" FontSize="11.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0" /></StackPanel><Border DockPanel.Dock="Left" Background="{StaticResource PrimaryLightBrush}" CornerRadius="12" Padding="10,6" VerticalAlignment="Center"><TextBlock Text="معلومات الشبكة" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" /></Border></DockPanel><TextBlock Text="اختر المحافظة أولًا، ثم المديرية، ثم المنطقة. لن تتاح كل قائمة إلا بعد اختيار المستوى الذي يسبقها." FontSize="12" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,18" /><Grid Margin="0,0,0,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><StackPanel Grid.Column="0"><TextBlock Text="المحافظة" Style="{StaticResource FieldLabel}" /><ComboBox x:Name="GovernorateComboBox" Height="42" SelectionChanged="GovernorateComboBox_SelectionChanged" /></StackPanel><StackPanel Grid.Column="2"><TextBlock Text="المديرية" Style="{StaticResource FieldLabel}" /><ComboBox x:Name="DirectorateComboBox" Height="42" IsEnabled="False" SelectionChanged="DirectorateComboBox_SelectionChanged" /></StackPanel><StackPanel Grid.Column="4"><TextBlock Text="المنطقة" Style="{StaticResource FieldLabel}" /><ComboBox x:Name="AreaComboBox" Height="42" IsEnabled="False" /></StackPanel></Grid><TextBlock Text="أقرب معلم بارز" Style="{StaticResource FieldLabel}" /><TextBox x:Name="LandmarkTextBox" Height="42" Margin="0,0,0,14" ToolTip="مثال: جوار سوق معين أو مقابل مبنى معروف" /><TextBlock x:Name="LocationStatusTextBlock" MinHeight="20" Foreground="{StaticResource DangerBrush}" FontSize="11.5" Margin="0,0,0,8" TextWrapping="Wrap" /><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><Button Grid.Column="0" Content="حفظ الموقع والمتابعة" Style="{StaticResource PrimaryButton}" Height="44" Click="SaveLocationButton_Click" /><Button x:Name="CancelLocationEditButton" Grid.Column="2" Content="إلغاء" Style="{StaticResource SecondaryButton}" Height="44" MinWidth="100" Visibility="Collapsed" Click="CancelLocationEditButton_Click" /></Grid><TextBlock Text="يساعد موقع الشبكة على تنظيم بيانات المساحة التي تعمل عليها." FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,10,0,0" TextWrapping="Wrap" /></StackPanel></ScrollViewer></Border></Grid><Grid x:Name="RouterConnectionOverlay" Visibility="Collapsed" Panel.ZIndex="1000" Background="#990F172A" Focusable="True" KeyboardNavigation.TabNavigation="Cycle" FlowDirection="RightToLeft" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"><Border Width="590" MaxWidth="900" MaxHeight="680" Padding="22" Background="White" BorderBrush="#E6D4D6" BorderThickness="1" CornerRadius="16" HorizontalAlignment="Center" VerticalAlignment="Center"><ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel><DockPanel Margin="0,0,0,14"><Button DockPanel.Dock="Left" Content="إغلاق" Style="{StaticResource SecondaryButton}" Width="82" Height="34" Click="CloseRouterConnectionOverlay_Click" /><StackPanel><TextBlock Text="ROUTER CONNECTION" FontSize="10" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" /><TextBlock Text="الاتصال بالراوتر" FontSize="23" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,4,0,0" /><TextBlock Text="اختبر الاتصال مرة واحدة واحفظ بيانات هذا الراوتر لهذه المساحة على جهازك." FontSize="11.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0" /></StackPanel></DockPanel><Border Background="#FFF7F7" BorderBrush="#F0D3D5" BorderThickness="1" CornerRadius="9" Padding="11" Margin="0,0,0,14"><TextBlock Text="الاتصال للقراءة فقط عبر HTTPS. تحفظ كلمة المرور في Windows Credential Manager عند تحديد الحفظ، ولا تُكتب داخل ملف إعدادات عادي." FontSize="11" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" /></Border><Grid Margin="0,0,0,10"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><StackPanel Grid.Column="0"><TextBlock Text="اسم المستخدم" Style="{StaticResource FieldLabel}" /><TextBox x:Name="RouterConnectionUsernameTextBox" Padding="9" FlowDirection="LeftToRight" /></StackPanel><StackPanel Grid.Column="2"><TextBlock Text="عنوان HTTPS" Style="{StaticResource FieldLabel}" /><TextBox x:Name="RouterConnectionAddressTextBox" Padding="9" FlowDirection="LeftToRight" ToolTip="مثال: https://192.168.88.1:8443" /></StackPanel></Grid><TextBlock Text="كلمة المرور" Style="{StaticResource FieldLabel}" /><PasswordBox x:Name="RouterConnectionPasswordBox" Padding="9" Margin="0,0,0,9" /><CheckBox x:Name="SaveRouterConnectionCheckBox" IsChecked="True" Content="حفظ بيانات الاتصال على هذا الجهاز لهذه المساحة" FontSize="11.5" Foreground="{StaticResource TextBrush}" Margin="0,2,0,12" /><TextBlock x:Name="RouterConnectionDialogStatusTextBlock" Text="إذا سبق حفظ اتصال لهذه المساحة، فستظهر بياناته هنا." FontSize="11.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" MinHeight="28" Margin="0,0,0,12" /><WrapPanel HorizontalAlignment="Right"><Button x:Name="ConnectRouterButton" Content="اختبار الاتصال وحفظه" Style="{StaticResource PrimaryButton}" Click="ConnectRouterButton_Click" MinWidth="150" Margin="0,0,8,7" /><Button Content="قطع الاتصال" Style="{StaticResource SecondaryButton}" Click="DisconnectRouterButton_Click" Margin="0,0,8,7" /><Button Content="حذف الاتصال المحفوظ" Style="{StaticResource SecondaryButton}" Click="ClearSavedRouterConnectionButton_Click" Margin="0,0,0,7" /></WrapPanel></StackPanel></ScrollViewer></Border></Grid></Grid></Window>
+</ScrollViewer></DockPanel></Border><Grid Grid.Row="1" Grid.Column="1" Margin="14,4,14,4" ClipToBounds="True"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+<Grid Grid.Row="0"
+      FlowDirection="LeftToRight"
+      Margin="0,0,0,2"
+      Height="30">
+
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="*" />
+    </Grid.ColumnDefinitions>
+
+    <!-- شارة الموقع: تبقى كما هي ولكن بحجم أصغر -->
+    <Border Grid.Column="0"
+            Visibility="{Binding Visibility, ElementName=LocationBadgeTextBlock}"
+            Background="White"
+            BorderBrush="{StaticResource BorderBrushSoft}"
+            BorderThickness="1"
+            CornerRadius="{StaticResource RadiusControl}"
+            Padding="8,4"
+            VerticalAlignment="Center">
+
+        <TextBlock x:Name="LocationBadgeTextBlock"
+                   Text="الموقع لم يُحدد"
+                   FontSize="10"
+                   Foreground="{StaticResource PrimaryBrush}" />
+    </Border>
+
+    <!-- رأس مصغّر لمسار التنقّل -->
+    <StackPanel Grid.Column="1"
+                Orientation="Horizontal"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                FlowDirection="RightToLeft">
+
+        <!-- يُحتفظ بالعنصر للتوافق مع C#، دون إطار وردي أو مساحة محجوزة -->
+        <TextBlock x:Name="PageTitleIconTextBlock"
+                   Visibility="Collapsed"
+                   Width="0"
+                   Height="0"
+                   Text=""
+                   FontFamily="Segoe MDL2 Assets" />
+
+        <TextBlock x:Name="PageTitleTextBlock"
+                   FontSize="12"
+                   FontWeight="Normal"
+                   Foreground="{StaticResource TextBrush}"
+                   TextAlignment="Right"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Center"
+                   TextWrapping="NoWrap" />
+
+        <TextBlock x:Name="PageSubtitleTextBlock"
+                   Visibility="Collapsed"
+                   Text=""
+                   FontSize="10" />
+    </StackPanel>
+</Grid>
+<!-- Required location is collected in the blocking modal overlay below. -->
+<Grid x:Name="PageHost" Grid.Row="2" ClipToBounds="True">
+    <Grid
+            x:Name="DashboardPage"
+            Visibility="Visible"
+            ClipToBounds="False"
+            Margin="0,0,0,12"
+            UseLayoutRounding="True"
+            SnapsToDevicePixels="True"
+            TextOptions.TextFormattingMode="Display"
+            TextOptions.TextRenderingMode="ClearType"
+            >
+        <Grid.Resources>
+    <Style x:Key="DashboardTableStyle" TargetType="{x:Type DataGrid}">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+        <Setter Property="BorderBrush" Value="#E0E7EF"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="#E8EDF3"/>
+        <Setter Property="VerticalGridLinesBrush" Value="#F0F3F7"/>
+        <Setter Property="RowBackground" Value="#FFFFFF"/>
+        <Setter Property="AlternatingRowBackground" Value="#F7F9FC"/>
+        <Setter Property="AlternationCount" Value="2"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="ColumnHeaderStyle"
+                Value="{StaticResource DashboardTableHeaderStyle}"/>
+        <Setter Property="CellStyle"
+                Value="{StaticResource DashboardTableCellStyle}"/>
+        <Setter Property="RowStyle"
+                Value="{StaticResource DashboardTableRowStyle}"/>
+    </Style>
+
+    <Style x:Key="DashboardTableHeaderStyle"
+           TargetType="{x:Type DataGridColumnHeader}">
+        <Setter Property="Background" Value="#F0F4F9"/>
+        <Setter Property="Foreground" Value="#344054"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="Padding" Value="7,4"/>
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="BorderBrush" Value="#E0E7EF"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+    </Style>
+
+    <Style x:Key="DashboardTableCellStyle"
+           TargetType="{x:Type DataGridCell}">
+        <Setter Property="Padding" Value="7,0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+        <Setter Property="BorderBrush" Value="#E8EDF3"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+
+    <Style x:Key="DashboardTableRowStyle"
+           TargetType="{x:Type DataGridRow}">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="MinHeight" Value="25"/>
+
+        <Style.Triggers>
+            <Trigger Property="AlternationIndex" Value="1">
+                <Setter Property="Background" Value="#F7F9FC"/>
+            </Trigger>
+
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#FFF1F2"/>
+            </Trigger>
+
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="#FCEBED"/>
+                <Setter Property="Foreground"
+                        Value="{StaticResource PrimaryDarkBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+</Grid.Resources>
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="80" />
+        <RowDefinition Height="1.60*" />
+        <RowDefinition Height="0.75*" />
+    </Grid.RowDefinitions>
+    <!-- Dashboard toolbar: compact actions only; page title remains in the shared Nexora header. -->
+    <Grid Grid.Row="0" FlowDirection="LeftToRight" Margin="0,0,0,8">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0" Orientation="Horizontal" FlowDirection="LeftToRight"
+                    VerticalAlignment="Center" HorizontalAlignment="Left">
+            <Button Content="إصدار كروت جديدة" Style="{StaticResource PrimaryButton}" Height="31"
+                    Padding="13,0" FontSize="11.5" Margin="0,0,6,0"
+                    Tag="cards|إصدار الكروت" Click="DashboardMetric_Click" Visibility="Collapsed" />
+            <Button Content="تحديث العرض" Style="{StaticResource SecondaryButton}" Height="31"
+                    Padding="12,0" FontSize="11.5" Click="DashboardRefreshButton_Click" Visibility="Collapsed" />
+        </StackPanel>
+        <TextBlock Grid.Column="1" x:Name="DashboardLastUpdatedTextBlock" Text="عرض البيانات المتاحة في النظام"
+                   FontSize="10.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"
+                   HorizontalAlignment="Right" FlowDirection="RightToLeft" />
+    </Grid>
+
+    <!-- Three concise KPIs, consistent with the Nexora red identity. -->
+    <UniformGrid Grid.Row="1"
+             Columns="5"
+             Height="80"
+             Margin="0,0,0,4"
+             FlowDirection="RightToLeft">
+             <!-- Revenue KPI: value supplied by the sales service -->
+            <Button Style="{StaticResource DashboardMetricButtonStyle}"
+                    Margin="0,0,6,0"
+                    Padding="10,5"
+                    IsHitTestVisible="False"
+                    Focusable="False">
+                <Grid FlowDirection="RightToLeft">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="46" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Margin="0,0,4,0">
+                        <TextBlock Text="إيرادات المبيعات"
+                                FontSize="11"
+                                Foreground="{StaticResource MutedBrush}" />
+
+                        <TextBlock x:Name="DashboardRevenueMetricTextBlock"
+                                Text="—"
+                                FontSize="20"
+                                FontWeight="Bold"
+                                Foreground="#7C3AED"
+                                Margin="0,3,0,0" />
+
+                        <TextBlock Text="إجمالي قيمة المبيعات"
+                                FontSize="9"
+                                Foreground="{StaticResource MutedBrush}"
+                                Margin="0,1,0,0" />
+                    </StackPanel>
+
+                    <Border Grid.Column="1"
+                            Width="40"
+                            Height="40"
+                            Background="#F1E9FE"
+                            CornerRadius="12"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center">
+                        <TextBlock Text=""
+                                FontFamily="Segoe MDL2 Assets"
+                                FontSize="18"
+                                Foreground="#7C3AED"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center" />
+                    </Border>
+                </Grid>
+            </Button>
+
+            <!-- Cards sold KPI: value supplied by the sales service -->
+            <Button Style="{StaticResource DashboardMetricButtonStyle}"
+                    Margin="3,0"
+                    Padding="10,5"
+                    IsHitTestVisible="False"
+                    Focusable="False">
+                <Grid FlowDirection="RightToLeft">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="46" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Margin="0,0,4,0">
+                        <TextBlock Text="الكروت المباعة"
+                                FontSize="11"
+                                Foreground="{StaticResource MutedBrush}" />
+
+                        <TextBlock x:Name="DashboardCardsSoldMetricTextBlock"
+                                Text="—"
+                                FontSize="20"
+                                FontWeight="Bold"
+                                Foreground="#2878C8"
+                                Margin="0,3,0,0" />
+
+                        <TextBlock Text="حسب سجل المبيعات"
+                                FontSize="9"
+                                Foreground="{StaticResource MutedBrush}"
+                                Margin="0,1,0,0" />
+                    </StackPanel>
+
+                    <Border Grid.Column="1"
+                            Width="40"
+                            Height="40"
+                            Background="#E5F0FF"
+                            CornerRadius="12"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center">
+                        <TextBlock Text=""
+                                FontFamily="Segoe MDL2 Assets"
+                                FontSize="18"
+                                Foreground="#2878C8"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center" />
+                    </Border>
+                </Grid>
+            </Button>
+        <Button Style="{StaticResource DashboardMetricButtonStyle}" Tag="متاحة"
+                Click="CardStatusDrilldown_Click" Margin="0,0,6,0" Padding="10.5">
+            <Grid FlowDirection="RightToLeft">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="50" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,4,0">
+                    <TextBlock Text="الكروت المتاحة" FontSize="12" Foreground="{StaticResource MutedBrush}" />
+                    <TextBlock x:Name="DashboardAvailableCardsMetricTextBlock"
+                        Text="—"
+                        FontSize="21"
+                        FontWeight="Bold"
+                        Foreground="#16845B"
+                        Margin="0,3,0,0"/>
+                                    <TextBlock x:Name="DashboardAvailableCardsMetricDetailTextBlock" Text="من سجل الكروت"
+                               FontSize="9.5" Foreground="#16845B" Margin="0,1,0,0" />
+                </StackPanel>
+                <Border Grid.Column="1" Width="44" Height="44" Background="#FCEDEF" CornerRadius="14"
+                        VerticalAlignment="Top" HorizontalAlignment="Center">
+                    <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="19"
+                               Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Border>
+            </Grid>
+        </Button>
+
+        <Button Style="{StaticResource DashboardMetricButtonStyle}" Tag="cards|المعلقات"
+                Click="DashboardMetric_Click" Margin="3,0" Padding="10.5">
+            <Grid FlowDirection="RightToLeft">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="50" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,4,0">
+                    <TextBlock Text="دفعات تحتاج متابعة" FontSize="12" Foreground="{StaticResource MutedBrush}" />
+                    <TextBlock x:Name="DashboardAttentionBatchesMetricTextBlock" Text="—" FontSize="21"
+                               FontWeight="Bold" Foreground="#B77908" Margin="0,3,0,0" />
+                    <TextBlock x:Name="DashboardAttentionBatchesMetricDetailTextBlock" Text="حسب حالات التزويد المسجلة"
+                               FontSize="10.5" Foreground="{StaticResource DangerBrush}" Margin="0,1,0,0" />
+                </StackPanel>
+                <Border Grid.Column="1" Width="44" Height="44" Background="#FFF4E4" CornerRadius="14"
+                        VerticalAlignment="Top" HorizontalAlignment="Center">
+                    <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="19"
+                               Foreground="#B77908" HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Border>
+            </Grid>
+        </Button>
+
+        <Button Style="{StaticResource DashboardMetricButtonStyle}" Tag="قيد الاستخدام"
+                Click="CardStatusDrilldown_Click" Margin="6,0,0,0" Padding="10.5">
+            <Grid FlowDirection="RightToLeft">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="50" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,4,0">
+                    <TextBlock Text="كروت قيد الاستخدام" FontSize="12" Foreground="{StaticResource MutedBrush}" />
+                    <TextBlock x:Name="DashboardInUseCardsMetricTextBlock" Text="—" FontSize="21"
+                               FontWeight="Bold" Foreground="#2878C8" Margin="0,3,0,0" />
+                    <TextBlock x:Name="DashboardInUseCardsMetricDetailTextBlock" Text="وفق الحالة المسجلة"
+                               FontSize="10.5" Foreground="#2878C8" Margin="0,1,0,0" />
+                </StackPanel>
+                <Border Grid.Column="1" Width="44" Height="44" Background="#EAF2FD" CornerRadius="14"
+                        VerticalAlignment="Top" HorizontalAlignment="Center">
+                    <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="19"
+                               Foreground="#2878C8" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+            </Grid>
+        </Button>
+    </UniformGrid>
+
+    <!-- Operational panels. Left-to-right grid order is explicit; each panel keeps Arabic RTL. -->
+    <Grid Grid.Row="2" FlowDirection="LeftToRight" Margin="0,0,0,10"  ClipToBounds="True">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.18*" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="1.15*" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="1.55*" />
+        </Grid.ColumnDefinitions>
+        <!-- Sales analytics: actual daily summaries from DemoSalesService. -->
+        <Border Grid.Column="0"
+                Style="{StaticResource DashboardPanelStyle}"
+                Padding="12"
+                FlowDirection="RightToLeft"
+                BorderBrush="{StaticResource PrimaryBorderBrush}"
+                BorderThickness="1"
+                >
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0" Margin="0,0,0,7" LastChildFill="False">
+                    <Border DockPanel.Dock="Right"
+                            Width="30"
+                            Height="30"
+                            Background="#E8F7EE"
+                            CornerRadius="9">
+                        <TextBlock Text=""
+                                FontFamily="Segoe MDL2 Assets"
+                                FontSize="12"
+                                Foreground="#16845B"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center" />
+                    </Border>
+
+                    <StackPanel DockPanel.Dock="Right" Margin="0,0,8,0" VerticalAlignment="Center">
+                        <TextBlock Text="أداء المبيعات"
+                                Style="{StaticResource DashboardCardHeadingStyle}"
+                                FontSize="12"
+                                FontWeight="SemiBold" />
+                        <TextBlock Text="الإيرادات اليومية حسب معاملات البيع"
+                                FontSize="9"
+                                Foreground="{StaticResource MutedBrush}"
+                                Margin="0,2,0,0" />
+                    </StackPanel>
+
+                    <Border DockPanel.Dock="Left"
+                            Background="#FFF4E4"
+                            CornerRadius="8"
+                            Padding="7,4"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="سيناريو تجريبي"
+                                FontSize="9"
+                                FontWeight="SemiBold"
+                                Foreground="#9A6700" />
+                    </Border>
+                </DockPanel>
+
+                <Grid Grid.Row="1"
+                    FlowDirection="LeftToRight"
+                    Margin="0,3,0,2"
+                    MinHeight="164">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="27" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Subtle horizontal guide lines. -->
+                    <Grid Grid.Column="1"
+                        Margin="0,14,0,29"
+                        IsHitTestVisible="False">
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0"
+                                BorderBrush="#E8EDF2"
+                                BorderThickness="0,1,0,0" />
+                        <Border Grid.Row="1"
+                                BorderBrush="#E8EDF2"
+                                BorderThickness="0,1,0,0" />
+                        <Border Grid.Row="2"
+                                BorderBrush="#E8EDF2"
+                                BorderThickness="0,1,0,0" />
+                        <Border Grid.Row="3"
+                                BorderBrush="#E8EDF2"
+                                BorderThickness="0,1,0,0" />
+                    </Grid>
+
+                    <TextBlock Grid.Column="0"
+                            Text="ر.ي"
+                            FontSize="9"
+                            Foreground="{StaticResource MutedBrush}"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Right"
+                            Margin="0,1,2,0" />
+
+                    <ItemsControl Grid.Column="1"
+                                x:Name="DashboardSalesDaysItemsControl"
+                                FlowDirection="LeftToRight"
+                                VerticalAlignment="Stretch"
+                                MinHeight="164">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="7" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid  Height="164"
+                                        Margin="1,0"
+                                        ClipToBounds="False">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0"
+                                            Text="{Binding AmountShortLabel}"
+                                            FontSize="8.5"
+                                            Foreground="{StaticResource MutedBrush}"
+                                            HorizontalAlignment="Center"
+                                            TextTrimming="CharacterEllipsis"
+                                            ToolTip="{Binding Amount}" />
+
+                                    <Border Grid.Row="1"
+                                            Background="{StaticResource SalesBarBrush}"
+                                            Height="{Binding BarHeight}"
+                                            MinHeight="4"
+                                            MaxHeight="108"
+                                            CornerRadius="3,3,0,0"
+                                            Margin="4,0"
+                                            VerticalAlignment="Bottom"
+                                            ToolTip="{Binding AmountShortLabel}" />
+
+                                    <StackPanel Grid.Row="2"
+                                                Margin="0,4,0,0">
+                                        <TextBlock Text="{Binding DayLabel}"
+                                                FontSize="9"
+                                                Foreground="{StaticResource TextBrush}"
+                                                HorizontalAlignment="Center"
+                                                TextTrimming="CharacterEllipsis" />
+
+                                        <TextBlock Text="{Binding DateLabel}"
+                                                FontSize="8"
+                                                Foreground="{StaticResource MutedBrush}"
+                                                HorizontalAlignment="Center"
+                                                Margin="0,1,0,0" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+
+                <TextBlock Grid.Row="2"
+                        x:Name="DashboardSalesChartFooterTextBlock"
+                        Text="يجري تحميل ملخص المبيعات..."
+                        FontSize="9"
+                        Foreground="{StaticResource MutedBrush}"
+                        TextWrapping="Wrap"
+                        Margin="0,5,0,0" />
+            </Grid>
+        </Border>
+        <!-- Combined network status and synchronization panel. -->
+<Border Grid.Column="2"
+        Style="{StaticResource DashboardPanelStyle}"
+        Padding="12"
+        FlowDirection="RightToLeft"
+        BorderBrush="{StaticResource PrimaryBorderBrush}"
+        BorderThickness="1">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Connection status -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,8">
+
+            <Border DockPanel.Dock="Right"
+                    Width="30"
+                    Height="30"
+                    Background="#E5F0FF"
+                    CornerRadius="10">
+
+                <TextBlock Text=""
+                           FontFamily="Segoe MDL2 Assets"
+                           FontSize="16"
+                           Foreground="#2878C8"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+            </Border>
+
+            <StackPanel Margin="8,0,0,0"
+                        VerticalAlignment="Center">
+
+                <TextBlock Text="اتصال الشبكة"
+                           Style="{StaticResource DashboardCardHeadingStyle}"
+                           FontSize="12" />
+
+                <TextBlock Text="حالة آخر قراءة ناجحة"
+                           FontSize="9"
+                           Foreground="{StaticResource MutedBrush}"
+                           Margin="0,2,0,0" />
+            </StackPanel>
+
+            <Border x:Name="DashboardNetworkStatusBadge"
+                    DockPanel.Dock="Left"
+                    Background="#FEE2E2"
+                    CornerRadius="9"
+                    Padding="8,4"
+                    VerticalAlignment="Center">
+
+                <StackPanel Orientation="Horizontal"
+                            FlowDirection="RightToLeft">
+
+                    <Ellipse x:Name="DashboardNetworkStatusDot"
+                             Width="7"
+                             Height="7"
+                             Fill="#DC2626"
+                             VerticalAlignment="Center"
+                             Margin="0,0,5,0" />
+
+                    <TextBlock x:Name="DashboardNetworkStatusBadgeTextBlock"
+                               Text="غير متصل"
+                               FontSize="9.5"
+                               FontWeight="SemiBold"
+                               Foreground="#B91C1C" />
+                </StackPanel>
+            </Border>
+        </DockPanel>
+
+        <!-- Router identity and interface statistics -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,8">
+
+            <TextBlock Text="هوية الراوتر"
+                       FontSize="9.5"
+                       Foreground="{StaticResource MutedBrush}" />
+
+            <TextBlock x:Name="DashboardNetworkIdentityTextBlock"
+                       Text="لم تُسجل قراءة ناجحة للراوتر"
+                       FontSize="12"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource TextBrush}"
+                       TextTrimming="CharacterEllipsis"
+                       Margin="0,3,0,7" />
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="8" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0"
+                        Background="#F4F7FB"
+                        BorderBrush="#E1E8F0"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="8,6">
+
+                    <StackPanel>
+                        <TextBlock Text="إجمالي الواجهات"
+                                   FontSize="9"
+                                   Foreground="{StaticResource MutedBrush}" />
+
+                        <TextBlock x:Name="DashboardNetworkInterfacesTextBlock"
+                                   Text="—"
+                                   FontSize="17"
+                                   FontWeight="Bold"
+                                   Foreground="#2878C8"
+                                   Margin="0,2,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2"
+                        Background="#F0F8F4"
+                        BorderBrush="#D8EDE2"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="8,6">
+
+                    <StackPanel>
+                        <TextBlock Text="واجهات نشطة"
+                                   FontSize="9"
+                                   Foreground="{StaticResource MutedBrush}" />
+
+                        <TextBlock x:Name="DashboardNetworkActiveInterfacesTextBlock"
+                                   Text="—"
+                                   FontSize="17"
+                                   FontWeight="Bold"
+                                   Foreground="#16845B"
+                                   Margin="0,2,0,0" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <TextBlock x:Name="DashboardNetworkLastReadTextBlock"
+                       Text="آخر قراءة: غير متاحة"
+                       FontSize="9"
+                       Foreground="{StaticResource MutedBrush}"
+                       Margin="0,5,0,0"
+                       TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+
+        <!-- Synchronization heading -->
+        <DockPanel Grid.Row="2"
+                   Margin="0,3,0,4">
+
+            <TextBlock Text="حالة المزامنة"
+                       Style="{StaticResource DashboardCardHeadingStyle}"
+                       FontSize="11.5"
+                       VerticalAlignment="Center" />
+
+            <Border DockPanel.Dock="Left"
+                    Background="#F1E9FE"
+                    CornerRadius="7"
+                    Padding="7,3">
+
+                <TextBlock Text="حالات السجلات"
+                           FontSize="8.5"
+                           FontWeight="SemiBold"
+                           Foreground="#7C3AED" />
+            </Border>
+        </DockPanel>
+
+        <!-- Sync success ring and actionable state counts -->
+        <!-- Compact synchronization analytics -->
+            <Grid Grid.Row="3" Margin="0,2,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="66" />
+                    <ColumnDefinition Width="8" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Compact success indicator -->
+                <Grid Grid.Column="0"
+                    Width="62"
+                    Height="62"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+
+                    <Ellipse Stroke="#E8EBEF"
+                            StrokeThickness="6" />
+
+                    <Path x:Name="DashboardSyncProgressArcPath"
+                        Width="62"
+                        Height="62"
+                        Stretch="Fill"
+                        Stroke="#16A36A"
+                        StrokeThickness="6"
+                        StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round"
+                        Data="{x:Null}"
+                        IsHitTestVisible="False" />
+
+                    <StackPanel HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+
+                        <TextBlock x:Name="DashboardSyncSuccessPercentTextBlock"
+                                Text="—"
+                                FontSize="12"
+                                FontWeight="Bold"
+                                HorizontalAlignment="Center"
+                                Foreground="{StaticResource TextBrush}" />
+
+                        <TextBlock Text="نجاح"
+                                FontSize="8"
+                                HorizontalAlignment="Center"
+                                Foreground="{StaticResource MutedBrush}" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Four equally sized counters -->
+                <Grid Grid.Column="2"
+                    Margin="0,1,0,1"
+                    MinWidth="150">
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="6" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Succeeded -->
+                    <Border Grid.Row="0"
+                            Grid.Column="0"
+                            Background="#F0F8F4"
+                            BorderBrush="#D8EDE2"
+                            BorderThickness="1"
+                            CornerRadius="7"
+                            Padding="6,4">
+
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="نجحت"
+                                    FontSize="9"
+                                    Foreground="#16845B" />
+
+                            <TextBlock x:Name="DashboardSyncSuccessCountTextBlock"
+                                    Text="0"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="#16845B"
+                                    Margin="0,2,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Pending -->
+                    <Border Grid.Row="0"
+                            Grid.Column="2"
+                            Background="#FFF8ED"
+                            BorderBrush="#F4E5C8"
+                            BorderThickness="1"
+                            CornerRadius="7"
+                            Padding="6,4">
+
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="معلقة"
+                                    FontSize="9"
+                                    Foreground="#94620A" />
+
+                            <TextBlock x:Name="DashboardSyncPendingCountTextBlock"
+                                    Text="0"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="#B77908"
+                                    Margin="0,2,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Failed -->
+                    <Border Grid.Row="2"
+                            Grid.Column="0"
+                            Background="#FFF1F2"
+                            BorderBrush="#F4D5D8"
+                            BorderThickness="1"
+                            CornerRadius="7"
+                            Padding="6,4">
+
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="فشلت"
+                                    FontSize="9"
+                                    Foreground="{StaticResource DangerBrush}" />
+
+                            <TextBlock x:Name="DashboardSyncFailedCountTextBlock"
+                                    Text="0"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="{StaticResource DangerBrush}"
+                                    Margin="0,2,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Review -->
+                    <Border Grid.Row="2"
+                            Grid.Column="2"
+                            Background="#F4F6F9"
+                            BorderBrush="#E0E6ED"
+                            BorderThickness="1"
+                            CornerRadius="7"
+                            Padding="6,4">
+
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="للمراجعة"
+                                    FontSize="9"
+                                    Foreground="#64748B" />
+
+                            <TextBlock x:Name="DashboardSyncReviewCountTextBlock"
+                                    Text="0"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="#475569"
+                                    Margin="0,2,0,0" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+        <!-- Real data notes -->
+        <StackPanel Grid.Row="4"
+                    Margin="0,5,0,0"
+                    Visibility="Collapsed">
+
+            <TextBlock x:Name="DashboardNetworkStatusHelpTextBlock"
+                       Text="اختبر اتصال HTTPS للراوتر لعرض بياناته."
+                       FontSize="8.5"
+                       Foreground="{StaticResource MutedBrush}"
+                       TextWrapping="Wrap"
+                       MaxHeight="28" />
+
+            <TextBlock x:Name="DashboardSyncFooterTextBlock"
+                       Text="تُعرض حالات السجلات المتاحة فقط."
+                       FontSize="8.5"
+                       Foreground="{StaticResource MutedBrush}"
+                       TextWrapping="Wrap"
+                       MaxHeight="30"
+                       Margin="0,3,0,0" />
+        </StackPanel>
+    </Grid>
+</Border>
+
+        <!-- Seven-day issuance analytics based on actual card CreatedAt values. -->
+<Border Grid.Column="4"
+        Style="{StaticResource DashboardPanelStyle}"
+        Padding="12"
+        FlowDirection="RightToLeft"
+        BorderBrush="{StaticResource PrimaryBorderBrush}"
+        BorderThickness="1"
+        >
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,10">
+
+            <Border DockPanel.Dock="Right"
+                    Width="30"
+                    Height="30"
+                    Background="#FFF3DF"
+                    CornerRadius="10">
+
+                <TextBlock Text=""
+                           FontFamily="Segoe MDL2 Assets"
+                           FontSize="16"
+                           Foreground="#B77908"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+            </Border>
+
+            <StackPanel Margin="9,0,0,0"
+                        VerticalAlignment="Center">
+
+                <TextBlock Text="تحليل نشاط الإصدار"
+                           Style="{StaticResource DashboardCardHeadingStyle}"
+                           FontSize="12"
+                           FontWeight="SemiBold" />
+
+                <TextBlock Text="حركة إنشاء الكروت اليومية"
+                           FontSize="9.5"
+                           Foreground="{StaticResource MutedBrush}"
+                           Margin="0,2,0,0" />
+            </StackPanel>
+
+            <Border DockPanel.Dock="Left"
+                    Background="#FFF4E4"
+                    BorderBrush="#F5D6A4"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="7,4"
+                    VerticalAlignment="Center">
+
+                <TextBlock Text="7 أيام"
+                           FontSize="9"
+                           FontWeight="SemiBold"
+                           Foreground="#94620A" />
+            </Border>
+        </DockPanel>
+
+        <!-- Analytical summary -->
+        <Grid Grid.Row="1" Margin="0,0,0,9">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="6" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="6" />
+                <ColumnDefinition Width="1.15*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Total issued -->
+            <Border Grid.Column="0"
+                    Background="#F3F7FC"
+                    BorderBrush="#E1EAF6"
+                    BorderThickness="1"
+                    CornerRadius="9"
+                    Padding="8,7">
+
+                <StackPanel>
+                    <TextBlock Text="إجمالي الإصدار"
+                               FontSize="9"
+                               Foreground="#60758F"
+                               TextTrimming="CharacterEllipsis" />
+
+                    <TextBlock x:Name="DashboardIssuanceTotalMetricTextBlock"
+                               Text="—"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Foreground="#2878C8"
+                               Margin="0,4,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- Daily average -->
+            <Border Grid.Column="2"
+                    Background="#F0F8F4"
+                    BorderBrush="#D8EDE2"
+                    BorderThickness="1"
+                    CornerRadius="9"
+                    Padding="8,7">
+
+                <StackPanel>
+                    <TextBlock Text="متوسط يومي"
+                               FontSize="9"
+                               Foreground="#547968"
+                               TextTrimming="CharacterEllipsis" />
+
+                    <TextBlock x:Name="DashboardIssuanceAverageMetricTextBlock"
+                               Text="—"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Foreground="#16845B"
+                               Margin="0,4,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- Peak day -->
+            <Border Grid.Column="4"
+                    Background="#FFF8ED"
+                    BorderBrush="#F4E5C8"
+                    BorderThickness="1"
+                    CornerRadius="9"
+                    Padding="8,7">
+
+                <StackPanel>
+                    <TextBlock Text="أعلى يوم"
+                               FontSize="9"
+                               Foreground="#997331"
+                               TextTrimming="CharacterEllipsis" />
+
+                    <TextBlock x:Name="DashboardIssuancePeakMetricTextBlock"
+                               Text="—"
+                               FontSize="17"
+                               FontWeight="Bold"
+                               Foreground="#B77908"
+                               Margin="0,4,0,0" />
+
+                    <TextBlock x:Name="DashboardIssuancePeakDayTextBlock"
+                               Text="بانتظار البيانات"
+                               FontSize="8.5"
+                               Foreground="#997331"
+                               Margin="0,2,0,0"
+                               TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+                <!-- Seven-day chart -->
+                <Grid Grid.Row="2"
+                    MinHeight="148"
+                    Margin="0,0,0,2"
+                    FlowDirection="LeftToRight">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="22" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Subtle chart grid lines -->
+                    <Grid Grid.Column="1"
+                        Margin="0,17,0,34"
+                        IsHitTestVisible="False">
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0"
+                                BorderBrush="#E8EDF3"
+                                BorderThickness="0,1,0,0" />
+
+                        <Border Grid.Row="1"
+                                BorderBrush="#E8EDF3"
+                                BorderThickness="0,1,0,0" />
+
+                        <Border Grid.Row="2"
+                                BorderBrush="#E8EDF3"
+                                BorderThickness="0,1,0,0" />
+
+                        <Border Grid.Row="3"
+                                BorderBrush="#D6DFEA"
+                                BorderThickness="0,1,0,0" />
+                    </Grid>
+
+                    <TextBlock Grid.Column="0"
+                            Text="كرت"
+                            FontSize="8"
+                            Foreground="{StaticResource MutedBrush}"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Right"
+                            Margin="0,1,3,0" />
+
+                    <ItemsControl Grid.Column="1"
+                                x:Name="DashboardIssuanceDaysItemsControl"
+                                FlowDirection="LeftToRight"
+                                MinHeight="148"
+                                VerticalAlignment="Stretch">
+
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="7" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Height="148"
+                                    Margin="2,0">
+
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="20" />
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="22" />
+                                            <RowDefinition Height="17" />
+                                        </Grid.RowDefinitions>
+
+
+                                    <!-- Actual daily count -->
+                                    <TextBlock Grid.Row="2"
+                                        Text="{Binding DayLabel}"
+                                        FontSize="9.5"
+                                        FontWeight="SemiBold"
+                                        Foreground="{StaticResource TextBrush}"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        TextTrimming="CharacterEllipsis"
+                                        ToolTip="{Binding DayLabel}" />
+
+                                    <!-- Bar: aligned to a common baseline -->
+                                    <Grid Grid.Row="1"
+                                        VerticalAlignment="Stretch">
+
+                                        <Border Width="16"
+                                                Height="{Binding BarHeight}"
+                                                MinHeight="4"
+                                                MaxHeight="74"
+                                                Background="{StaticResource SalesBarBrush}"
+                                                CornerRadius="4,4,1,1"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Bottom" />
+                                    </Grid>
+
+                                    <!-- Day name -->
+                                    <TextBlock Grid.Row="3"
+                                        Text="{Binding DateLabel}"
+                                        FontSize="8.5"
+                                        Foreground="{StaticResource MutedBrush}"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        TextTrimming="CharacterEllipsis"
+                                        ToolTip="{Binding DateLabel}" />
+
+                                    <!-- Date -->
+                                    <TextBlock Grid.Row="3"
+                                            Text="{Binding DateLabel}"
+                                            FontSize="7.5"
+                                            Foreground="{StaticResource MutedBrush}"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            TextTrimming="CharacterEllipsis"
+                                            ToolTip="{Binding DateLabel}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+
+                <!-- Actual summary / comparison text, populated by code-behind -->
+                <Border Grid.Row="3"
+                        Background="#F7F9FC"
+                        BorderBrush="#E8EDF3"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="8,6"
+                        Margin="0,7,0,0">
+
+                    <TextBlock x:Name="DashboardIssuanceChartFooterTextBlock"
+                            Text="سيظهر ملخص نشاط الإصدار بعد تحميل البيانات."
+                            FontSize="9"
+                            Foreground="{StaticResource MutedBrush}"
+                            TextWrapping="Wrap"
+                            MaxHeight="36" />
+                </Border>
+            </Grid>
+        </Border>
+
+
+    </Grid>
+
+    <!-- Recent batches, documented recent activity and the real shared RouterOS connection. -->
+    <Grid Grid.Row="3" FlowDirection="LeftToRight"  ClipToBounds="True">
+       <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.22*" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="1.48*" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="0.82*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0"
+                Style="{StaticResource DashboardPanelStyle}"
+                Padding="12"
+                FlowDirection="RightToLeft"
+                BorderBrush="{StaticResource PrimaryBorderBrush}"
+                BorderThickness="1"
+                >
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <DockPanel Grid.Row="0"
+                    Margin="0,0,0,8"
+                    LastChildFill="False">
+
+                    <Border DockPanel.Dock="Right"
+                        Width="30"
+                        Height="30"
+                        Background="#E5F0FF"
+                        CornerRadius="9">
+
+                    <TextBlock Text=""
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="15"
+                            Foreground="#2878C8"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                    </Border>
+
+                    <TextBlock DockPanel.Dock="Left"
+                        Text="آخر دفعات الإصدار"
+                        Style="{StaticResource DashboardCardHeadingStyle}"
+                        FontSize="12"
+                        FontWeight="SemiBold"
+                        VerticalAlignment="Center"
+                        Margin="0,0,8,0" />
+            </DockPanel>
+                                <Grid Grid.Row="1">
+                    <DataGrid x:Name="DashboardRecentBatchesGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                              CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False"
+                              CanUserResizeRows="False" HeadersVisibility="Column" SelectionMode="Single"
+                              SelectionUnit="FullRow" RowHeight="26" ColumnHeaderHeight="30" FontSize="10"
+                              FlowDirection="RightToLeft" EnableRowVirtualization="True"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                              AlternationCount="2"
+                              RowBackground="White"
+                              AlternatingRowBackground="#F7F9FC"
+                              GridLinesVisibility="Horizontal"
+                              HorizontalGridLinesBrush="#E8EDF3">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="رقم الدفعة" Binding="{Binding BatchId}" Width="1.28*" />
+                            <DataGridTextColumn Header="الباقة" Binding="{Binding PackageName}" Width="1.0*" />
+                            <DataGridTextColumn Header="الكمية" Binding="{Binding CardCount}" Width="58" />
+                            <DataGridTextColumn Header="تاريخ الإنشاء" Binding="{Binding CreatedAtLabel}" Width="88" />
+                            <DataGridTextColumn Header="الحالة" Binding="{Binding StatusLabel}" Width="82" />
+                            <DataGridTemplateColumn Header="فتح" Width="48">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="عرض" Tag="{Binding BatchId}" Click="DashboardBatchOpen_Click"
+                                                Style="{StaticResource SecondaryButton}" Height="23" Padding="4,0" FontSize="9" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Border x:Name="DashboardRecentBatchesEmptyPanel" Visibility="Collapsed" Background="{StaticResource AppBgBrush}"
+                            CornerRadius="8" Padding="12" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="لا توجد دفعات مسجلة بعد" FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextBrush}" HorizontalAlignment="Center" />
+                            <TextBlock Text="ابدأ من إصدار الكروت لإنشاء أول دفعة."
+                                       FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0"
+                                       TextWrapping="Wrap" TextAlignment="Center" />
+                            <Button Content="إصدار كروت جديدة" Style="{StaticResource PrimaryButton}" Height="30"
+                                    Padding="12,0" FontSize="10.5" Margin="0,10,0,0"
+                                    Tag="cards|إصدار الكروت" Click="DashboardMetric_Click" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+            </Grid>
+        </Border>
+
+        <Border Grid.Column="2"
+                Style="{StaticResource DashboardPanelStyle}"
+                Padding="12"
+                FlowDirection="RightToLeft"
+                BorderBrush="{StaticResource PrimaryBorderBrush}"
+                BorderThickness="1"
+                >
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <DockPanel Grid.Row="0"
+                    Margin="0,0,0,8"
+                    LastChildFill="False">
+
+                <Border DockPanel.Dock="Right"
+                        Width="30"
+                        Height="30"
+                        Background="{StaticResource PrimaryLightBrush}"
+                        CornerRadius="9">
+
+                    <TextBlock Text=""
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="15"
+                            Foreground="{StaticResource PrimaryBrush}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                </Border>
+
+                <TextBlock DockPanel.Dock="Right"
+                        Text="آخر نشاط مسجل"
+                        Style="{StaticResource DashboardCardHeadingStyle}"
+                        FontSize="12"
+                        FontWeight="SemiBold"
+                        VerticalAlignment="Center"
+                        Margin="0,0,8,0" />
+
+                </DockPanel>
+                <Grid Grid.Row="1">
+                        <ItemsControl x:Name="DashboardRecentActivityItemsControl">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{StaticResource AppBgBrush}"
+                                            BorderBrush="{StaticResource BorderBrushSoft}"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Padding="6,4"
+                                            Margin="0,0,0,3">
+                                                                            <Grid FlowDirection="RightToLeft">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="30" /><ColumnDefinition Width="*" /><ColumnDefinition Width="48" /></Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Width="27" Height="27" Background="{StaticResource PrimaryLightBrush}" CornerRadius="8">
+                                                <TextBlock Text="{Binding Glyph}" FontFamily="Segoe MDL2 Assets" FontSize="13"
+                                                           Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <StackPanel Grid.Column="1" Margin="7,0,4,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Title}" FontSize="10.5" FontWeight="SemiBold"
+                                                           Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding Description}"
+                                                            FontSize="8.5"
+                                                            Foreground="{StaticResource MutedBrush}"
+                                                            Margin="0,1,0,0"
+                                                            TextWrapping="NoWrap"
+                                                            TextTrimming="CharacterEllipsis"
+                                                            ToolTip="{Binding Description}" />
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="2" Text="{Binding TimeLabel}" FontSize="9"
+                                                       Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Left"
+                                                       VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+
+                    <Border x:Name="DashboardRecentActivityEmptyPanel" Visibility="Collapsed" Background="{StaticResource AppBgBrush}"
+                            CornerRadius="8" Padding="12" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                        <TextBlock Text="سيظهر هنا أحدث نشاط متوفر من سجلات الدفعات وقراءات الراوتر."
+                                   FontSize="10.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap"
+                                   TextAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- Card statuses retain the existing drill-down behavior. -->
+        <Border Grid.Column="4"
+                Style="{StaticResource DashboardPanelStyle}"
+                Padding="12"
+                FlowDirection="RightToLeft"
+                BorderBrush="{StaticResource PrimaryBorderBrush}"
+                BorderThickness="1">
+            <Grid>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0"
+                        Margin="0,0,0,6"
+                        LastChildFill="False">
+
+                        <Border DockPanel.Dock="Right"
+                            Width="30"
+                            Height="30"
+                            Background="#E5F0FF"
+                            CornerRadius="9">
+
+                            <TextBlock Text=""
+                                FontFamily="Segoe MDL2 Assets"
+                                FontSize="15"
+                                Foreground="#2878C8"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center" />
+                        </Border>
+
+                            <TextBlock DockPanel.Dock="Right"
+                                Text="حالة الكروت"
+                                Style="{StaticResource DashboardCardHeadingStyle}"
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                VerticalAlignment="Center"
+                                Margin="0,0,8,0" />
+
+                </DockPanel>
+                <TextBlock Grid.Row="1" x:Name="CardStatusTotalTextBlock" Text="إجمالي الكروت: —"
+                           FontSize="10" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,4" />
+                <StackPanel Grid.Row="2">
+                    <Button Style="{StaticResource CardStatusRowButtonStyle}" Padding="3,5" Tag="متاحة" Click="CardStatusDrilldown_Click" ToolTip="عرض سجلات الكروت المتاحة">
+                        <Grid FlowDirection="RightToLeft">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="74" /><ColumnDefinition Width="*" /><ColumnDefinition Width="44" /></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="متاحة" FontSize="11" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}" />
+                            <ProgressBar x:Name="AvailableCardsProgressBar" Grid.Column="1" Value="0" Maximum="100" Height="8"
+                                         VerticalAlignment="Center" Foreground="#16845B" Background="#E8F4EE" IsHitTestVisible="False" />
+                            <TextBlock Grid.Column="2" x:Name="AvailableCardCountTextBlock" Text="0" FontSize="10.5"
+                                       FontWeight="SemiBold" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                        </Grid>
+                    </Button>
+                    <Button Style="{StaticResource CardStatusRowButtonStyle}" Padding="3,5" Tag="قيد الاستخدام" Click="CardStatusDrilldown_Click" ToolTip="عرض سجلات الكروت قيد الاستخدام">
+                        <Grid FlowDirection="RightToLeft">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="74" /><ColumnDefinition Width="*" /><ColumnDefinition Width="44" /></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="قيد الاستخدام" FontSize="10.5" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}" />
+                            <ProgressBar x:Name="InUseCardsProgressBar" Grid.Column="1" Value="0" Maximum="100" Height="8"
+                                         VerticalAlignment="Center" Foreground="#2878C8" Background="#EAF2FB" IsHitTestVisible="False" />
+                            <TextBlock Grid.Column="2" x:Name="InUseCardCountTextBlock" Text="0" FontSize="10.5"
+                                       FontWeight="SemiBold" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                        </Grid>
+                    </Button>
+                    <Button Style="{StaticResource CardStatusRowButtonStyle}" Padding="3,5" Tag="منتهية" Click="CardStatusDrilldown_Click" ToolTip="عرض سجلات الكروت المنتهية">
+                        <Grid FlowDirection="RightToLeft">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="74" /><ColumnDefinition Width="*" /><ColumnDefinition Width="44" /></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="منتهية" FontSize="11" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}" />
+                            <ProgressBar x:Name="ExpiredCardsProgressBar" Grid.Column="1" Value="0" Maximum="100" Height="8"
+                                         VerticalAlignment="Center" Foreground="#7B8491" Background="#F0F1F3" IsHitTestVisible="False" />
+                            <TextBlock Grid.Column="2" x:Name="ExpiredCardCountTextBlock" Text="0" FontSize="10.5"
+                                       FontWeight="SemiBold" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                        </Grid>
+                    </Button>
+                    <Button Style="{StaticResource CardStatusRowButtonStyle}" Padding="3,5" Tag="موقوفة" Click="CardStatusDrilldown_Click" ToolTip="عرض سجلات الكروت الموقوفة">
+                        <Grid FlowDirection="RightToLeft">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="74" /><ColumnDefinition Width="*" /><ColumnDefinition Width="44" /></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="موقوفة" FontSize="11" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}" />
+                            <ProgressBar x:Name="SuspendedCardsProgressBar" Grid.Column="1" Value="0" Maximum="100" Height="8"
+                                         VerticalAlignment="Center" Foreground="#B9363E" Background="#FBEDEF" IsHitTestVisible="False" />
+                            <TextBlock Grid.Column="2" x:Name="SuspendedCardCountTextBlock" Text="0" FontSize="10.5"
+                                       FontWeight="SemiBold" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                        </Grid>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+    <!-- Hidden compatibility elements for the existing router status updater. -->
+<Grid Visibility="Collapsed">
+    <Border x:Name="DashboardRouterStatusBadge">
+        <StackPanel Orientation="Horizontal">
+            <Ellipse x:Name="DashboardRouterStatusDot" />
+            <TextBlock x:Name="DashboardRouterStatusBadgeTextBlock" />
+        </StackPanel>
+    </Border>
+
+    <TextBlock x:Name="DashboardRouterIdentityTextBlock" />
+    <TextBlock x:Name="DashboardRouterInterfacesTextBlock" />
+    <TextBlock x:Name="DashboardRouterLastReadTextBlock" />
+    <TextBlock x:Name="DashboardRouterStatusHelpTextBlock" />
+</Grid>
+
+</Grid>
+<Grid x:Name="SectionPage" Visibility="Collapsed"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions><Border x:Name="CardSystemSelectorPanel" Grid.Row="0" Visibility="Collapsed" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="6" Margin="0,0,0,7"><Grid FlowDirection="LeftToRight"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><RadioButton x:Name="HotSpotCardSystemTab" Grid.Column="1" GroupName="CardSystemSelection" Tag="hotspot" Content="هوتسبوت" Style="{StaticResource CardSystemSelectorTabStyle}" Checked="CardSystemTab_Checked" HorizontalAlignment="Stretch" FlowDirection="RightToLeft" Margin="4,0,4,0" IsChecked="True" /><RadioButton x:Name="UserManagerCardSystemTab" Grid.Column="0" GroupName="CardSystemSelection" Tag="user-manager" Content="يوزر منجر" Style="{StaticResource CardSystemSelectorTabStyle}" Checked="CardSystemTab_Checked" HorizontalAlignment="Stretch" FlowDirection="RightToLeft" Margin="4,0,4,0" IsChecked="False" /></Grid></Border><ScrollViewer x:Name="SectionTabsScrollViewer" Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled" FlowDirection="RightToLeft" Margin="0,0,0,12"><Border Background="{StaticResource AppBgBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="3"><UniformGrid x:Name="SectionTabsPanel" Rows="1" FlowDirection="RightToLeft" /></Border></ScrollViewer><Border x:Name="SectionContentBorder" Grid.Row="2" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="12" Padding="14"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions><Grid x:Name="SectionContentPanel" Grid.Row="0" Margin="3,2,3,10"><StackPanel><TextBlock x:Name="SectionContentTitleTextBlock" FontSize="21" FontWeight="Bold" Foreground="{StaticResource TextBrush}" /><TextBlock x:Name="SectionContentDescriptionTextBlock" FontSize="11.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,5,0,0" /></StackPanel></Grid><Grid Grid.Row="1"><Border x:Name="SectionPlaceholderCard" Background="{StaticResource AppBgBrush}" CornerRadius="10" Padding="18"><StackPanel VerticalAlignment="Top"><TextBlock Text="مساحة القسم" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" /><TextBlock x:Name="SectionPlaceholderTextBlock" Text="سيتم إضافة وظائف هذا القسم على مراحل، مع الحفاظ على الهيكل والتنقل الحاليين." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,7,0,0" /></StackPanel></Border><ContentControl x:Name="SectionFeatureContentHost" Visibility="Collapsed" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" /><ContentControl x:Name="SectionBodyHost" Visibility="Collapsed" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" /></Grid></Grid></Border></Grid></Grid><DockPanel Grid.Row="3" Margin="0,10,0,0"><TextBlock Text="تاب كارد · إدارة شبكات الإنترنت" FontSize="10" Foreground="{StaticResource MutedBrush}" /><TextBlock DockPanel.Dock="Left" Text="إدارة كروت الشبكات" FontSize="10" Foreground="{StaticResource MutedBrush}" /></DockPanel></Grid></Grid><Grid x:Name="CardStatusDrilldownOverlay" Visibility="Collapsed" Panel.ZIndex="998" Background="#990F172A" Focusable="True" KeyboardNavigation.TabNavigation="Cycle" FlowDirection="RightToLeft"><Border x:Name="CardStatusDrilldownDialogBorder" Width="1000" MaxWidth="1260" Height="620" MaxHeight="720" MinWidth="420" MinHeight="350" Padding="14" Background="White" BorderBrush="#E5D8D9" BorderThickness="1" CornerRadius="15" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions><DockPanel Grid.Row="0" Margin="0,0,0,12" LastChildFill="True"><Button DockPanel.Dock="Left" Content="إغلاق" Style="{StaticResource SecondaryButton}" Width="90" Height="36" Click="CloseCardStatusDrilldown_Click" /><StackPanel><TextBlock x:Name="CardStatusDrilldownTitleTextBlock" Text="تفاصيل الكروت" FontSize="21" FontWeight="Bold" Foreground="{StaticResource TextBrush}" /><TextBlock x:Name="CardStatusDrilldownSummaryTextBlock" Text="سجلات العرض" FontSize="11.5" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" TextWrapping="Wrap" /></StackPanel></DockPanel><Border Grid.Row="1" Background="#FFF8F8" BorderBrush="#F0CDD0" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,10"><TextBlock Text="تعكس هذه القائمة سجلات الكروت وحالاتها المسجلة؛ وتظهر تفاصيل الجلسة حسب البيانات المتاحة من مصدر المصادقة." FontSize="11.5" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" /></Border><DataGrid x:Name="CardStatusDrilldownGrid" Grid.Row="2" FlowDirection="RightToLeft" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" SelectionMode="Single" SelectionUnit="FullRow" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" EnableRowVirtualization="True" RowHeight="36" ColumnHeaderHeight="43" FontSize="11.5"><DataGrid.Columns><DataGridTextColumn Header="رقم الدفعة" Binding="{Binding BatchId}" Width="150" /><DataGridTextColumn Header="رقم الكرت" Binding="{Binding CardNumber}" Width="120" /><DataGridTextColumn Header="اسم المستخدم" Binding="{Binding Username}" Width="120" /><DataGridTextColumn Header="النظام" Binding="{Binding TargetSystem}" Width="135" /><DataGridTextColumn Header="الباقة" Binding="{Binding PackageName}" Width="180" /><DataGridTextColumn Header="ملف الاستخدام" Binding="{Binding RouterProfile}" Width="145" /><DataGridTextColumn Header="الصلاحية" Binding="{Binding PackageValidity}" Width="100" /><DataGridTextColumn Header="حد الوقت" Binding="{Binding TimeLimit}" Width="100" /><DataGridTextColumn Header="حد البيانات" Binding="{Binding DataLimit}" Width="110" /><DataGridTextColumn Header="السرعة" Binding="{Binding RateLimit}" Width="100" /><DataGridTextColumn Header="نقطة البيع" Binding="{Binding PointOfSale}" Width="130" /><DataGridTextColumn Header="حالة الحساب" Binding="{Binding DemoStatus}" Width="115" /><DataGridTextColumn Header="حالة السجل" Binding="{Binding LocalStatus}" Width="210" /></DataGrid.Columns></DataGrid><DockPanel Grid.Row="3" Margin="0,12,0,0" LastChildFill="True"><TextBlock DockPanel.Dock="Right" Text="تُعرض معلومات الحساب دون كشف كلمات المرور." FontSize="10.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" /><Button DockPanel.Dock="Left" Content="العودة إلى لوحة المعلومات" Style="{StaticResource SecondaryButton}" Height="36" Padding="14,0" Click="CloseCardStatusDrilldown_Click" /></DockPanel></Grid></Border></Grid><Grid x:Name="LocationModalOverlay" Visibility="Collapsed" Panel.ZIndex="999" Background="#990F172A" Focusable="True" KeyboardNavigation.TabNavigation="Cycle"><Border x:Name="LocationModalBorder" Width="760" MaxWidth="900" MaxHeight="470" Padding="24" Background="White" BorderBrush="#E5D8D9" BorderThickness="1" CornerRadius="16" HorizontalAlignment="Center" VerticalAlignment="Center"><ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel><DockPanel Margin="0,0,0,8"><Border DockPanel.Dock="Right" Width="46" Height="46" Background="{StaticResource PrimaryLightBrush}" CornerRadius="10" Padding="6"><TextBlock Text="⌖" FontSize="26" Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border><StackPanel Margin="12,0,0,0" VerticalAlignment="Center"><TextBlock Text="تحديد موقع الشبكة" FontSize="21" FontWeight="Bold" /><TextBlock Text="بيانات موقع الشبكة" FontSize="11.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0" /></StackPanel><Border DockPanel.Dock="Left" Background="{StaticResource PrimaryLightBrush}" CornerRadius="12" Padding="10,6" VerticalAlignment="Center"><TextBlock Text="معلومات الشبكة" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" /></Border></DockPanel><TextBlock Text="اختر المحافظة أولًا، ثم المديرية، ثم المنطقة. لن تتاح كل قائمة إلا بعد اختيار المستوى الذي يسبقها." FontSize="12" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,18" /><Grid Margin="0,0,0,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><StackPanel Grid.Column="0"><TextBlock Text="المحافظة" Style="{StaticResource FieldLabel}" /><ComboBox x:Name="GovernorateComboBox" Height="42" SelectionChanged="GovernorateComboBox_SelectionChanged" /></StackPanel><StackPanel Grid.Column="2"><TextBlock Text="المديرية" Style="{StaticResource FieldLabel}" /><ComboBox x:Name="DirectorateComboBox" Height="42" IsEnabled="False" SelectionChanged="DirectorateComboBox_SelectionChanged" /></StackPanel><StackPanel Grid.Column="4"><TextBlock Text="المنطقة" Style="{StaticResource FieldLabel}" /><ComboBox x:Name="AreaComboBox" Height="42" IsEnabled="False" /></StackPanel></Grid><TextBlock Text="أقرب معلم بارز" Style="{StaticResource FieldLabel}" /><TextBox x:Name="LandmarkTextBox" Height="42" Margin="0,0,0,14" ToolTip="مثال: جوار سوق معين أو مقابل مبنى معروف" /><TextBlock x:Name="LocationStatusTextBlock" MinHeight="20" Foreground="{StaticResource DangerBrush}" FontSize="11.5" Margin="0,0,0,8" TextWrapping="Wrap" /><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><Button Grid.Column="0" Content="حفظ الموقع والمتابعة" Style="{StaticResource PrimaryButton}" Height="44" Click="SaveLocationButton_Click" /><Button x:Name="CancelLocationEditButton" Grid.Column="2" Content="إلغاء" Style="{StaticResource SecondaryButton}" Height="44" MinWidth="100" Visibility="Collapsed" Click="CancelLocationEditButton_Click" /></Grid><TextBlock Text="يساعد موقع الشبكة على تنظيم بيانات المساحة التي تعمل عليها." FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,10,0,0" TextWrapping="Wrap" /></StackPanel></ScrollViewer></Border></Grid><Grid x:Name="RouterConnectionOverlay" Visibility="Collapsed" Panel.ZIndex="1000" Background="#990F172A" Focusable="True" KeyboardNavigation.TabNavigation="Cycle" FlowDirection="RightToLeft" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"><Border Width="590" MaxWidth="900" MaxHeight="680" Padding="22" Background="White" BorderBrush="#E6D4D6" BorderThickness="1" CornerRadius="16" HorizontalAlignment="Center" VerticalAlignment="Center"><ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel><DockPanel Margin="0,0,0,14"><Button DockPanel.Dock="Left" Content="إغلاق" Style="{StaticResource SecondaryButton}" Width="82" Height="34" Click="CloseRouterConnectionOverlay_Click" /><StackPanel><TextBlock Text="ROUTER CONNECTION" FontSize="10" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" /><TextBlock Text="الاتصال بالراوتر" FontSize="23" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,4,0,0" /><TextBlock Text="اختبر الاتصال مرة واحدة واحفظ بيانات هذا الراوتر لهذه المساحة على جهازك." FontSize="11.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0" /></StackPanel></DockPanel><Border Background="#FFF7F7" BorderBrush="#F0D3D5" BorderThickness="1" CornerRadius="9" Padding="11" Margin="0,0,0,14"><TextBlock Text="الاتصال للقراءة فقط عبر HTTPS. تحفظ كلمة المرور في Windows Credential Manager عند تحديد الحفظ، ولا تُكتب داخل ملف إعدادات عادي." FontSize="11" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" /></Border><Grid Margin="0,0,0,10"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><StackPanel Grid.Column="0"><TextBlock Text="اسم المستخدم" Style="{StaticResource FieldLabel}" /><TextBox x:Name="RouterConnectionUsernameTextBox" Padding="9" FlowDirection="LeftToRight" /></StackPanel><StackPanel Grid.Column="2"><TextBlock Text="عنوان HTTPS" Style="{StaticResource FieldLabel}" /><TextBox x:Name="RouterConnectionAddressTextBox" Padding="9" FlowDirection="LeftToRight" ToolTip="مثال: https://192.168.88.1:8443" /></StackPanel></Grid><TextBlock Text="كلمة المرور" Style="{StaticResource FieldLabel}" /><PasswordBox x:Name="RouterConnectionPasswordBox" Padding="9" Margin="0,0,0,9" /><CheckBox x:Name="SaveRouterConnectionCheckBox" IsChecked="True" Content="حفظ بيانات الاتصال على هذا الجهاز لهذه المساحة" FontSize="11.5" Foreground="{StaticResource TextBrush}" Margin="0,2,0,12" /><TextBlock x:Name="RouterConnectionDialogStatusTextBlock" Text="إذا سبق حفظ اتصال لهذه المساحة، فستظهر بياناته هنا." FontSize="11.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" MinHeight="28" Margin="0,0,0,12" /><WrapPanel HorizontalAlignment="Right"><Button x:Name="ConnectRouterButton" Content="اختبار الاتصال وحفظه" Style="{StaticResource PrimaryButton}" Click="ConnectRouterButton_Click" MinWidth="150" Margin="0,0,8,7" /><Button Content="قطع الاتصال" Style="{StaticResource SecondaryButton}" Click="DisconnectRouterButton_Click" Margin="0,0,8,7" /><Button Content="حذف الاتصال المحفوظ" Style="{StaticResource SecondaryButton}" Click="ClearSavedRouterConnectionButton_Click" Margin="0,0,0,7" /></WrapPanel></StackPanel></ScrollViewer></Border></Grid></Grid></Window>
