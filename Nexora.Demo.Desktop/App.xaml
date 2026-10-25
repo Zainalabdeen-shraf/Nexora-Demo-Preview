@@ -63,11 +63,28 @@
     <Border x:Name="SidebarButtonBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource RadiusControl}" Padding="{TemplateBinding Padding}">
      <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" RecognizesAccessKey="True"/>
     </Border>
-    <ControlTemplate.Triggers>
-     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="SidebarButtonBorder" Property="BorderBrush" Value="{StaticResource PrimaryBorderBrush}"/></Trigger>
-     <Trigger Property="IsPressed" Value="True"><Setter TargetName="SidebarButtonBorder" Property="Opacity" Value="0.85"/></Trigger>
-     <Trigger Property="IsEnabled" Value="False"><Setter TargetName="SidebarButtonBorder" Property="Opacity" Value="0.55"/></Trigger>
-    </ControlTemplate.Triggers>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="SidebarButtonBorder"
+                        Property="Background"
+                        Value="#20FFFFFF"/>
+                <Setter TargetName="SidebarButtonBorder"
+                        Property="BorderBrush"
+                        Value="#DCA5AA"/>
+            </Trigger>
+
+            <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="SidebarButtonBorder"
+                        Property="Background"
+                        Value="#32FFFFFF"/>
+            </Trigger>
+
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="SidebarButtonBorder"
+                        Property="Opacity"
+                        Value="0.55"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
    </ControlTemplate></Setter.Value></Setter>
   </Style>
   <Style x:Key="CardStatusRowButtonStyle" TargetType="Button">
@@ -107,12 +124,7 @@
                             CornerRadius="{StaticResource RadiusCard}"
                             Effect="{StaticResource CardShadowEffect}"/>
 
-                    <Border Height="2"
-                            Margin="1,1,1,0"
-                            VerticalAlignment="Top"
-                            Background="{StaticResource PrimaryBrush}"
-                            CornerRadius="11,11,0,0"
-                            IsHitTestVisible="False"/>
+                    <Border Width="34" Height="3" Margin="0,1,12,0" HorizontalAlignment="Right" VerticalAlignment="Top" Background="{StaticResource PrimaryBrush}" CornerRadius="2" IsHitTestVisible="False"/>
 
                     <ContentPresenter Margin="0,2,0,0"
                                       HorizontalAlignment="Stretch"

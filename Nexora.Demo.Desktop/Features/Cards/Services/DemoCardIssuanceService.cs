@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Numerics;
@@ -351,6 +351,93 @@ public sealed class DemoCardIssuanceService
 
     public void RestoreCards(IEnumerable<GeneratedDemoCard> cards)
         => UpdateArchiveState(cards, archived: false, string.Empty);
+
+    /// <summary>
+    /// Stores simulated synchronization outcomes in the local demo issuance snapshot.
+    /// The supplied status map is keyed by the generated card number; unrelated cards and
+    /// batches are left untouched. This operation never contacts RouterOS or a network.
+    /// </summary>
+    public void UpdateBatchSynchronizationResults(
+        string batchId,
+        string targetSystem,
+        IReadOnlyDictionary<string, string> cardStatuses,
+        string batchStatus)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(batchId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(targetSystem);
+        ArgumentNullException.ThrowIfNull(cardStatuses);
+        ArgumentException.ThrowIfNullOrWhiteSpace(batchStatus);
+        if (_storeReadFailed)
+            throw new InvalidOperationException(StorageWarning ?? "تعذر قراءة سجل الكروت.");
+
+        bool Matches(GeneratedDemoCard card) =>
+            string.Equals(card.BatchId, batchId, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(card.TargetSystem, targetSystem, StringComparison.OrdinalIgnoreCase);
+        bool MatchesBatch(GeneratedCardBatch batch) =>
+            string.Equals(batch.BatchId, batchId, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(batch.TargetSystem, targetSystem, StringComparison.OrdinalIgnoreCase);
+
+        var nextCards = Cards.Select(card => Matches(card) && cardStatuses.TryGetValue(card.CardNumber, out var status)
+            ? card with { LocalStatus = status }
+            : card).ToList();
+        var nextBatches = Batches.Select(batch => MatchesBatch(batch)
+            ? batch with { LocalStatus = batchStatus }
+            : batch).ToList();
+        if (!nextBatches.Any(MatchesBatch))
+            throw new InvalidOperationException("الدفعة غير موجودة في سجل الإصدار الحالي.");
+
+        // Persist the full candidate state before publishing changes to bound screens.
+        SaveSnapshot(nextCards, nextBatches);
+        for (var index = 0; index < nextCards.Count; index++)
+            if (Cards[index] != nextCards[index])
+                Cards[index] = nextCards[index];
+        for (var index = 0; index < nextBatches.Count; index++)
+            if (Batches[index] != nextBatches[index])
+                Batches[index] = nextBatches[index];
+
+        StorageWarning = null;
+        ScenarioChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Archives or restores cards for a batch without overwriting LocalStatus, because that
+    /// field records synchronization state and must remain independent from archive state.
+    /// </summary>
+    public void SetBatchCardsArchiveStatePreservingSyncStatus(
+        string batchId,
+        string targetSystem,
+        bool archived,
+        string reason = "أرشفة الدفعة")
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(batchId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(targetSystem);
+        if (_storeReadFailed)
+            throw new InvalidOperationException(StorageWarning ?? "تعذر قراءة سجل الكروت.");
+
+        var now = DateTimeOffset.Now;
+        var nextCards = Cards.Select(card =>
+                string.Equals(card.BatchId, batchId, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(card.TargetSystem, targetSystem, StringComparison.OrdinalIgnoreCase)
+                    ? card with
+                    {
+                        ArchivedAt = archived ? now : null,
+                        ArchiveReason = archived ? (reason ?? string.Empty) : string.Empty
+                    }
+                    : card)
+            .ToList();
+        if (!nextCards.Any(card =>
+                string.Equals(card.BatchId, batchId, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(card.TargetSystem, targetSystem, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException("لا توجد كروت محفوظة لهذه الدفعة.");
+
+        SaveSnapshot(nextCards, Batches.ToList());
+        for (var index = 0; index < nextCards.Count; index++)
+            if (Cards[index] != nextCards[index])
+                Cards[index] = nextCards[index];
+
+        StorageWarning = null;
+        ScenarioChanged?.Invoke(this, EventArgs.Empty);
+    }
 
     private void UpdateArchiveState(IEnumerable<GeneratedDemoCard> cards, bool archived, string reason)
     {

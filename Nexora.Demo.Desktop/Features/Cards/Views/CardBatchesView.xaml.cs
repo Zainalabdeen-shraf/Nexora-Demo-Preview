@@ -1,32 +1,54 @@
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 using Nexora.Demo.Desktop.Features.Cards.Models;
 using Nexora.Demo.Desktop.Features.Cards.Services;
 using Nexora.Demo.Desktop.Features.Shared;
 
 namespace Nexora.Demo.Desktop.Features.Cards.Views;
 
+/// <summary>
+/// Batch-management screen coordinator. The XAML, filters, paging, status projection and
+/// row operations are split into screen-local partial files so changes stay scoped here.
+/// The demo issuance service remains the source of card/batch records.
+/// </summary>
 public partial class CardBatchesView : UserControl
 {
     private readonly DemoCardIssuanceService _issuanceService;
-    private readonly ListCollectionView _view;
-    private bool _updatingFilters;
+    private readonly BatchManagementMetadataStore _metadataStore = new();
+    private readonly DemoCardWorkflowStore _workflowStore = new();
+    private List<BatchManagementRow> _rows = [];
+    private ListCollectionView? _view;
+    private readonly ObservableCollection<BatchManagementRow> _pageRows = [];
+    private readonly HashSet<string> _batchOperationsInProgress = new(StringComparer.OrdinalIgnoreCase);
+    private int _currentPage = 1;
+    private int _pageSize = 9;
+    private bool _filtersReady;
+    private bool _suppressFilters;
     private bool _isSubscribed;
+    private string _systemFilterKey = "all";
+    private string? _sortMemberPath;
+    private string? _focusedBatchId;
+    private ListSortDirection _sortDirection = ListSortDirection.Descending;
 
     public CardBatchesView(DemoCardIssuanceService issuanceService)
     {
         ArgumentNullException.ThrowIfNull(issuanceService);
-        InitializeComponent();
         _issuanceService = issuanceService;
-        _view = new ListCollectionView(_issuanceService.Batches) { Filter = MatchesBatch };
-        BatchesGrid.ItemsSource = _view;
+
+        InitializeComponent();
+        BatchesGrid.ItemsSource = _pageRows;
+        _view = new ListCollectionView(_rows) { Filter = MatchesBatch };
+        _filtersReady = true;
+        RefreshFromSource(preserveSelection: false);
+
         Loaded += CardBatchesView_Loaded;
         Unloaded += CardBatchesView_Unloaded;
-        RefreshSummary();
     }
 
     public event EventHandler<FeatureNavigationRequestedEventArgs>? NavigationRequested;
@@ -35,101 +57,137 @@ public partial class CardBatchesView : UserControl
     {
         if (!_isSubscribed)
         {
-            _issuanceService.Batches.CollectionChanged += Batches_CollectionChanged;
+            _issuanceService.ScenarioChanged += IssuanceService_ScenarioChanged;
             _isSubscribed = true;
         }
-        _view.Refresh();
-        RefreshSummary();
+        RefreshFromSource(preserveSelection: true);
     }
 
     private void CardBatchesView_Unloaded(object sender, RoutedEventArgs e)
     {
-        if (_isSubscribed)
-        {
-            _issuanceService.Batches.CollectionChanged -= Batches_CollectionChanged;
-            _isSubscribed = false;
-        }
+        if (!_isSubscribed) return;
+        _issuanceService.ScenarioChanged -= IssuanceService_ScenarioChanged;
+        _isSubscribed = false;
+    }
+
+    private void IssuanceService_ScenarioChanged(object? sender, EventArgs e) =>
+        Dispatcher.InvokeAsync(() => RefreshFromSource(preserveSelection: true));
+
+    public void SetSystemFilter(string systemKey)
+    {
+        _systemFilterKey = string.IsNullOrWhiteSpace(systemKey) ? "all" : systemKey.Trim().ToLowerInvariant();
+        if (_systemFilterKey is not ("all" or "hotspot" or "user-manager"))
+            _systemFilterKey = "all";
+
+        _suppressFilters = true;
+        try { RefreshDynamicFilterOptions(); }
+        finally { _suppressFilters = false; }
+        _view?.Refresh();
+        _currentPage = 1;
+        ApplyPaging();
+        UpdateMetrics();
+        UpdateFooter();
     }
 
     public void FocusBatch(string batchId)
     {
         if (string.IsNullOrWhiteSpace(batchId)) return;
+        _focusedBatchId = batchId;
         SearchTextBox.Text = batchId;
-        BatchesGrid.SelectedItem = _view.Cast<object>().OfType<GeneratedCardBatch>()
-            .FirstOrDefault(batch => string.Equals(batch.BatchId, batchId, StringComparison.OrdinalIgnoreCase));
-        if (BatchesGrid.SelectedItem is not null)
-            BatchesGrid.ScrollIntoView(BatchesGrid.SelectedItem);
+        _view?.Refresh();
+        var filteredRows = _view?.Cast<object>().OfType<BatchManagementRow>().ToList() ?? [];
+        var rowIndex = filteredRows.FindIndex(item =>
+            string.Equals(item.BatchId, batchId, StringComparison.OrdinalIgnoreCase));
+        if (rowIndex < 0) return;
+        _currentPage = (rowIndex / Math.Max(1, _pageSize)) + 1;
+        ApplyPaging();
+        SelectVisibleBatch(batchId);
+        UpdateFooter();
     }
 
-    public void SetSystemFilter(string systemKey)
+    private void RefreshFromSource(bool preserveSelection)
     {
-        var desired = SystemFilterComboBox.Items.OfType<ComboBoxItem>()
-            .FirstOrDefault(item => item.Tag?.ToString() == systemKey);
-        if (desired is not null && !ReferenceEquals(SystemFilterComboBox.SelectedItem, desired))
+        try
         {
-            _updatingFilters = true;
-            try
-            {
-                SystemFilterComboBox.SelectedItem = desired;
-            }
-            finally
-            {
-                _updatingFilters = false;
-            }
+            var selectedBatchId = preserveSelection && BatchesGrid.SelectedItem is BatchManagementRow selected
+                ? selected.BatchId
+                : null;
+
+            var cardsByBatch = _issuanceService.Cards
+                .GroupBy(card => BatchKey(card.TargetSystem, card.BatchId), StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => (IReadOnlyList<GeneratedDemoCard>)group.ToList(), StringComparer.OrdinalIgnoreCase);
+
+            var printedCountByBatch = _workflowStore.GetActionHistory()
+                .Where(action => string.Equals(action.ActionType, "PrintSubmitted", StringComparison.OrdinalIgnoreCase))
+                .GroupBy(action => BatchKey(action.TargetSystem, action.BatchId), StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => group.Sum(action => Math.Max(0, action.Count)), StringComparer.OrdinalIgnoreCase);
+
+            _rows = _issuanceService.Batches
+                .OrderByDescending(batch => batch.CreatedAt)
+                .Select(batch =>
+                {
+                    cardsByBatch.TryGetValue(BatchKey(batch.TargetSystem, batch.BatchId), out var relatedCards);
+                    printedCountByBatch.TryGetValue(BatchKey(batch.TargetSystem, batch.BatchId), out var printedCount);
+                    var metadata = _metadataStore.Get(batch.BatchId, batch.TargetSystem);
+                    return new BatchManagementRow(batch, relatedCards ?? Array.Empty<GeneratedDemoCard>(), metadata,
+                        printedCount, _metadataStore.StorageWarning is not null);
+                })
+                .ToList();
+
+            _suppressFilters = true;
+            try { RefreshDynamicFilterOptions(); }
+            finally { _suppressFilters = false; }
+
+            _view = new ListCollectionView(_rows) { Filter = MatchesBatch };
+            if (!string.IsNullOrWhiteSpace(_sortMemberPath))
+                _view.SortDescriptions.Add(new SortDescription(_sortMemberPath, _sortDirection));
+            _view.Refresh();
+
+            _currentPage = 1;
+            ApplyPaging();
+            UpdateMetrics();
+            UpdateFooter();
+
+            if (!string.IsNullOrWhiteSpace(selectedBatchId))
+                SelectVisibleBatch(selectedBatchId);
+            else if (!string.IsNullOrWhiteSpace(_focusedBatchId))
+                SelectVisibleBatch(_focusedBatchId);
+
+            if (!string.IsNullOrWhiteSpace(_issuanceService.StorageWarning))
+                SetOperationStatus("تحذير في سجل الكروت: " + _issuanceService.StorageWarning, isError: true);
+            else if (!string.IsNullOrWhiteSpace(_metadataStore.StorageWarning))
+                SetOperationStatus("تحذير في سجل عمليات الدفعات: " + _metadataStore.StorageWarning, isError: true);
+            else
+                SetOperationStatus(string.Empty, isError: false);
         }
-        _view.Refresh();
-        RefreshSummary();
+        catch (Exception ex)
+        {
+            SetOperationStatus("تعذر تحديث سجل الدفعات: " + ex.Message, isError: true);
+            ResultSummaryTextBlock.Text = "لم يكتمل تحديث السجل.";
+        }
     }
 
-    private void Batches_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) =>
-        Dispatcher.InvokeAsync(() => { _view.Refresh(); RefreshSummary(); });
+    private static string NormalizeSystemKey(string? targetSystem) =>
+        targetSystem?.Contains("هوتسبوت", StringComparison.OrdinalIgnoreCase) == true ||
+        targetSystem?.Contains("HotSpot", StringComparison.OrdinalIgnoreCase) == true
+            ? "hotspot"
+            : "user-manager";
 
-    private bool MatchesBatch(object item)
-    {
-        if (item is not GeneratedCardBatch batch) return false;
-        var source = (SystemFilterComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "all";
-        if (source == "hotspot" && !batch.TargetSystem.Contains("هوتسبوت", StringComparison.OrdinalIgnoreCase)) return false;
-        if (source == "user-manager" && !batch.TargetSystem.Contains("مدير المستخدمين", StringComparison.OrdinalIgnoreCase)) return false;
-        var query = SearchTextBox?.Text?.Trim() ?? string.Empty;
-        return query.Length == 0 || batch.BatchId.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-               batch.PackageName.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
-               batch.TargetSystem.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
-               batch.PointOfSale.Contains(query, StringComparison.CurrentCultureIgnoreCase);
-    }
+    private static string BatchKey(string targetSystem, string batchId) =>
+        NormalizeSystemKey(targetSystem) + "\u001F" + batchId.Trim();
 
-    private void Filter_Changed(object sender, EventArgs e)
-    {
-        if (_view is null || _updatingFilters) return;
-        _view.Refresh();
-        RefreshSummary();
-    }
+    private bool MatchesCurrentSystem(BatchManagementRow row) =>
+        _systemFilterKey == "all" || string.Equals(row.SystemKey, _systemFilterKey, StringComparison.OrdinalIgnoreCase);
 
-    private void RefreshButton_Click(object sender, RoutedEventArgs e)
-    {
-        _view.Refresh();
-        RefreshSummary();
-    }
+    private void NewBatchButton_Click(object sender, RoutedEventArgs e) =>
+        NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("cards", "إصدار الكروت"));
 
-    private void RefreshSummary()
-    {
-        if (BatchesGrid is null) return;
-        var filtered = _view.Cast<object>().OfType<GeneratedCardBatch>().ToArray();
-        BatchCountTextBlock.Text = filtered.Length.ToString("N0", CultureInfo.CurrentCulture);
-        CardCountTextBlock.Text = filtered.Sum(batch => batch.Quantity).ToString("N0", CultureInfo.CurrentCulture);
-        IssuanceValueTextBlock.Text = $"{filtered.Sum(batch => batch.Total):N0} ريال";
-        ResultSummaryTextBlock.Text = $"عرض {filtered.Length:N0} دفعة من أصل {_issuanceService.Batches.Count:N0} · انقر مرتين على الدفعة لعرض الكروت التابعة لها.";
-    }
-
-    private void OpenSelectedBatchButton_Click(object sender, RoutedEventArgs e) => OpenSelectedBatch();
     private void BatchesGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e) => OpenSelectedBatch();
 
     private void OpenSelectedBatch()
     {
-        if (BatchesGrid.SelectedItem is not GeneratedCardBatch batch) return;
-        var systemKey = batch.TargetSystem.Contains("هوتسبوت", StringComparison.OrdinalIgnoreCase) ? "hotspot" : "user-manager";
-        NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("network-users", "كل الحسابات", batch.BatchId, "batch", systemKey));
+        if (BatchesGrid.SelectedItem is not BatchManagementRow row) return;
+        NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs(
+            "network-users", "كل الحسابات", row.BatchId, "batch", row.SystemKey));
     }
-
-    private void NewBatchButton_Click(object sender, RoutedEventArgs e) =>
-        NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("cards", "إصدار الكروت"));
 }
