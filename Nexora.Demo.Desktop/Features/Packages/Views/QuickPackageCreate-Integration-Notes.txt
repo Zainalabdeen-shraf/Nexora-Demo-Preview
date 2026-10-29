@@ -1,0 +1,37 @@
+# دمج نافذة إنشاء الباقة السريعة
+
+## الملفات الجديدة
+انسخ الملفات إلى المسارات التالية داخل المشروع:
+
+- `QuickPackageCreateWindow.xaml` إلى `Features\Packages\Views\QuickPackageCreateWindow.xaml`
+- `QuickPackageCreateWindow.xaml.cs` إلى `Features\Packages\Views\QuickPackageCreateWindow.xaml.cs`
+- `PackageManagementView.QuickCreateBridge.cs` إلى `Features\Packages\Views\PackageManagementView.QuickCreateBridge.cs`
+
+لا تستبدل `PackageManagementView.xaml` ولا `PackageEditorWindow.xaml`، ولا تضف ملف النموذج التجريبي الذي يحمل `x:Class="PackageManagementView"`. النافذة الجديدة لها فئة مستقلة، وشاشة إدارة الباقات والتعديل تبقيان كما هما بصرياً.
+
+## ربط زر +
+في `Features\Cards\Views\CardIssuanceView.TemplateIntegration.cs` داخل `AddPackageButton_Click`، احتفظ بمتغيرات `before` و`packageIdsBefore` و`bindingKeysBefore` كما هي، واستبدل فقط كتلة إنشاء `PackageManagementView` والنافذة الحالية وحتى `dialog.ShowDialog();` بالتالي:
+
+```csharp
+var dialog = new QuickPackageCreateWindow(providerKey)
+{
+    Owner = owner,
+    WindowStartupLocation = owner is null
+        ? WindowStartupLocation.CenterScreen
+        : WindowStartupLocation.CenterOwner
+};
+
+dialog.ShowDialog();
+```
+
+اترك جميع الأسطر التي تأتي بعد `dialog.ShowDialog();` كما هي، لأنها تعيد قراءة الكتالوج وتحدّث اختيار الباقة في شاشة الإصدار.
+
+## فحص البناء
+بعد حفظ الملفات، نفّذ:
+
+```powershell
+Set-Location 'D:\Tabweeb\kurootalshabkah\Nexora.Demo.Desktop'
+dotnet build
+```
+
+لم أتمكن من بناء المشروع الفعلي هنا لأن ملفات المشروع غير موجودة في بيئة هذه المحادثة. تحققت من سلامة XML، وتفرّد أسماء عناصر التحكم في النافذة الجديدة، ووجود معالجات أحداث XAML في ملفها الخلفي. لذلك يلزم اختبار البناء في مشروعك قبل اعتماد التغيير.

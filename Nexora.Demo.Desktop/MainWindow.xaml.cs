@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -59,7 +59,7 @@ public partial class MainWindow : Window
     {
         ["network-users"] = ["كل الحسابات", "النشطون الآن", "غير النشطين"],        ["cards"] = ["إصدار الكروت", "إدارة الكروت", "إدارة الدفعات", "المعلقات", "استيراد الكروت"],
         ["packages"] = ["كتالوج الباقات"],
-        ["sales"] = ["ملخص المبيعات", "معاملات البيع", "نقاط البيع"],
+        ["sales"] = ["لوحة المبيعات", "تسجيل البيع", "حركة الكروت", "حسابات نقاط البيع", "سجل العمليات", "تقارير المبيعات", "نقاط البيع"],
         ["printing"] = ["تصميم القالب", "قائمة الطباعة"],
         ["networks"] = ["مدير المستخدمين", "الهوتسبوت", ],
         ["reports"] = ["مركز التقارير"],
@@ -70,6 +70,8 @@ public partial class MainWindow : Window
     private DemoAccountSystem _selectedCardSystem = DemoAccountSystem.HotSpot;
     private readonly DemoCardIssuanceService _demoCardIssuanceService = new();
     private readonly DemoSalesService _demoSalesService = new();
+    private readonly SalesOperationsService _salesOperationsService = new();
+    private readonly SalesPointDirectoryService _salesPointDirectoryService;
     private readonly Dictionary<string, UserControl> _featureViewCache = new(StringComparer.Ordinal);
     private string _sectionBeforeLocationEdit = "dashboard";
     private string _tabBeforeLocationEdit = "إعدادات النظام";
@@ -88,6 +90,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        _salesPointDirectoryService = new SalesPointDirectoryService(_demoSalesService.GetAll().Select(row => row.PointOfSale));
         StateChanged += (_, _) => UpdateWorkspaceWindowControls();
         ApplyShellDisplayPreferences();
         SystemPasswordBox.Password = DemoPassword;

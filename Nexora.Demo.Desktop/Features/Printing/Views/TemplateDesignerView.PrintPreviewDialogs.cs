@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Microsoft.Win32;
 using System.IO;
 using System.Text.Json;
@@ -19,8 +19,27 @@ public partial class TemplateDesignerView
 {
     private void PreviewTemplateButton_Click(object sender, RoutedEventArgs e)
     {
-        ApplyPropertiesButton_Click(this, new RoutedEventArgs());
-        ShowPrintPreviewDialog();
+        if (!_isReady) return;
+        try
+        {
+            ApplyPropertiesButton_Click(this, new RoutedEventArgs());
+            _studioPreviewPageNumber = 1;
+            RefreshStudioPreviews();
+            SetStatus("تم تجهيز معاينة الطباعة. فُتحت في نافذة مستقلة حتى تبقى مساحة التصميم متاحة.", isSuccess: true);
+            ShowPrintPreviewDialog();
+        }
+        catch (Exception ex)
+        {
+            SetStatus("تعذّر فتح معاينة الطباعة. تحقق من القالب ثم أعد المحاولة.", isSuccess: false);
+            try
+            {
+                var logDirectory = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NexoraProductDemo", "logs");
+                Directory.CreateDirectory(logDirectory);
+                var logPath = System.IO.Path.Combine(logDirectory, "ui-runtime-errors.log");
+                File.AppendAllText(logPath, $"[{DateTimeOffset.Now:O}] [TemplateDesignerView] Print preview failed: {ex}\r\n\r\n");
+            }
+            catch { /* Logging is best-effort; never hide the user-facing error. */ }
+        }
     }
     private void ShowPrintPreviewDialog()
     {
@@ -66,9 +85,9 @@ public partial class TemplateDesignerView
         var validity = AddTextField(settingsPanel, "الصلاحية بالأيام", selectedPackage?.Validity ?? "—");
         var price = AddTextField(settingsPanel, "السعر على الكرت", selectedPackage is null ? "—" : selectedPackage.PrintPrice.ToString("0.##", CultureInfo.InvariantCulture));
         var upload = AddTextField(settingsPanel, "حد التحميل", selectedPackage?.DataLimit ?? "—");
-        var cardCount = AddTextField(settingsPanel, "إجمالي الكروت", "51");
-        var columns = AddTextField(settingsPanel, "عدد الأعمدة", "3");
-        var rows = AddTextField(settingsPanel, "حد الصفوف/صفحة", "17");
+        var cardCount = AddTextField(settingsPanel, "إجمالي الكروت", PrintTotalCardsTextBox.Text);
+        var columns = AddTextField(settingsPanel, "عدد الأعمدة", PrintColumnsTextBox.Text);
+        var rows = AddTextField(settingsPanel, "حد الصفوف/صفحة", PrintRowsTextBox.Text);
         var numberPrefix = AddTextField(settingsPanel, "بداية الرقم", "50723001");
         var usernamePrefix = AddTextField(settingsPanel, "بادئة اسم المستخدم", "");
         var passwordPrefix = AddTextField(settingsPanel, "بادئة كلمة المرور", "");
@@ -91,7 +110,7 @@ public partial class TemplateDesignerView
             UpdatePreview();
             SetStatus("تم تحديث أرقام التواصل في المصمم؛ احفظ القالب لتثبيته للطباعة.", isSuccess: true);
         };
-        var previewPage = AddTextField(settingsPanel, "رقم الصفحة", "1");
+        var previewPage = AddTextField(settingsPanel, "رقم الصفحة", _studioPreviewPageNumber.ToString(CultureInfo.InvariantCulture));
         hours.IsReadOnly = validity.IsReadOnly = price.IsReadOnly = upload.IsReadOnly = packageName.IsReadOnly = true;
         hours.ToolTip = validity.ToolTip = price.ToolTip = upload.ToolTip = packageName.ToolTip = "تُقرأ هذه البيانات من الباقة المختارة؛ اختر الباقة من شريط المصمم لتغييرها.";
         settingsBorder.Child = settingsPanel;
@@ -171,8 +190,8 @@ public partial class TemplateDesignerView
             const double cardGapMm = 1d;
             var total = ParseInt(cardCount.Text, 51, 1, 10000);
             var requestedColumns = ParseInt(columns.Text, 3, 1, 8);
-            var cardWidthMm = ParseDouble(CardWidthTextBox.Text, 66, 10, 200);
-            var cardHeightMm = ParseDouble(CardHeightTextBox.Text, 15.5, 10, 200);
+            var cardWidthMm = ParseDouble(CardWidthTextBox.Text, 46, 10, 200);
+            var cardHeightMm = ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200);
             var usableWidthMm = pageWidthUnits - pageMarginMm * 2d;
             var usableHeightMm = pageHeightUnits - pageMarginMm * 2d;
             var maxColumns = Math.Max(1, (int)Math.Floor((usableWidthMm + cardGapMm) / (cardWidthMm + cardGapMm)));
@@ -187,6 +206,10 @@ public partial class TemplateDesignerView
             columns.Text = colCount.ToString(CultureInfo.InvariantCulture);
             rows.Text = rowCapacity.ToString(CultureInfo.InvariantCulture);
             cardCount.Text = total.ToString(CultureInfo.InvariantCulture);
+            PrintTotalCardsTextBox.Text = total.ToString(CultureInfo.InvariantCulture);
+            PrintColumnsTextBox.Text = colCount.ToString(CultureInfo.InvariantCulture);
+            PrintRowsTextBox.Text = rowCapacity.ToString(CultureInfo.InvariantCulture);
+            _studioPreviewPageNumber = pageNumber;
             if (colCount != requestedColumns || rowCapacity != requestedRows)
                 SetStatus($"تم ضبط التخطيط حسب مقاس الكرت الفعلي: {colCount} أعمدة × {rowCapacity} صفوف كحد أقصى؛ لم يتم تصغير الخطوط أو الكروت.", isSuccess: false);
 
@@ -196,7 +219,8 @@ public partial class TemplateDesignerView
             var first = ParseLong(numberPrefix.Text, 50723001);
             var priceText = string.IsNullOrWhiteSpace(price.Text) ? "—" : price.Text.Trim();
             var uploadText = string.IsNullOrWhiteSpace(upload.Text) ? "—" : upload.Text.Trim();
-            previewSummary.Text = $"A4 عمودي · الصفحة {pageNumber} من {totalPages} · {colCount} أعمدة · السعة {perPage} كرت/صفحة · {cardsOnPage} كرت في هذه الصفحة · إجمالي {total:N0} كرت · المقاس {cardWidthMm:0.#} × {cardHeightMm:0.#} مم";
+            previewSummary.Text = $"A4 عمودي · الصفحة {pageNumber} من {totalPages} · {colCount} أعمدة × {rowCapacity} صفوف · السعة {perPage} كرت/صفحة · {cardsOnPage} كرت في هذه الصفحة · إجمالي {total:N0} كرت · المقاس {cardWidthMm:0.#} × {cardHeightMm:0.#} مم";
+            RefreshStudioPreviews();
 
             for (var i = 0; i < cardsOnPage; i++)
             {

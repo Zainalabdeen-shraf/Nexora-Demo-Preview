@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
@@ -10,7 +9,7 @@ using Nexora.Demo.Desktop.Features.Packages.Services;
 
 namespace Nexora.Demo.Desktop.Features.Packages.Views;
 
-// Responsibility: Package catalog loading, filtering, selection, and binding actions.
+// Responsibility: package catalog loading, filtering, card refresh, and binding actions.
 public partial class PackageManagementView
 {
     private void ConfigureProviderFields()
@@ -26,6 +25,7 @@ public partial class PackageManagementView
         SourceSettingsTitleTextBlock.Text = hotspot ? "إعدادات المصدر (هوتسبوت)" : "إعدادات المصدر (يوزر منجر)";
         SourceSettingsIconTextBlock.Text = hotspot ? "⌁" : "⚙";
     }
+
     private void RefreshPackages(string? selectPackageId = null)
     {
         try
@@ -40,21 +40,32 @@ public partial class PackageManagementView
             EmptyStateTextBlock.Text = "تعذر تحميل الباقات المحفوظة. لم يتم تغيير بياناتها.";
             StatusTextBlock.Text = "تعذر تحميل بيانات الباقات.";
             MessageBox.Show(Window.GetWindow(this), "تعذر تحميل بيانات الباقات:\n" + ex.Message,
-                "TabCard", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxOptions.RtlReading);
+                "Nexora", MessageBoxButton.OK, MessageBoxImage.Error,
+                MessageBoxResult.OK, MessageBoxOptions.RtlReading);
         }
     }
+
     private void ApplyFilter(string? selectPackageId = null)
     {
-        if (PackagesDataGrid is null || _catalog.Packages is null || _catalog.Bindings is null) return;
+        if (PackageCardsItemsControl is null || _catalog.Packages is null || _catalog.Bindings is null)
+            return;
+
+        var previousSelectedId = selectPackageId ?? _selectedPackageRow?.Package.Id;
         var query = SearchTextBox.Text?.Trim() ?? string.Empty;
         var filter = (StatusFilterComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "all";
+
         var bindingMap = _catalog.Bindings
-            .Where(b => b.ProviderKey == _providerKey)
+            .Where(b => string.Equals(b.ProviderKey, _providerKey, StringComparison.OrdinalIgnoreCase))
             .GroupBy(b => b.PackageId, StringComparer.Ordinal)
-            .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.IsEnabled).First(), StringComparer.Ordinal);
+            .ToDictionary(
+                g => g.Key,
+                g => g.OrderByDescending(x => x.IsEnabled).First(),
+                StringComparer.Ordinal);
 
         var list = _catalog.Packages
-            .Select(p => new PackageManagementRow(p, bindingMap.TryGetValue(p.Id, out var binding) ? binding : null))
+            .Select(p => new PackageManagementRow(
+                p,
+                bindingMap.TryGetValue(p.Id, out var binding) ? binding : null))
             .Where(row => filter switch
             {
                 "active" => row.Binding is not null && row.Binding.IsEnabled && !row.Package.IsArchived,
@@ -67,77 +78,103 @@ public partial class PackageManagementView
                 row.Name.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
                 row.TechnicalTargetDisplay.Contains(query, StringComparison.CurrentCultureIgnoreCase))
             .OrderByDescending(row => row.Package.CreatedAt)
-            .Select((row, index) => { row.Number = index + 1; return row; })
+            .Select((row, index) =>
+            {
+                row.Number = index + 1;
+                return row;
+            })
             .ToList();
 
-        _suppressSelection = true;
         _rows.Clear();
-        foreach (var row in list) _rows.Add(row);
+        foreach (var row in list)
+            _rows.Add(row);
+
+        _selectedPackageRow = string.IsNullOrWhiteSpace(previousSelectedId)
+            ? null
+            : _rows.FirstOrDefault(row =>
+                string.Equals(row.Package.Id, previousSelectedId, StringComparison.Ordinal));
+
         EmptyStatePanel.Visibility = _rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         EmptyStateTextBlock.Text = query.Length > 0
             ? "لا توجد باقات تطابق عبارة البحث."
             : "لا توجد باقات مطابقة لهذه الحالة في النظام المحدد.";
 
-        if (!string.IsNullOrWhiteSpace(selectPackageId))
-            PackagesDataGrid.SelectedItem = _rows.FirstOrDefault(x => x.Package.Id == selectPackageId);
-        _suppressSelection = false;
-
-        StatusTextBlock.Text = $"تم عرض {_rows.Count:N0} باقة في النظام المحدد.";
+        StatusTextBlock.Text = $"تم عرض {_rows.Count.ToString("N0", CultureInfo.CurrentCulture)} باقة في النظام المحدد.";
     }
-    private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e) => ApplyFilter();
+
+    private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        => ApplyFilter();
+
     private void StatusFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (IsInitialized) ApplyFilter();
+        if (IsInitialized)
+            ApplyFilter();
     }
+
     private void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
-        var selectedId = (PackagesDataGrid.SelectedItem as PackageManagementRow)?.Package.Id;
+        var selectedId = _selectedPackageRow?.Package.Id;
         RefreshPackages(selectedId);
     }
-    private void PackagesDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (_suppressSelection || PackagesDataGrid.SelectedItem is not PackageManagementRow row) return;
-        SetStatus($"تم تحديد الباقة «{row.Package.Name}». استخدم أيقونة التعديل لفتحها.", false);
-    }
-    private void PackagesDataGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-    {
-        if (PackagesDataGrid.SelectedItem is PackageManagementRow)
-            SetStatus("لتعديل الباقة، استخدم أيقونة التعديل في صف الإجراءات.", false);
-    }
+
     private void RowActionsButton_Click(object sender, RoutedEventArgs e)
-{
-    if (sender is Button button && button.ContextMenu is ContextMenu menu)
     {
+        if (sender is not Button button || button.ContextMenu is not ContextMenu menu)
+            return;
+
+        if (button.DataContext is PackageManagementRow row)
+            _selectedPackageRow = row;
+
         menu.PlacementTarget = button;
         menu.DataContext = button.DataContext;
         menu.IsOpen = true;
     }
-}
+
     private void ToggleBinding_Click(object sender, RoutedEventArgs e)
     {
-        if (PackagesDataGrid.SelectedItem is not PackageManagementRow row) return;
-        if (row.Binding is null)
+        var row = GetPackageRowFromAction(sender) ?? _selectedPackageRow;
+        if (row is null)
         {
-            SetStatus("هذه الباقة غير مرتبطة بالنظام الحالي. اخترها ثم احفظها لإنشاء الربط.", true);
+            SetStatus("اختر باقة صالحة لتحديث الربط.", true);
             return;
         }
+
+        _selectedPackageRow = row;
+        if (row.Binding is null)
+        {
+            SetStatus("هذه الباقة غير مرتبطة بالنظام الحالي. افتح الباقة واحفظها لإنشاء الربط.", true);
+            return;
+        }
+
         var enable = !row.Binding.IsEnabled;
         var action = enable ? "إعادة تفعيل" : "إيقاف";
         var answer = MessageBox.Show(Window.GetWindow(this),
             $"هل تريد {action} ربط الباقة «{row.Package.Name}»؟ سيبقى التعريف التجاري محفوظًا.",
-            "تأكيد الإجراء", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No, MessageBoxOptions.RtlReading);
-        if (answer != MessageBoxResult.Yes) return;
+            "تأكيد الإجراء", MessageBoxButton.YesNo, MessageBoxImage.Question,
+            MessageBoxResult.No, MessageBoxOptions.RtlReading);
+        if (answer != MessageBoxResult.Yes)
+            return;
+
         try
         {
             var fresh = DemoPackageStore.Load();
-            var target = fresh.Bindings.FirstOrDefault(b => b.Id == row.Binding.Id && b.ProviderKey == _providerKey);
-            if (target is null) throw new InvalidOperationException("لم يعد ربط الباقة موجودًا في البيانات المحفوظة.");
+            var target = fresh.Bindings.FirstOrDefault(b =>
+                b.Id == row.Binding.Id &&
+                string.Equals(b.ProviderKey, _providerKey, StringComparison.OrdinalIgnoreCase));
+            if (target is null)
+                throw new InvalidOperationException("لم يعد ربط الباقة موجودًا في البيانات المحفوظة.");
+
             target.IsEnabled = enable;
             target.UpdatedAt = DateTimeOffset.Now;
             DemoPackageStore.Save(fresh);
             RefreshPackages(row.Package.Id);
-            SetStatus(enable ? "تمت إعادة تفعيل ربط الباقة." : "تم إيقاف ربط الباقة في النظام الحالي.", false);
+            SetStatus(enable
+                ? "تمت إعادة تفعيل ربط الباقة."
+                : "تم إيقاف ربط الباقة في النظام الحالي.", false);
         }
-        catch (Exception ex) { SetStatus("تعذر تحديث حالة الربط: " + ex.Message, true); }
+        catch (Exception ex)
+        {
+            SetStatus("تعذر تحديث حالة الربط: " + ex.Message, true);
+        }
     }
 }

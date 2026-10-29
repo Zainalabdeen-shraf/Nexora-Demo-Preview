@@ -17,11 +17,35 @@ namespace Nexora.Demo.Desktop.Features.Printing.Views;
 // Responsibility: Reusable UI helpers and property value parsing.
 public partial class TemplateDesignerView
 {
+    private DispatcherTimer? _statusToastTimer;
+
     private void SetStatus(string message, bool isSuccess)
     {
         if (TemplateStatusTextBlock is null) return;
+        var foreground = (Brush)FindResource(isSuccess ? "SuccessBrush" : "DangerBrush");
         TemplateStatusTextBlock.Text = message;
-        TemplateStatusTextBlock.Foreground = (Brush)FindResource(isSuccess ? "SuccessBrush" : "DangerBrush");
+        TemplateStatusTextBlock.Foreground = foreground;
+        TemplateStatusGlyphTextBlock.Text = isSuccess ? "✓" : "!";
+        TemplateStatusGlyphTextBlock.Foreground = foreground;
+        TemplateStatusBorder.Background = isSuccess
+            ? new SolidColorBrush(Color.FromRgb(0xEA, 0xF8, 0xEF))
+            : new SolidColorBrush(Color.FromRgb(0xFE, 0xF0, 0xF0));
+        TemplateStatusBorder.BorderBrush = isSuccess
+            ? new SolidColorBrush(Color.FromRgb(0xB9, 0xE7, 0xC7))
+            : new SolidColorBrush(Color.FromRgb(0xF3, 0xB2, 0xB2));
+        TemplateStatusPopup.IsOpen = true;
+        _statusToastTimer ??= new DispatcherTimer(DispatcherPriority.Background);
+        _statusToastTimer.Stop();
+        _statusToastTimer.Interval = TimeSpan.FromMilliseconds(isSuccess ? 2600 : 5200);
+        _statusToastTimer.Tick -= StatusToastTimer_Tick;
+        _statusToastTimer.Tick += StatusToastTimer_Tick;
+        _statusToastTimer.Start();
+    }
+
+    private void StatusToastTimer_Tick(object? sender, EventArgs e)
+    {
+        if (_statusToastTimer is not null) _statusToastTimer.Stop();
+        if (TemplateStatusPopup is not null) TemplateStatusPopup.IsOpen = false;
     }
     private Window CreateDialog(string title, double width, double height)
     {

@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 using System.Globalization;
 using System.Windows;
@@ -46,6 +46,10 @@ public partial class CardIssuanceView
             LoadPersistedOptions();
 
             LoadPersistedPreferences();
+            ApplyTemplateAssociationForSelectedPackage();
+            var initialTemplatePath = (PrintTemplateComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
+            if (!string.IsNullOrWhiteSpace(initialTemplatePath) && File.Exists(initialTemplatePath))
+                LoadSelectedTemplate(initialTemplatePath, persistAssociation: false);
 
             RefreshExistingBatches();
 
@@ -120,73 +124,146 @@ public partial class CardIssuanceView
 
 
     }
-    private void GenerateBatchButton_Click(object sender, RoutedEventArgs e) => ExecuteBatchWorkflow("local");
-    private void GenerateAndPrintButton_Click(object sender, RoutedEventArgs e) => ExecuteBatchWorkflow("upload-print");
-    private void OnlineSaleButton_Click(object sender, RoutedEventArgs e) => ExecuteBatchWorkflow("online-sale");
-    private void ExecuteBatchWorkflow(string action)
+    private async void GenerateBatchButton_Click(object sender, RoutedEventArgs e) => await ExecuteBatchWorkflowAsync("local");
+    private async void GenerateAndPrintButton_Click(object sender, RoutedEventArgs e) => await ExecuteBatchWorkflowAsync("upload-print");
+    private async void OnlineSaleButton_Click(object sender, RoutedEventArgs e) => await ExecuteBatchWorkflowAsync("online-sale");
 
+    private async Task ExecuteBatchWorkflowAsync(string action)
     {
-
-        _lastGeneratedBatchId = null;
-
-        _lastGeneratedCards = [];
-
-        GenerateBatch();
-
-        if (string.IsNullOrWhiteSpace(_lastGeneratedBatchId) || _lastGeneratedCards.Count == 0)
-
+        if (_workflowRunning)
             return;
 
+        _workflowRunning = true;
+        IsEnabled = false;
+        var owner = Window.GetWindow(this);
+        var progress = WorkflowFeedbackWindow.ShowProgress(
+            owner,
+            action == "online-sale" ? "تجهيز كروت الشبكات" : action == "upload-print" ? "إنشاء الدفعة وتجهيز الطباعة" : "إنشاء دفعة الكروت",
+            action == "online-sale"
+                ? "يجري التحقق من إعدادات الإصدار ثم حفظ دفعة كروت الشبكات داخل Nexora. لن تتم طباعة هذه الدفعة تلقائيًا."
+                : action == "upload-print"
+                    ? "يجري التحقق من البيانات وتوليد الكروت وحفظ سجل الدفعة قبل فتح المعاينة."
+                    : "يجري التحقق من البيانات وتوليد هويات فريدة وحفظ الدفعة محليًا.",
+            "التحقق من الحقول والإعدادات…");
 
         try
-
         {
+            // Give WPF time to render the branded progress surface before the local operation starts.
+            await Task.Delay(180);
+            progress.UpdateStage(action == "online-sale"
+                ? "التحقق من الحقول وحفظ الدفعة المحلية؛ المزامنة الفعلية غير متاحة في هذه النسخة…"
+                : "توليد الأسماء والتحقق من عدم تكرارها…");
 
-            var batch = _issuanceService.Batches.FirstOrDefault(item => item.BatchId == _lastGeneratedBatchId);
+            var batch = GenerateBatch(
+                forceNewBatch: action == "online-sale",
+                // The operation is called "كروت الشبكات"; the batch itself is identified
+                // by its generated timestamp-based ID, not by a repeated display name.
+                batchName: string.Empty);
+
+            if (string.IsNullOrWhiteSpace(_lastGeneratedBatchId) || _lastGeneratedCards.Count == 0)
+                throw new InvalidOperationException("لم يتم إنشاء أي كرت. راجع البيانات ثم أعد المحاولة.");
 
             var targetKey = _targetSystem == DemoAccountSystem.HotSpot ? "hotspot" : "user-manager";
-
-            _workflowStore.RecordLocalGeneration(_lastGeneratedBatchId, targetKey, batch?.Quantity ?? _lastGeneratedCards.Count, _lastGeneratedCards);
-
+            _workflowStore.RecordLocalGeneration(_lastGeneratedBatchId, targetKey, batch.Quantity, _lastGeneratedCards);
             _workflowStore.SetPreferredBatchFilter(targetKey, _lastGeneratedBatchId);
+            progress.UpdateStage("تم حفظ الدفعة وسجل الكروت محليًا.");
 
-
-            switch (action)
-
+            var price = batch.UnitPrice;
+            var details = new List<KeyValuePair<string, string>>
             {
-case "upload-print":
-                    _workflowStore.QueuePrintSelection(_lastGeneratedCards);
-                    SetStatus($"تم إنشاء {_lastGeneratedCards.Count:N0} كرت محليًا في الدفعة {_lastGeneratedBatchId}. ستظهر الأرقام في معاينة الطباعة المنفصلة.", false);
-                    ShowLocalPrintPreview(_lastGeneratedCards);
-                    break;
+                new("رقم الدفعة", batch.BatchId),
+                new("تاريخ الإنشاء", batch.CreatedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm:ss", CultureInfo.InvariantCulture)),
+                new("عدد الكروت في هذه العملية", _lastGeneratedCards.Count.ToString("N0", CultureInfo.CurrentCulture)),
+                new("الباقة", batch.PackageName),
+                new("سعر الكرت", $"{price:N0} ريال"),
+                new("الإجمالي التقديري", $"{price * _lastGeneratedCards.Count:N0} ريال"),
+                new("نقطة البيع", batch.PointOfSale),
+                new("حالة السجل", "محفوظ محليًا داخل Nexora")
+            };
 
-                case "online-sale":
-
-                    SetStatus($"تم إنشاء الدفعة {_lastGeneratedBatchId}. ستفتح إدارة الكروت لتحديد الحسابات المطلوبة للبيع الإلكتروني.", false);
-
-                    NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs(targetKey, "إدارة الكروت"));
-
-                    break;
-
-                default:
-
-                    SetStatus($"تم إنشاء {_lastGeneratedCards.Count:N0} كرت في الدفعة {_lastGeneratedBatchId}. يمكنك الرجوع إليها من إدارة الكروت والدفعات.", false);
-
-                    break;
-
+            if (action == "upload-print")
+            {
+                _workflowStore.QueuePrintSelection(_lastGeneratedCards);
+                SetStatus($"تم إنشاء الدفعة {batch.BatchId} — {_lastGeneratedCards.Count:N0} كرت. يجري فتح معاينة PDF.", false);
+                progress.Close();
+                IsEnabled = true;
+                await ShowLocalPrintPreviewAsync(_lastGeneratedCards.ToList());
+                return;
             }
 
+            if (action == "online-sale")
+            {
+                SetStatus($"تم توليد {_lastGeneratedCards.Count:N0} كرت في دفعة «كروت الشبكات» محليًا. المزامنة الفعلية مع الراوتر غير منفذة في هذه النسخة.", true);
+                details.Add(new("مزامنة الراوتر", "لم تُنفّذ — موصل RouterOS المتاح للقراءة فقط"));
+                details.Add(new("PDF والطباعة", "لم يتم إنشاء PDF ولم تبدأ الطباعة"));
+                progress.Close();
+                IsEnabled = true;
+                var choice = WorkflowFeedbackWindow.ShowNotice(
+                    owner,
+                    "تم توليد دفعة كروت الشبكات",
+                    "نجح إنشاء الدفعة وحفظها في سجل Nexora. تنبيه مهم: لم يتم إرسال الحسابات إلى الراوتر؛ الموصل الموجود في المشروع لا يدعم كتابة حسابات HotSpot أو User Manager بعد. لذلك بقيت الدفعة بانتظار المزامنة ولم تتم طباعتها.",
+                    WorkflowFeedbackKind.Warning,
+                    details,
+                    new WorkflowFeedbackAction("manage", "فتح إدارة الكروت", true),
+                    new WorkflowFeedbackAction("close", "إغلاق"));
+                if (choice == "manage")
+                    NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs(targetKey, "إدارة الكروت"));
+                return;
+            }
+
+            SetStatus($"تم إنشاء {_lastGeneratedCards.Count:N0} كرت في الدفعة {batch.BatchId}.", false);
+            progress.Close();
+            IsEnabled = true;
+            var localChoice = WorkflowFeedbackWindow.ShowNotice(
+                owner,
+                "اكتمل إنشاء الدفعة",
+                "تم حفظ الدفعة محليًا. يمكنك مراجعة PDF كامل أو متابعة العمل دون طباعة.",
+                WorkflowFeedbackKind.Success,
+                details,
+                new WorkflowFeedbackAction("preview", "فتح PDF كامل", true),
+                new WorkflowFeedbackAction("close", "إغلاق"));
+            if (localChoice == "preview")
+                await ShowLocalPrintPreviewAsync(_lastGeneratedCards.ToList());
         }
-
-        catch (Exception ex)
-
+        catch (ArgumentException ex)
         {
-
-            SetStatus("تم إنشاء الكروت، لكن تعذر تسجيل بعض تفاصيل مسار الإجراء: " + ex.Message, true);
-
+            progress.Close();
+            IsEnabled = true;
+            SetStatus(ex.Message, true);
+            WorkflowFeedbackWindow.ShowNotice(
+                owner,
+                "راجع بيانات الدفعة",
+                ex.Message,
+                WorkflowFeedbackKind.Warning,
+                [new("النتيجة", "لم تكتمل العملية ولم يتم اعتماد دفعة جديدة.")],
+                new WorkflowFeedbackAction("close", "تعديل البيانات", true));
         }
-
+        catch (Exception ex)
+        {
+            progress.Close();
+            IsEnabled = true;
+            var partial = _lastGeneratedCards.Count > 0;
+            var message = partial
+                ? "تم إنشاء الكروت محليًا، لكن تعذر إكمال تسجيل بعض تفاصيل سير العمل. افحص سجل الدفعات قبل إعادة المحاولة."
+                : "تعذر إكمال العملية. لم يتم تأكيد إنشاء دفعة جديدة.";
+            SetStatus(message + " " + ex.Message, true);
+            WorkflowFeedbackWindow.ShowNotice(
+                owner,
+                partial ? "الدفعة أُنشئت وتحتاج مراجعة" : "تعذر إكمال العملية",
+                message,
+                WorkflowFeedbackKind.Error,
+                [new("التفاصيل", ex.Message), new("الإجراء التالي", "راجع سجل الدفعات قبل إعادة التنفيذ حتى لا تكرر العملية.")],
+                new WorkflowFeedbackAction("close", "إغلاق", true));
+        }
+        finally
+        {
+            if (progress.IsVisible)
+                progress.Close();
+            IsEnabled = true;
+            _workflowRunning = false;
+        }
     }
+
     private bool MatchRecentBatch(object item)
 
     {
@@ -211,86 +288,45 @@ case "upload-print":
         RecentBatchesEmptyPanel.Visibility = RecentBatchesGrid.Items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
     }
-    private void GenerateBatch()
-
+    private GeneratedCardBatch GenerateBatch(bool forceNewBatch = false, string batchName = "")
     {
+        _lastGeneratedBatchId = null;
+        _lastGeneratedCards = [];
 
-        try
-
+        // Named network-card batches always start a new batch, even if the regular issuance
+        // form is currently set to append to a previous batch.
+        var request = BuildRequest(batchName);
+        string? existingBatchId = null;
+        if (!forceNewBatch && AppendToPreviousBatchRadioButton.IsChecked == true)
         {
-
-            var request = BuildRequest();
-
-            string? existingBatchId = null;
-
-            if (AppendToPreviousBatchRadioButton.IsChecked == true)
-
-            {
-
-                if (ExistingBatchComboBox.SelectedItem is not GeneratedCardBatch selectedBatch)
-
-                    throw new ArgumentException("اختر رقم الدفعة السابقة التي تريد الإضافة إليها.");
-
-                existingBatchId = selectedBatch.BatchId;
-
-            }
-
-
-            var countAdded = request.Quantity;
-
-            var batch = _issuanceService.GenerateBatch(request, existingBatchId);
-
-            var targetName = _targetSystem == DemoAccountSystem.HotSpot ? "مستخدمو نقطة الاتصال" : "مدير المستخدمين";
-
-            _lastGeneratedBatchId = batch.BatchId;
-
-            _lastGeneratedCards = _issuanceService.Cards
-
-                .Where(card => card.BatchId == batch.BatchId && card.TargetSystem == targetName)
-
-                .TakeLast(countAdded)
-
-                .ToList();
-
-            if (_lastGeneratedCards.Count == 0)
-
-                throw new InvalidOperationException("لم يعثر النظام على الكروت التي أُنشئت لهذه الدفعة.");
-
-            _previewCard = _lastGeneratedCards[^1];
-            SetStatus($"تم إنشاء {countAdded:N0} كرت في الدفعة {batch.BatchId}.", false);
-
-
-            OpenPrintQueueButton.IsEnabled = true;
-
-            RefreshExistingBatches();
-
-            _recentBatchesView?.Refresh();
-
-            RecentBatchesGrid.Items.Refresh();
-
-            RefreshRecentBatchesEmptyState();
-
-            UpdatePreview();
+            if (ExistingBatchComboBox.SelectedItem is not GeneratedCardBatch selectedBatch)
+                throw new ArgumentException("اختر الدفعة السابقة التي تريد الإضافة إليها.");
+            existingBatchId = selectedBatch.BatchId;
         }
 
-        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or FormatException or OverflowException)
+        var countAdded = request.Quantity;
+        var batch = _issuanceService.GenerateBatch(request, existingBatchId);
+        var targetName = _targetSystem == DemoAccountSystem.HotSpot ? "مستخدمو الهوتسبوت" : "مدير المستخدمين";
+        _lastGeneratedBatchId = batch.BatchId;
+        _lastGeneratedCards = _issuanceService.Cards
+            .Where(card => card.BatchId == batch.BatchId && card.TargetSystem == targetName)
+            .TakeLast(countAdded)
+            .ToList();
 
-        {
+        if (_lastGeneratedCards.Count != countAdded)
+            throw new InvalidOperationException($"طلبت إنشاء {countAdded:N0} كرت، لكن سجل الدفعة أعاد {_lastGeneratedCards.Count:N0}. لا تعِد العملية قبل مراجعة سجل الدفعات.");
 
-            SetStatus(exception.Message, true);
-
-        }
-
-        catch (Exception exception)
-
-        {
-
-            SetStatus("حدث خطأ غير متوقع أثناء تجهيز الدفعة. لم يتم إرسال شيء إلى الراوتر. التفاصيل: " + exception.Message, true);
-
-        }
-
+        _previewCard = _lastGeneratedCards[^1];
+        OpenPrintQueueButton.IsEnabled = true;
+        RefreshExistingBatches();
+        _recentBatchesView?.Refresh();
+        RecentBatchesGrid.Items.Refresh();
+        RefreshRecentBatchesEmptyState();
+        UpdatePreview();
+        return batch;
     }
-    private CardIssuanceRequest BuildRequest()
+
+    private CardIssuanceRequest BuildRequest(string batchName = "")
 
     {
         if (!TryParseInteger(QuantityTextBox.Text, out var quantity))
@@ -382,7 +418,7 @@ case "upload-print":
 
             cardSet,
 
-            CardNumberGenerationMode.Random,
+            CardNumberGenerationMode.Sequential,
 
             "1",
 
@@ -404,7 +440,9 @@ case "upload-print":
 
             managerAccount,
 
-            sharedUsers);
+            sharedUsers,
+
+            batchName);
 
     }
     private static bool TryParseInteger(string? value, out int result)

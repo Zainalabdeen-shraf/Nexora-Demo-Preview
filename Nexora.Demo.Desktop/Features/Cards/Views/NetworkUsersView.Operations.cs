@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using Nexora.Demo.Desktop.Features.Cards.Models;
 using Nexora.Demo.Desktop.Features.Cards.Services;
+using Nexora.Demo.Desktop.Features.Shared;
 
 namespace Nexora.Demo.Desktop.Features.Cards.Views;
 
@@ -118,11 +119,13 @@ public partial class NetworkUsersView
             case "delete":
             {
                 var owner = Window.GetWindow(this);
-                var prompt = $"حذف {row.CardNumber} من عرض الديمو الحالي؟\n\nسيختفي من الجدول داخل هذه الشاشة فقط، ولن يُحذف من بيانات الإصدار أو من أي راوتر.";
-                var answer = owner is null
-                    ? MessageBox.Show(prompt, "تأكيد حذف تجريبي", MessageBoxButton.YesNo, MessageBoxImage.Warning)
-                    : MessageBox.Show(owner, prompt, "تأكيد حذف تجريبي", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (answer != MessageBoxResult.Yes) return;
+                var prompt = $"سيختفي {row.CardNumber} من عرض الديمو الحالي فقط. لن يُحذف سجل الكرت أو بيانات الراوتر.";
+                var answer = WorkflowFeedbackWindow.ShowNotice(
+                    owner, "تأكيد الإخفاء المحلي", prompt, WorkflowFeedbackKind.Warning,
+                    [new("الكرت", row.CardNumber), new("النطاق", "عرض الديمو الحالي فقط")],
+                    new WorkflowFeedbackAction("hide", "إخفاء الكرت", true),
+                    new WorkflowFeedbackAction("cancel", "إلغاء"));
+                if (answer != "hide") return;
                 state.IsDeleted = true;
                 GeneratedCardsGrid.UnselectAll();
                 _rowsView.Refresh();
@@ -408,7 +411,8 @@ public partial class NetworkUsersView
             else if (!decimal.TryParse(rawExtraData, NumberStyles.Number, CultureInfo.CurrentCulture, out extraData)
                 && !decimal.TryParse(rawExtraData, NumberStyles.Number, CultureInfo.InvariantCulture, out extraData))
             {
-                MessageBox.Show(dialog, "أدخل رصيد بيانات صحيحًا بالأرقام، مثل 2 أو 1.5.", "قيمة غير صحيحة", MessageBoxButton.OK, MessageBoxImage.Warning);
+                WorkflowFeedbackWindow.ShowNotice(dialog, "قيمة غير صحيحة", "أدخل رصيد بيانات بالأرقام، مثل 2 أو 1.5.", WorkflowFeedbackKind.Warning, null,
+                    new WorkflowFeedbackAction("close", "تصحيح القيمة", true));
                 extraDataBox.Focus();
                 extraDataBox.SelectAll();
                 return;
@@ -416,7 +420,8 @@ public partial class NetworkUsersView
 
             if (extraData < 0m)
             {
-                MessageBox.Show(dialog, "رصيد البيانات لا يمكن أن يكون سالبًا.", "قيمة غير صحيحة", MessageBoxButton.OK, MessageBoxImage.Warning);
+                WorkflowFeedbackWindow.ShowNotice(dialog, "قيمة غير صحيحة", "رصيد البيانات لا يمكن أن يكون سالبًا.", WorkflowFeedbackKind.Warning, null,
+                    new WorkflowFeedbackAction("close", "تصحيح القيمة", true));
                 extraDataBox.Focus();
                 extraDataBox.SelectAll();
                 return;
@@ -447,12 +452,10 @@ public partial class NetworkUsersView
     }
     private void ShowDemoMessage(string title, string message)
     {
-        var fullMessage = message + "\n\nمحاكاة عرض محلية فقط — لا يوجد اتصال بالراوتر ولا حفظ دائم.";
-        var owner = Window.GetWindow(this);
-        if (owner is null)
-            MessageBox.Show(fullMessage, title, MessageBoxButton.OK, MessageBoxImage.Information);
-        else
-            MessageBox.Show(owner, fullMessage, title, MessageBoxButton.OK, MessageBoxImage.Information);
+        var fullMessage = message + "\n\nمحاكاة محلية فقط — لا يوجد اتصال بالراوتر ولا حفظ دائم.";
+        WorkflowFeedbackWindow.ShowNotice(
+            Window.GetWindow(this), title, fullMessage, WorkflowFeedbackKind.Info, null,
+            new WorkflowFeedbackAction("close", "متابعة", true));
     }
     private static string NormalizeDateLabel(string? value)
     {

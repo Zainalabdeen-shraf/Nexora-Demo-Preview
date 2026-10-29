@@ -35,10 +35,15 @@ public partial class CardIssuanceView
             PointOfSaleComboBox.SelectedItem = existing;
             PersistCurrentPreferences();
             SetStatus($"تم حفظ نقطة البيع «{value}».", false);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تمت إضافة نقطة البيع", "حُفظت نقطة البيع وأصبحت محددة للاستخدام في الدفعة الحالية.", WorkflowFeedbackKind.Success,
+                [new("نقطة البيع", value), new("نظام الإصدار", _targetSystem == DemoAccountSystem.HotSpot ? "HotSpot" : "User Manager")],
+                new WorkflowFeedbackAction("close", "متابعة", true));
         }
         catch (Exception ex)
         {
             SetStatus("تعذر حفظ نقطة البيع: " + ex.Message, true);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذر حفظ نقطة البيع", ex.Message, WorkflowFeedbackKind.Error, null,
+                new WorkflowFeedbackAction("close", "إغلاق", true));
         }
     }
     private string? PromptForOption(string title, string prompt)
@@ -133,7 +138,8 @@ public partial class CardIssuanceView
 
             {
 
-                MessageBox.Show(dialog, "اكتب اسمًا قبل الحفظ.", title, MessageBoxButton.OK, MessageBoxImage.Information);
+                WorkflowFeedbackWindow.ShowNotice(dialog, "الاسم مطلوب", "اكتب اسمًا واضحًا قبل الحفظ.", WorkflowFeedbackKind.Warning, null,
+                    new WorkflowFeedbackAction("close", "متابعة", true));
 
                 editor.Focus();
 

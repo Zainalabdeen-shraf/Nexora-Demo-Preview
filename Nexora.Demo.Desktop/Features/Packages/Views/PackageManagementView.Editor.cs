@@ -10,7 +10,7 @@ using Nexora.Demo.Desktop.Features.Packages.Services;
 
 namespace Nexora.Demo.Desktop.Features.Packages.Views;
 
-// Responsibility: Package editing form state, validation, save workflow, and value conversion.
+// Responsibility: package editing form state, validation, save workflow, and value conversion.
 public partial class PackageManagementView
 {
     private void LoadPackageRow(PackageManagementRow row)
@@ -72,6 +72,7 @@ public partial class PackageManagementView
             ? "تعريف تجاري محفوظ؛ سيُنشأ له ربط جديد عند حفظه في النظام الحالي."
             : "تم تحميل إعدادات الباقة المحددة للتعديل.", false);
     }
+
     private void ClearForm()
     {
         _loadingForm = true;
@@ -114,19 +115,21 @@ public partial class PackageManagementView
         SelectTag(PeriodPolicyComboBox, "full-day");
         AccessFromTextBox.Text = "08:00";
         AccessUntilTextBox.Text = "18:00";
-        _suppressSelection = true;
-        PackagesDataGrid.SelectedItem = null;
-        _suppressSelection = false;
+
+        _selectedPackageRow = null;
         _loadingForm = false;
         ApplyControlStates();
         UpdatePackageEditorMode();
     }
+
     private void LimitOption_Changed(object sender, RoutedEventArgs e) => ApplyControlStates();
     private void CommissionEnabled_Changed(object sender, RoutedEventArgs e) => ApplyControlStates();
+
     private void PolicySelection_Changed(object sender, SelectionChangedEventArgs e)
     {
         if (!_loadingForm) ApplyControlStates();
     }
+
     private void ApplyControlStates()
     {
         if (DataQuotaAmountTextBox is not null) DataQuotaAmountTextBox.IsEnabled = UnlimitedDataCheckBox.IsChecked != true;
@@ -141,6 +144,7 @@ public partial class PackageManagementView
         if (CustomDaysPanel is not null)
             CustomDaysPanel.Visibility = SelectedTag(DaysPolicyComboBox, "all") == "custom" ? Visibility.Visible : Visibility.Collapsed;
     }
+
     private List<string> GetSelectedAccessDays()
     {
         var days = new List<string>();
@@ -153,6 +157,7 @@ public partial class PackageManagementView
         if (FridayCheckBox.IsChecked == true) days.Add("الجمعة");
         return days;
     }
+
     private void UpdatePackageEditorMode()
     {
         var editing = _editingPackage is not null;
@@ -163,8 +168,10 @@ public partial class PackageManagementView
         if (CreatePackageTab is not null)
             CreatePackageTab.Header = editing ? "تعديل الباقة" : "باقة جديدة";
     }
+
     private void SavePackageButton_Click(object sender, RoutedEventArgs e) => SavePackage(addAnother: false);
     private void SaveAndNewButton_Click(object sender, RoutedEventArgs e) => SavePackage(addAnother: true);
+
     private void SavePackage(bool addAnother)
     {
         try
@@ -198,6 +205,7 @@ public partial class PackageManagementView
                 uptimeHours = 0;
                 uptimeMinutes = 0;
             }
+
             var unlimitedData = UnlimitedDataCheckBox.IsChecked == true;
             if (!unlimitedData && (!TryDecimal(DataQuotaAmountTextBox, out var quotaInput) || quotaInput <= 0))
             { SetStatus("حصة البيانات يجب أن تكون أكبر من صفر أو اختر بلا حد للبيانات.", true); return; }
@@ -217,7 +225,7 @@ public partial class PackageManagementView
             var catalogPackage = _editingPackage is null ? null : catalog.Packages.FirstOrDefault(p => p.Id == _editingPackage.Id);
             if (_editingPackage is not null && catalogPackage is null)
             {
-                SetStatus("لم يعد تعريف الباقة المحدد موجودًا في البيانات المحفوظة. حدّث الجدول ثم أعد المحاولة.", true);
+                SetStatus("لم يعد تعريف الباقة المحدد موجودًا في البيانات المحفوظة. حدّث القائمة ثم أعد المحاولة.", true);
                 return;
             }
 
@@ -237,10 +245,10 @@ public partial class PackageManagementView
 
             if (isolateSharedDefinition && catalogPackage is not null)
             {
-                // انقل ارتباط النظام الجاري تعديله إلى تعريف مستقل، واترك النظام الآخر على تعريفه الأصلي.
-                catalog.Bindings.RemoveAll(b =>
-                    b.PackageId == catalogPackage.Id && b.ProviderKey == _providerKey);
+                // Move only the current provider binding to a separate definition.
+                catalog.Bindings.RemoveAll(b => b.PackageId == catalogPackage.Id && b.ProviderKey == _providerKey);
             }
+
             package.Name = name;
             package.ValidityDays = validityDays;
             package.UnlimitedValidity = false;
@@ -260,7 +268,9 @@ public partial class PackageManagementView
             package.PreserveTimeOnRouterInterruption = PreserveTimeOnRouterInterruptionCheckBox.IsChecked == true;
             package.RecordHotSpotSessions = RecordHotSpotSessionsCheckBox.IsChecked == true;
             package.UpdatedAt = DateTimeOffset.Now;
-            if (creatingDefinition) catalog.Packages.Add(package);
+
+            if (creatingDefinition)
+                catalog.Packages.Add(package);
             else
             {
                 var packageIndex = catalog.Packages.FindIndex(p => p.Id == package.Id);
@@ -268,7 +278,9 @@ public partial class PackageManagementView
             }
 
             var existingBinding = catalog.Bindings.FirstOrDefault(b => b.PackageId == package.Id && b.ProviderKey == _providerKey);
-            var binding = existingBinding?.Copy() ?? (_editingBinding is not null && _editingBinding.ProviderKey == _providerKey ? _editingBinding.Copy() : new DemoPackageBinding { PackageId = package.Id, ProviderKey = _providerKey });
+            var binding = existingBinding?.Copy() ?? (_editingBinding is not null && _editingBinding.ProviderKey == _providerKey
+                ? _editingBinding.Copy()
+                : new DemoPackageBinding { PackageId = package.Id, ProviderKey = _providerKey });
             var creatingBinding = existingBinding is null;
             binding.PackageId = package.Id;
             binding.ProviderKey = _providerKey;
@@ -305,9 +317,7 @@ public partial class PackageManagementView
                 return;
             }
 
-            binding.AccessDays = dayPolicy == "custom"
-                ? GetSelectedAccessDays()
-                : allDays;
+            binding.AccessDays = dayPolicy == "custom" ? GetSelectedAccessDays() : allDays;
             binding.UseSchedule = dayPolicy != "all" || periodPolicy == "custom";
             binding.AccessFrom = periodPolicy == "custom" ? AccessFromTextBox.Text.Trim() : "00:00";
             binding.AccessUntil = periodPolicy == "custom" ? AccessUntilTextBox.Text.Trim() : "23:59";
@@ -319,7 +329,8 @@ public partial class PackageManagementView
                 { SetStatus("وقت البداية والنهاية غير صحيح؛ استخدم صيغة 24 ساعة واجعل البداية قبل النهاية.", true); return; }
             }
             binding.UpdatedAt = DateTimeOffset.Now;
-            if (creatingBinding) catalog.Bindings.Add(binding);
+            if (creatingBinding)
+                catalog.Bindings.Add(binding);
             else
             {
                 var bindingIndex = catalog.Bindings.FindIndex(b => b.Id == binding.Id && b.ProviderKey == _providerKey);
@@ -361,7 +372,7 @@ public partial class PackageManagementView
                 return;
             }
 
-            // End create/edit mode, then select the saved package in the saved-packages tab.
+            // Return to the saved-package cards after a successful create or edit.
             ClearForm();
             RefreshPackages(savedPackageId);
             PackageTabs.SelectedItem = SavedPackagesTab;
@@ -372,11 +383,14 @@ public partial class PackageManagementView
             SetStatus("تعذر حفظ الباقة: " + ex.Message, true);
         }
     }
+
     private void CancelButton_Click(object sender, RoutedEventArgs e)
     {
         ClearForm();
-        SetStatus("تم إلغاء التعديل الحالي دون حفظ تغييرات جديدة.", false);
+        PackageTabs.SelectedItem = SavedPackagesTab;
+        SetStatus("تم إلغاء العملية دون حفظ تغييرات جديدة.", false);
     }
+
     private void SelectTag(ComboBox combo, string? tag)
     {
         foreach (var item in combo.Items.OfType<ComboBoxItem>())
@@ -393,19 +407,25 @@ public partial class PackageManagementView
         }
         if (combo.Items.Count > 0) combo.SelectedIndex = 0;
     }
+
     private static string SelectedTag(ComboBox combo, string fallback)
         => (combo.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? fallback;
+
     private static string FormatNumber(decimal value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+
     private static bool TryInt(TextBox box, out int value)
         => int.TryParse(NormalizeDigits(box.Text), NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
+
     private static int ParseInt(TextBox box, int fallback) => TryInt(box, out var value) ? value : fallback;
     private static decimal ParseDecimal(TextBox box, decimal fallback) => TryDecimal(box, out var value) ? value : fallback;
+
     private static bool TryDecimal(TextBox box, out decimal value)
     {
         var text = NormalizeDigits(box.Text).Trim().Replace('٫', '.').Replace(',', '.');
         return decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out value) ||
                decimal.TryParse(text, NumberStyles.Number, CultureInfo.CurrentCulture, out value);
     }
+
     private static string NormalizeDigits(string? value)
     {
         if (string.IsNullOrEmpty(value)) return string.Empty;
@@ -417,6 +437,7 @@ public partial class PackageManagementView
         }
         return new string(chars);
     }
+
     private void SetStatus(string message, bool isError)
     {
         StatusTextBlock.Text = message;

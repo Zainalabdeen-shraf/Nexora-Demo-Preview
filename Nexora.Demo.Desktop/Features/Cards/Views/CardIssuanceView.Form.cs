@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 using System.Globalization;
 using System.Windows;
@@ -75,6 +75,7 @@ public partial class CardIssuanceView
         _previewCard = null;
 
         UpdateProfileSuggestion();
+        ApplyTemplateAssociationForSelectedPackage();
 
         RefreshExistingBatches();
 
@@ -179,16 +180,17 @@ public partial class CardIssuanceView
 
         var bodyLength = Math.Max(1, totalLength - prefix.Length - suffix.Length);
 
-        var cardPlaceholderChar = ReadTag(CardNumberCharacterSetComboBox) switch
+        // CardNumber is the reserved sequential serial; the login username is a separate credential.
+        var body = new string('0', Math.Min(bodyLength, 16));
+        var cardNumberSample = _previewCard?.CardNumber ?? $"{prefix}{body}{suffix}";
+        PreviewCardNumberTextBlock.Text = cardNumberSample;
+        var usernamePlaceholderChar = ReadTag(CardNumberCharacterSetComboBox) switch
         {
             "LettersOnly" => 'A',
             "AlphaNumeric" => 'A',
             _ => '0'
         };
-        var body = new string(cardPlaceholderChar, Math.Min(bodyLength, 16));
-        var cardNumberSample = _previewCard?.CardNumber ?? $"{prefix}{body}{suffix}";
-        PreviewCardNumberTextBlock.Text = cardNumberSample;
-        var usernameSample = _previewCard?.Username ?? cardNumberSample;
+        var usernameSample = _previewCard?.Username ?? new string(usernamePlaceholderChar, Math.Clamp(totalLength, 1, 24));
         PreviewUsernameTextBlock.Text = $"اسم المستخدم: {usernameSample}";
 
 
@@ -265,6 +267,99 @@ public partial class CardIssuanceView
             previewFieldsGrid.ColumnDefinitions[3].Width = barcodeVisible ? new GridLength(5) : new GridLength(0);
         }
 
+        UpdateSelectedTemplatePreview(cardNumberSample, usernameSample, passwordText, package);
+    }
+
+    private void UpdateSelectedTemplatePreview(string cardNumber, string username, string password, DemoCardPackage package)
+    {
+        if (CardPreviewBorder is null)
+            return;
+
+        try
+        {
+            var selectedPath = _activeTemplatePath;
+            if (string.IsNullOrWhiteSpace(selectedPath) || !File.Exists(selectedPath))
+                selectedPath = (PrintTemplateComboBox?.SelectedItem as ComboBoxItem)?.Tag?.ToString();
+            if (string.IsNullOrWhiteSpace(selectedPath) || !File.Exists(selectedPath))
+                selectedPath = File.Exists(TemplateDesignStoragePath) ? TemplateDesignStoragePath : null;
+
+            if (string.IsNullOrWhiteSpace(selectedPath) || !File.Exists(selectedPath))
+                throw new FileNotFoundException("لا يوجد ملف قالب محفوظ للمعاينة. افتح (+) بجانب القالب واحفظ التصميم باختيار القالب.");
+
+            var normalizedPath = Path.GetFullPath(selectedPath);
+            var lastWriteUtc = File.GetLastWriteTimeUtc(normalizedPath);
+            if (_selectedTemplateRenderer is null ||
+                !string.Equals(_selectedTemplateRendererPath, normalizedPath, StringComparison.OrdinalIgnoreCase) ||
+                _selectedTemplateRendererLastWriteUtc != lastWriteUtc)
+            {
+                var renderer = new Nexora.Demo.Desktop.Features.Printing.Views.TemplateDesignerView();
+                if (!renderer.LoadTemplateFile(normalizedPath))
+                    throw new InvalidDataException("ملف القالب موجود لكن تعذر قراءة عناصر التصميم منه.");
+                renderer.ApplyIssuanceContext(_targetSystem, package.Key);
+                _selectedTemplateRenderer = renderer;
+                _selectedTemplateRendererPath = normalizedPath;
+                _selectedTemplateRendererLastWriteUtc = lastWriteUtc;
+            }
+
+            var packageName = package.DisplayName.Split('—')[0].Trim();
+            var network = string.IsNullOrWhiteSpace(PreviewBrandNameTextBlock?.Text) ? string.Empty : PreviewBrandNameTextBlock.Text;
+            var pointOfSale = (PointOfSaleComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? string.Empty;
+            var cardVisual = _selectedTemplateRenderer.CreateIssuancePreviewElement(
+                cardNumber,
+                username,
+                password,
+                package.TimeLimit ?? string.Empty,
+                package.Validity ?? string.Empty,
+                package.PrintPrice.ToString("0.##", CultureInfo.CurrentCulture),
+                package.DataLimit ?? string.Empty,
+                network,
+                packageName,
+                pointOfSale,
+                0);
+
+            // This is the selected designer's real visual tree, not the static fallback
+            // card previously embedded in CardIssuanceView.xaml.
+            CardPreviewBorder.Child = cardVisual;
+            CardPreviewBorder.Padding = new Thickness(2);
+            CardPreviewBorder.Background = Brushes.White;
+            CardPreviewBorder.ToolTip = $"معاينة مباشرة للقالب: {_designerTemplateName}";
+        }
+        catch (Exception ex)
+        {
+            // Never disguise a failed template load as a successful default-card preview.
+            SetStatus("تعذر عرض القالب المختار: " + ex.Message, true);
+            CardPreviewBorder.ToolTip = ex.Message;
+            CardPreviewBorder.Child = new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(255, 245, 245)),
+                Padding = new Thickness(10),
+                Child = new StackPanel
+                {
+                    VerticalAlignment = VerticalAlignment.Center,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Children =
+                    {
+                        new TextBlock
+                        {
+                            Text = "تعذّر تحميل القالب المختار",
+                            Foreground = new SolidColorBrush(Color.FromRgb(165, 25, 37)),
+                            FontWeight = FontWeights.Bold,
+                            FontSize = 12,
+                            TextAlignment = TextAlignment.Center
+                        },
+                        new TextBlock
+                        {
+                            Text = "أعد اختيار القالب أو افتح (+) بجانب القالب ثم اضغط «اختيار القالب».",
+                            Foreground = new SolidColorBrush(Color.FromRgb(95, 55, 60)),
+                            FontSize = 10,
+                            TextWrapping = TextWrapping.Wrap,
+                            TextAlignment = TextAlignment.Center,
+                            Margin = new Thickness(0, 4, 0, 0)
+                        }
+                    }
+                }
+            };
+        }
     }
 private void BatchMode_Changed(object sender, RoutedEventArgs e)
     {

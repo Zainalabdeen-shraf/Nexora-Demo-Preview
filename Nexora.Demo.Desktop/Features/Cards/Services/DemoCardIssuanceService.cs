@@ -118,21 +118,22 @@ public sealed class DemoCardIssuanceService
         var batch = existingBatch is null
             ? new GeneratedCardBatch(batchId, targetName, request.Package.DisplayName, request.Quantity,
                 request.Package.Price, now, "بانتظار المزامنة",
-                request.RouterProfile, request.PointOfSale, request.ManagerAccount, request.SharedUsers)
+                request.RouterProfile, request.PointOfSale, request.ManagerAccount, request.SharedUsers, request.BatchName.Trim())
             : existingBatch with { Quantity = existingBatch.Quantity + request.Quantity };
 
-        var knownCardNumbers = new HashSet<string>(
-            Cards.Where(card => card.TargetSystem == targetName).Select(card => card.CardNumber),
-            StringComparer.OrdinalIgnoreCase);
-        var knownUsernames = new HashSet<string>(
-            Cards.Where(card => card.TargetSystem == targetName).Select(card => card.Username),
-            StringComparer.OrdinalIgnoreCase);
-        knownCardNumbers.UnionWith(knownUsernames);
-        knownUsernames.UnionWith(knownCardNumbers);
+        // A shared identifier set prevents both serials and usernames from colliding.
+        var knownIdentifiers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var card in Cards.Where(card => string.Equals(card.TargetSystem, targetName, StringComparison.Ordinal)))
+        {
+            if (!string.IsNullOrWhiteSpace(card.CardNumber)) knownIdentifiers.Add(card.CardNumber);
+            if (!string.IsNullOrWhiteSpace(card.Username)) knownIdentifiers.Add(card.Username);
+        }
+        var existingCards = Cards.Where(card => string.Equals(card.TargetSystem, targetName, StringComparison.Ordinal)).ToList();
         var newCards = new List<GeneratedDemoCard>(request.Quantity);
         var tokenLength = request.CardNumberLength - request.CardNumberPrefix.Length - request.CardNumberSuffix.Length;
+        var requestedStart = ParseSequenceStart(request.SequenceStartValue);
         var nextSequence = request.NumberGenerationMode == CardNumberGenerationMode.Sequential
-            ? ParseSequenceStart(request.SequenceStartValue)
+            ? ResolveNextSequenceStart(existingCards, request.CardNumberPrefix, request.CardNumberSuffix, requestedStart)
             : BigInteger.One;
         var cardAlphabet = GetAlphabet(request.CardNumberCharacterSet);
 
@@ -141,14 +142,14 @@ public sealed class DemoCardIssuanceService
             var number = request.NumberGenerationMode switch
             {
                 CardNumberGenerationMode.Random => GenerateUniqueToken(
-                    tokenLength, cardAlphabet, knownCardNumbers, request.CardNumberPrefix, request.CardNumberSuffix),
+                    tokenLength, cardAlphabet, knownIdentifiers, request.CardNumberPrefix, request.CardNumberSuffix),
                 CardNumberGenerationMode.Sequential => GenerateSequentialNumber(
-                    tokenLength, knownCardNumbers, request.CardNumberPrefix, request.CardNumberSuffix, ref nextSequence),
+                    tokenLength, knownIdentifiers, request.CardNumberPrefix, request.CardNumberSuffix, ref nextSequence),
                 _ => throw new InvalidOperationException("طريقة توليد رقم الكرت غير معروفة.")
             };
 
-            var username = number;
-            knownUsernames.Add(username);
+            var username = GenerateUniqueToken(
+                request.UsernameLength, GetAlphabet(request.UsernameCharacterSet), knownIdentifiers, string.Empty, string.Empty);
 
             var password = request.PasswordMode switch
             {
@@ -217,13 +218,13 @@ public sealed class DemoCardIssuanceService
     batchId = batchId?.Trim() ?? string.Empty;
 
     if (string.IsNullOrWhiteSpace(batchId))
-        throw new ArgumentException("أدخل اسم الدفعة أو رقمها.", nameof(batchId));
+        throw new ArgumentException("أدخل رقم الدفعة.", nameof(batchId));
 
     if (Batches.Any(batch =>
         string.Equals(batch.BatchId, batchId, StringComparison.OrdinalIgnoreCase)))
     {
         throw new InvalidOperationException(
-            "اسم الدفعة أو رقمها مستخدم بالفعل. اختر اسمًا آخر.");
+            "رقم الدفعة مستخدم بالفعل. تحقّق من الرقم ثم أعد المحاولة.");
     }
 
     var targetName = targetSystem == DemoAccountSystem.HotSpot
@@ -541,21 +542,11 @@ public sealed class DemoCardIssuanceService
             request.PasswordLength is < 4 or > 20)
             throw new ArgumentOutOfRangeException(nameof(request.PasswordLength), "طول كلمة المرور يجب أن يكون بين 4 و20 رمزًا.");
 
-        var fixedParts = request.CardNumberPrefix + request.CardNumberSuffix;
-        if (request.CardNumberCharacterSet == CardNumberCharacterSet.NumericOnly && fixedParts.Any(character => !char.IsDigit(character)))
-            throw new ArgumentException("عند اختيار الأرقام فقط، يجب أن تتكون البادئة واللاحقة من أرقام فقط.");
-
-        if (request.CardNumberCharacterSet == CardNumberCharacterSet.LettersOnly && fixedParts.Any(character => !char.IsLetter(character)))
-            throw new ArgumentException("عند اختيار الحروف فقط، يجب أن تتكون البادئة واللاحقة من حروف فقط.");
-
         if (request.CardNumberPrefix.Any(char.IsWhiteSpace) || request.CardNumberSuffix.Any(char.IsWhiteSpace))
             throw new ArgumentException("لا يمكن أن تحتوي البادئة أو اللاحقة على مسافات.");
 
         if (request.NumberGenerationMode == CardNumberGenerationMode.Sequential)
         {
-            if (request.CardNumberCharacterSet != CardNumberCharacterSet.NumericOnly)
-                throw new ArgumentException("التوليد المتسلسل متاح للأرقام فقط؛ اختر الأرقام فقط أو استخدم التوليد العشوائي.");
-
             var start = ParseSequenceStart(request.SequenceStartValue);
             if (start.ToString(CultureInfo.InvariantCulture).Length > tokenLength)
                 throw new ArgumentException("رقم بداية التسلسل لا يتسع للطول المتبقي من رقم الكرت.");
@@ -577,6 +568,24 @@ public sealed class DemoCardIssuanceService
         if (!BigInteger.TryParse(normalized, NumberStyles.None, CultureInfo.InvariantCulture, out var result) || result < BigInteger.Zero)
             throw new ArgumentException("رقم بداية التسلسل يجب أن يكون عددًا صحيحًا غير سالب.");
         return result;
+    }
+
+    private static BigInteger ResolveNextSequenceStart(
+        IEnumerable<GeneratedDemoCard> existingCards, string prefix, string suffix, BigInteger requestedStart)
+    {
+        var next = requestedStart;
+        foreach (var card in existingCards)
+        {
+            var value = card.CardNumber ?? string.Empty;
+            if (!value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ||
+                !value.EndsWith(suffix, StringComparison.OrdinalIgnoreCase) ||
+                value.Length <= prefix.Length + suffix.Length)
+                continue;
+            var body = value.Substring(prefix.Length, value.Length - prefix.Length - suffix.Length);
+            if (BigInteger.TryParse(body, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed) && parsed >= next)
+                next = parsed + BigInteger.One;
+        }
+        return next;
     }
 
     private static string GenerateSequentialNumber(

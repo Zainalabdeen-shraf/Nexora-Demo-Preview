@@ -46,7 +46,7 @@ public partial class GeneratedCardsView
         var selected = GetSelectedCards();
         if (selected.Count != 1)
         {
-            MessageBox.Show(Window.GetWindow(this), "حدد كرتًا واحدًا لعرض تفاصيله.", "تفاصيل الكرت", MessageBoxButton.OK, MessageBoxImage.Information);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "حدد كرتًا واحدًا", "حدد كرتًا واحدًا فقط لعرض تفاصيله.", WorkflowFeedbackKind.Warning, null, new WorkflowFeedbackAction("close", "حسنًا", true));
             return;
         }
         ShowCardDetails(selected[0]);
@@ -109,7 +109,8 @@ public partial class GeneratedCardsView
             _workflowStore.RecordRouterUpload(new[] { card });
             statusTextBlock.Text = $"🏷️ النظام: {card.TargetSystem}  |  📂 الدفعة: {card.BatchId}  |  📌 الحالة الإجرائية: {_workflowStore.GetCardStatusLabel(card.BatchId, card.CardNumber)}";
             RefreshFilteredCards();
-            MessageBox.Show(details, "⚡ تم تسجيل طلب المزامنة للراوتر بنجاح.", "المزامنة", MessageBoxButton.OK, MessageBoxImage.Information);
+            WorkflowFeedbackWindow.ShowNotice(details, "طلب المزامنة محفوظ محليًا", "تم تسجيل طلب المزامنة داخل Nexora فقط. لم يتم إرسال الحساب إلى الراوتر لأن الموصل المتاح للقراءة فقط.", WorkflowFeedbackKind.Warning,
+                [new("الكرت", card.CardNumber), new("الحالة", "بانتظار موصل كتابة")], new WorkflowFeedbackAction("close", "إغلاق", true));
         };
 
         printBtn.Click += (_, _) =>
@@ -117,7 +118,8 @@ public partial class GeneratedCardsView
             _workflowStore.QueuePrintSelection(new[] { card });
             statusTextBlock.Text = $"🏷️ النظام: {card.TargetSystem}  |  📂 الدفعة: {card.BatchId}  |  📌 الحالة الإجرائية: {_workflowStore.GetCardStatusLabel(card.BatchId, card.CardNumber)}";
             RefreshFilteredCards();
-            MessageBox.Show(details, "🖨️ تم تجهيز الكرت وإضافته إلى قائمة الطباعة.", "الطباعة", MessageBoxButton.OK, MessageBoxImage.Information);
+            WorkflowFeedbackWindow.ShowNotice(details, "تم تجهيز الكرت للطباعة", "أُضيف الكرت إلى قائمة الطباعة المحلية. لم يتم إرسال المستند للطابعة بعد.", WorkflowFeedbackKind.Success,
+                [new("الكرت", card.CardNumber), new("الخطوة التالية", "مراجعة قائمة الطباعة")], new WorkflowFeedbackAction("close", "حسنًا", true));
         };
 
         saleBtn.Click += (_, _) =>
@@ -125,7 +127,8 @@ public partial class GeneratedCardsView
             _workflowStore.RecordOnlineSalePreparation(new[] { card });
             statusTextBlock.Text = $"🏷️ النظام: {card.TargetSystem}  |  📂 الدفعة: {card.BatchId}  |  📌 الحالة الإجرائية: {_workflowStore.GetCardStatusLabel(card.BatchId, card.CardNumber)}";
             RefreshFilteredCards();
-            MessageBox.Show(details, "🛒 تم تجهيز الكرت للبيع الإلكتروني بنجاح.", "البيع الإلكتروني", MessageBoxButton.OK, MessageBoxImage.Information);
+            WorkflowFeedbackWindow.ShowNotice(details, "تم تجهيز الكرت للبيع الإلكتروني محليًا", "تم تسجيل حالة التجهيز في Nexora فقط؛ لم يُنشر الكرت في متجر خارجي.", WorkflowFeedbackKind.Info,
+                [new("الكرت", card.CardNumber), new("الحالة", "تجهيز محلي")], new WorkflowFeedbackAction("close", "حسنًا", true));
         };
 
         actionPanel.Children.Add(syncBtn);

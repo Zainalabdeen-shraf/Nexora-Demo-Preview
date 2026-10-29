@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using Nexora.Demo.Desktop.Features.Cards.Models;
 using Nexora.Demo.Desktop.Features.Cards.Services;
+using Nexora.Demo.Desktop.Features.Shared;
 
 namespace Nexora.Demo.Desktop.Features.Cards.Views;
 
@@ -90,7 +91,8 @@ public partial class NetworkUsersView
         var row = (contextMenu?.PlacementTarget as Button)?.DataContext as NetworkUserDisplayRow;
         if (row is null)
         {
-            MessageBox.Show(Window.GetWindow(this), "لم يتم تحديد حساب من الجدول.", "مستخدمو الشبكة", MessageBoxButton.OK, MessageBoxImage.Information);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "حدد حسابًا", "لم يتم العثور على حساب مرتبط بالإجراء. اختر صفًا من الجدول ثم أعد المحاولة.", WorkflowFeedbackKind.Warning, null,
+                new WorkflowFeedbackAction("close", "متابعة", true));
             return;
         }
 

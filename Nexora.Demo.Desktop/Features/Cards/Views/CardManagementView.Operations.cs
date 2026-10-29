@@ -47,6 +47,8 @@ public partial class CardManagementView
         if (selected.Count == 0)
         {
             SetOperationStatus("لم يتم تحديد كروت للطباعة.", true);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا توجد كروت للطباعة", "حدد كرتًا واحدًا أو أكثر ثم أعد المحاولة.", WorkflowFeedbackKind.Warning, null,
+                new WorkflowFeedbackAction("close", "العودة للقائمة", true));
             return;
         }
         try
@@ -57,11 +59,17 @@ public partial class CardManagementView
             var newlyQueued = selected.Count(card => !pendingKeys.Contains(WorkflowKey(card)));
             _workflowStore.QueuePrintSelection(selected);
             SetOperationStatus($"أُضيف {newlyQueued:N0} كرت إلى قائمة الطباعة؛ {selected.Count - newlyQueued:N0} كرت موجودة فيها مسبقًا.", false);
-            NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("printing", "قائمة الطباعة"));
+            var choice = WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تم تجهيز قائمة الطباعة", "حُفظت العناصر في قائمة الطباعة المحلية، ولم تُرسل للطابعة بعد.", WorkflowFeedbackKind.Success,
+                [new("إجمالي المحدد", selected.Count.ToString("N0")), new("أضيف حديثًا", newlyQueued.ToString("N0")), new("كان موجودًا مسبقًا", (selected.Count - newlyQueued).ToString("N0"))],
+                new WorkflowFeedbackAction("open", "فتح قائمة الطباعة", true), new WorkflowFeedbackAction("close", "لاحقًا"));
+            if (choice == "open")
+                NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("printing", "قائمة الطباعة"));
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            SetOperationStatus("تعذر تحديث قائمة الطباعة. حاول مرة أخرى.", true);
+            SetOperationStatus("تعذر تحديث قائمة الطباعة. " + ex.Message, true);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذر تحديث قائمة الطباعة", ex.Message, WorkflowFeedbackKind.Error, null,
+                new WorkflowFeedbackAction("close", "إغلاق", true));
         }
     }
     private void BulkArchiveButton_Click(object sender, RoutedEventArgs e) => ArchiveCards(GetMarkedRows().Select(row => row.Card));
@@ -71,21 +79,28 @@ public partial class CardManagementView
         if (selected.Count == 0)
         {
             SetOperationStatus("لا توجد كروت غير مؤرشفة في التحديد الحالي.", false);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا توجد كروت للأرشفة", "حدد كروتًا غير مؤرشفة أولًا.", WorkflowFeedbackKind.Warning, null,
+                new WorkflowFeedbackAction("close", "حسنًا", true));
             return;
         }
-        var answer = MessageBox.Show(Window.GetWindow(this),
-            $"ستؤرشف {selected.Count:N0} كرت. ستبقى سجلاتها محفوظة ويمكن استعادتها لاحقًا. هل تريد المتابعة؟",
-            "أرشفة الكروت", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-        if (answer != MessageBoxResult.Yes) return;
+        var answer = WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تأكيد أرشفة الكروت",
+            $"ستؤرشف {selected.Count:N0} كرت. ستبقى سجلاتها محفوظة ويمكن استعادتها لاحقًا.", WorkflowFeedbackKind.Warning,
+            [new("عدد الكروت", selected.Count.ToString("N0")), new("الأثر", "تغيير حالة الأرشفة في سجل Nexora")],
+            new WorkflowFeedbackAction("confirm", "تأكيد الأرشفة", true), new WorkflowFeedbackAction("cancel", "إلغاء"));
+        if (answer != "confirm") return;
         try
         {
             _issuanceService.ArchiveCards(selected, "أرشفة من شاشة إدارة الكروت");
             RefreshFromSource(preserveSelection: false);
             SetOperationStatus($"تمت أرشفة {selected.Count:N0} كرت.", false);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تمت أرشفة الكروت", "تم حفظ حالة الأرشفة في Nexora مع الإبقاء على سجلات الكروت.", WorkflowFeedbackKind.Success,
+                [new("عدد الكروت", selected.Count.ToString("N0"))], new WorkflowFeedbackAction("close", "إغلاق", true));
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            SetOperationStatus("تعذر أرشفة الكروت. حاول مرة أخرى.", true);
+            SetOperationStatus("تعذر أرشفة الكروت. " + ex.Message, true);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذرت أرشفة الكروت", ex.Message, WorkflowFeedbackKind.Error, null,
+                new WorkflowFeedbackAction("close", "إغلاق", true));
         }
     }
     private void BulkRestoreButton_Click(object sender, RoutedEventArgs e) => RestoreCards(GetMarkedRows().Select(row => row.Card));
@@ -95,6 +110,8 @@ public partial class CardManagementView
         if (selected.Count == 0)
         {
             SetOperationStatus("لا توجد سجلات مؤرشفة في التحديد الحالي.", false);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا توجد كروت للاستعادة", "حدد سجلات مؤرشفة ثم أعد المحاولة.", WorkflowFeedbackKind.Warning, null,
+                new WorkflowFeedbackAction("close", "حسنًا", true));
             return;
         }
         try
@@ -102,10 +119,14 @@ public partial class CardManagementView
             _issuanceService.RestoreCards(selected);
             RefreshFromSource(preserveSelection: false);
             SetOperationStatus($"تمت استعادة {selected.Count:N0} كرت من الأرشيف.", false);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تمت استعادة الكروت", "أُعيدت السجلات إلى العرض النشط مع الاحتفاظ بهوياتها وبيانات دفعاتها.", WorkflowFeedbackKind.Success,
+                [new("عدد الكروت", selected.Count.ToString("N0"))], new WorkflowFeedbackAction("close", "إغلاق", true));
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            SetOperationStatus("تعذرت استعادة الكروت. حاول مرة أخرى.", true);
+            SetOperationStatus("تعذرت استعادة الكروت. " + ex.Message, true);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذرت استعادة الكروت", ex.Message, WorkflowFeedbackKind.Error, null,
+                new WorkflowFeedbackAction("close", "إغلاق", true));
         }
     }
     private void SetOperationStatus(string message, bool isError)

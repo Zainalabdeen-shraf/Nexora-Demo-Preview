@@ -285,20 +285,30 @@ public partial class PendingCardsView : UserControl
         var selected = GetSelectedRows().Where(row => row.CanRetrySync).ToList();
         if (selected.Count == 0)
         {
-            SetStatus("حدد عناصر تحتاج إلى مزامنة أولاً.", true);
+            const string message = "حدد عناصر تحتاج إلى مزامنة أولاً.";
+            SetStatus(message, true);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا توجد عناصر للمزامنة", message, WorkflowFeedbackKind.Warning, null,
+                new WorkflowFeedbackAction("close", "حسنًا", true));
             return;
         }
 
         try
         {
-            // Demo-only operation: records a simulated workflow action in local storage.
+            // This project only records an offline request; it does not write accounts to RouterOS.
             _workflowStore.RecordRouterUpload(selected.Select(row => row.Card));
             RefreshRows();
-            SetStatus($"تم تسجيل إعادة المزامنة محلياً لـ {selected.Count:N0} كرت.", false);
+            SetStatus($"تم تسجيل طلب مزامنة محلي لـ {selected.Count:N0} كرت؛ لم يتم الاتصال بالراوتر.", false);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تم تسجيل الطلب محليًا",
+                "حُفظت محاولة المزامنة في سجل Nexora فقط. المزامنة الفعلية تتطلب موصل كتابة للراوتر غير متوفر في هذا المسار.",
+                WorkflowFeedbackKind.Warning,
+                [new("عدد الكروت", selected.Count.ToString("N0")), new("حالة الراوتر", "لم تتغير")],
+                new WorkflowFeedbackAction("close", "مفهوم", true));
         }
         catch (Exception ex)
         {
             SetStatus("تعذر تسجيل محاولة المزامنة التجريبية: " + ex.Message, true);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذر تسجيل الطلب", ex.Message, WorkflowFeedbackKind.Error, null,
+                new WorkflowFeedbackAction("close", "إغلاق", true));
         }
     }
 
@@ -307,21 +317,30 @@ public partial class PendingCardsView : UserControl
         var selected = GetSelectedRows().Where(row => row.CanQueuePrint).ToList();
         if (selected.Count == 0)
         {
-            SetStatus("حدد عناصر تحتاج إلى الطباعة وليست موجودة بالفعل في قائمة الطباعة.", true);
+            const string message = "حدد عناصر تحتاج إلى الطباعة وليست موجودة بالفعل في قائمة الطباعة.";
+            SetStatus(message, true);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا توجد عناصر للطباعة", message, WorkflowFeedbackKind.Warning, null,
+                new WorkflowFeedbackAction("close", "حسنًا", true));
             return;
         }
 
         try
         {
-            // Demo-only operation: selection is persisted locally by the existing workflow store.
             _workflowStore.QueuePrintSelection(selected.Select(row => row.Card));
             RefreshRows();
             SetStatus($"تمت إضافة {selected.Count:N0} كرت إلى قائمة الطباعة.", false);
-            NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("printing", "قائمة الطباعة"));
+            var choice = WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تم تجهيز الكروت للطباعة",
+                "تم حفظ اختيار الكروت في قائمة الطباعة. لم يتم إرسالها للطابعة بعد.", WorkflowFeedbackKind.Success,
+                [new("عدد الكروت", selected.Count.ToString("N0")), new("الحالة", "بانتظار المعاينة والإرسال")],
+                new WorkflowFeedbackAction("open", "فتح قائمة الطباعة", true), new WorkflowFeedbackAction("close", "لاحقًا"));
+            if (choice == "open")
+                NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("printing", "قائمة الطباعة"));
         }
         catch (Exception ex)
         {
             SetStatus("تعذرت إضافة العناصر إلى قائمة الطباعة: " + ex.Message, true);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذر تجهيز الطباعة", ex.Message, WorkflowFeedbackKind.Error, null,
+                new WorkflowFeedbackAction("close", "إغلاق", true));
         }
     }
 
@@ -342,13 +361,21 @@ public partial class PendingCardsView : UserControl
                 case "sync" when row.CanRetrySync:
                     _workflowStore.RecordRouterUpload(new[] { row.Card });
                     RefreshRows();
-                    SetStatus($"تم تسجيل إعادة المزامنة محلياً للكرت {row.CardNumber}.", false);
+                    SetStatus($"تم تسجيل طلب مزامنة محلي للكرت {row.CardNumber}. لم يتم الاتصال بالراوتر.", false);
+                    WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "طلب المزامنة محفوظ محليًا",
+                        $"تم تسجيل الإجراء للكرت {row.CardNumber} في Nexora فقط؛ لم يتم إنشاء الحساب على الراوتر.",
+                        WorkflowFeedbackKind.Warning, [new("الكرت", row.CardNumber), new("الحالة", "بانتظار موصل كتابة")],
+                        new WorkflowFeedbackAction("close", "إغلاق", true));
                     break;
                 case "print" when row.CanQueuePrint:
                     _workflowStore.QueuePrintSelection(new[] { row.Card });
                     RefreshRows();
                     SetStatus($"تمت إضافة الكرت {row.CardNumber} إلى قائمة الطباعة.", false);
-                    NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("printing", "قائمة الطباعة"));
+                    var choice = WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تم تجهيز الكرت للطباعة",
+                        "أُضيف الكرت إلى القائمة المحلية؛ لم يتم إرسال مستند للطابعة.", WorkflowFeedbackKind.Success,
+                        [new("الكرت", row.CardNumber)], new WorkflowFeedbackAction("open", "فتح قائمة الطباعة", true), new WorkflowFeedbackAction("close", "لاحقًا"));
+                    if (choice == "open")
+                        NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("printing", "قائمة الطباعة"));
                     break;
                 case "queued" when row.PrintQueued:
                     SetStatus("تم فتح قائمة الطباعة لإكمال العنصر.", false);
@@ -359,6 +386,8 @@ public partial class PendingCardsView : UserControl
         catch (Exception ex)
         {
             SetStatus("تعذر تنفيذ الإجراء التجريبي: " + ex.Message, true);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذر تنفيذ الإجراء", ex.Message, WorkflowFeedbackKind.Error, null,
+                new WorkflowFeedbackAction("close", "إغلاق", true));
         }
     }
 

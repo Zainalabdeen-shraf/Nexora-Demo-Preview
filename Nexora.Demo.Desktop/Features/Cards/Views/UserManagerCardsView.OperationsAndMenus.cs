@@ -31,11 +31,24 @@ public partial class UserManagerCardsView
     {
         if (rows.Count == 0)
         {
-            MessageBox.Show(Window.GetWindow(this), "لا توجد كروت محددة للطباعة. حدّد كرتًا أو أكثر أولًا.", "قائمة الطباعة", MessageBoxButton.OK, MessageBoxImage.Information);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا توجد كروت للطباعة", "حدد كرتًا أو أكثر أولًا، ثم أعد فتح قائمة الطباعة.", WorkflowFeedbackKind.Warning, null,
+                new WorkflowFeedbackAction("close", "العودة للكروت", true));
             return;
         }
-        _workflowStore.QueuePrintSelection(rows.Select(row => row.ToEffectiveCard()).ToList());
-        NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("printing", "قائمة الطباعة"));
+        try
+        {
+            _workflowStore.QueuePrintSelection(rows.Select(row => row.ToEffectiveCard()).ToList());
+            var choice = WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تم تجهيز قائمة الطباعة", "أُضيفت الكروت إلى قائمة الطباعة المحلية. لم تُرسل إلى الطابعة بعد.", WorkflowFeedbackKind.Success,
+                [new("عدد الكروت", rows.Count.ToString("N0")), new("الحالة", "بانتظار المعاينة والإرسال")],
+                new WorkflowFeedbackAction("open", "فتح قائمة الطباعة", true), new WorkflowFeedbackAction("close", "لاحقًا"));
+            if (choice == "open")
+                NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("printing", "قائمة الطباعة"));
+        }
+        catch (Exception ex)
+        {
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذر تجهيز قائمة الطباعة", ex.Message, WorkflowFeedbackKind.Error, null,
+                new WorkflowFeedbackAction("close", "إغلاق", true));
+        }
     }
     private void ExportButton_Click(object sender, RoutedEventArgs e)
     {
@@ -43,7 +56,8 @@ public partial class UserManagerCardsView
         var rows = selected.Count > 0 ? selected : _cardsView.Cast<ManagedCardRow>().ToList();
         if (rows.Count == 0)
         {
-            MessageBox.Show(Window.GetWindow(this), "لا توجد سجلات لتصديرها.", "تصدير الكروت", MessageBoxButton.OK, MessageBoxImage.Information);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا توجد سجلات للتصدير", "لا توجد كروت ضمن النتائج الحالية لتصديرها.", WorkflowFeedbackKind.Warning, null,
+                new WorkflowFeedbackAction("close", "إغلاق", true));
             return;
         }
         var dialog = new SaveFileDialog
@@ -63,14 +77,30 @@ public partial class UserManagerCardsView
         try
         {
             File.WriteAllText(dialog.FileName, builder.ToString(), new UTF8Encoding(true));
-            MessageBox.Show(Window.GetWindow(this), $"تم تصدير {rows.Count:N0} سجل إلى ملف CSV. هذا تصدير محلي لبيانات الديمو.", "اكتمل التصدير", MessageBoxButton.OK, MessageBoxImage.Information);
+            var exportChoice = WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "اكتمل تصدير الكروت", "تم حفظ ملف CSV من البيانات المحلية الحالية.", WorkflowFeedbackKind.Success,
+                [new("عدد السجلات", rows.Count.ToString("N0")), new("الملف", dialog.FileName), new("النطاق", "بيانات الديمو المحلية")],
+                new WorkflowFeedbackAction("open", "فتح المجلد", true), new WorkflowFeedbackAction("close", "إغلاق"));
+            if (exportChoice == "open")
+                OpenExportFolder(dialog.FileName);
         }
         catch (Exception ex)
         {
-            MessageBox.Show(Window.GetWindow(this), "تعذر حفظ ملف التصدير: " + ex.Message, "خطأ التصدير", MessageBoxButton.OK, MessageBoxImage.Error);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذر حفظ ملف التصدير", ex.Message, WorkflowFeedbackKind.Error, null,
+                new WorkflowFeedbackAction("close", "إغلاق", true));
         }
     }
     private static string Csv(string? value) => "\"" + (value ?? string.Empty).Replace("\"", "\"\"") + "\"";
+    private static bool OpenExportFolder(string filePath)
+    {
+        try
+        {
+            var folder = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrWhiteSpace(folder) && Directory.Exists(folder))
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", $"/select,\"{filePath}\"") { UseShellExecute = true });
+            return true;
+        }
+        catch { return false; }
+    }
     private void AddCardButton_Click(object sender, RoutedEventArgs e) =>
         NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("user-manager", "إضافة الكروت"));
     private void MoreButton_Click(object sender, RoutedEventArgs e)
@@ -86,7 +116,12 @@ public partial class UserManagerCardsView
     private void SelectionMoreButton_Click(object sender, RoutedEventArgs e)
     {
         var selected = GetSelectedRows();
-        if (selected.Count == 0) return;
+        if (selected.Count == 0)
+        {
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا توجد كروت محددة", "حدد كرتًا أو أكثر قبل فتح إجراءات التحديد.", WorkflowFeedbackKind.Warning, null,
+                new WorkflowFeedbackAction("close", "العودة للقائمة", true));
+            return;
+        }
         var menu = new ContextMenu { FlowDirection = FlowDirection.RightToLeft };
         AddMenuItem(menu, "تفعيل المحدد محليًا", (_, _) => SetLocalEnabled(selected, true));
         AddMenuItem(menu, "تعطيل المحدد محليًا", (_, _) => SetLocalEnabled(selected, false));
@@ -105,7 +140,8 @@ public partial class UserManagerCardsView
     {
         var selected = GetSelectedRows();
         if (selected.Count == 1) ShowCardDetails(selected[0]);
-        else MessageBox.Show(Window.GetWindow(this), "حدد كرتًا واحدًا لعرض التفاصيل.", "تفاصيل الكرت", MessageBoxButton.OK, MessageBoxImage.Information);
+        else WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "حدد كرتًا واحدًا", "لعرض التفاصيل، حدّد كرتًا واحدًا فقط من الجدول.", WorkflowFeedbackKind.Warning, null,
+            new WorkflowFeedbackAction("close", "متابعة", true));
     }
     private void CardsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
@@ -169,11 +205,18 @@ public partial class UserManagerCardsView
         var row = GetSelectedRows().FirstOrDefault();
         if (row is null)
         {
-            MessageBox.Show(Window.GetWindow(this), "حدد صفًا أولًا لنسخ قيمة الخلية.", "نسخ القيمة", MessageBoxButton.OK, MessageBoxImage.Information);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا يوجد صف محدد", "حدد صفًا واحدًا ثم أعد أمر نسخ قيمة الخلية.", WorkflowFeedbackKind.Warning, null,
+                new WorkflowFeedbackAction("close", "حسنًا", true));
             return;
         }
-        try { Clipboard.SetText(row[definition.Key]); }
-        catch (Exception ex) { MessageBox.Show(Window.GetWindow(this), "تعذر النسخ إلى الحافظة: " + ex.Message, "نسخ القيمة", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        try
+        {
+            Clipboard.SetText(row[definition.Key]);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تم نسخ القيمة", "نُسخت قيمة الخلية المحددة إلى الحافظة.", WorkflowFeedbackKind.Success,
+                [new("الحقل", definition.Title)], new WorkflowFeedbackAction("close", "متابعة", true));
+        }
+        catch (Exception ex) { WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذر النسخ إلى الحافظة", ex.Message, WorkflowFeedbackKind.Error, null,
+            new WorkflowFeedbackAction("close", "إغلاق", true)); }
     }
     private void SetLocalEnabled(IEnumerable<ManagedCardRow> rows, bool enabled)
     {
@@ -186,12 +229,20 @@ public partial class UserManagerCardsView
         }
         ApplyFilters();
         CardsScopeTextBlock.Text = $"تم تطبيق الحالة على {selected.Count:N0} كرت داخل واجهة الديمو فقط؛ لم يتم تغيير حالة أي مستخدم على الراوتر.";
+        WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), enabled ? "تم التفعيل محليًا" : "تم التعطيل محليًا",
+            "تم تغيير الحالة في عرض الديمو فقط. لم يتم إرسال أمر إلى الراوتر.", WorkflowFeedbackKind.Success,
+            [new("عدد الكروت", selected.Count.ToString("N0")), new("الحالة", enabled ? "مفعّلة محليًا" : "معطلة محليًا")],
+            new WorkflowFeedbackAction("close", "إغلاق", true));
     }
     private void ToggleArchive(ManagedCardRow row)
     {
         row.State.IsArchived = !row.State.IsArchived;
         row.RefreshValues();
         ApplyFilters();
+        WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), row.State.IsArchived ? "تمت الأرشفة محليًا" : "تم إلغاء الأرشفة محليًا",
+            "تم تغيير ظهور الكرت في بيانات الديمو فقط. لم تتغير حالة الحساب على الراوتر.", WorkflowFeedbackKind.Success,
+            [new("الكرت", row.Source.Username), new("الحالة", row.State.IsArchived ? "مؤرشف محليًا" : "ظاهر ضمن العرض")],
+            new WorkflowFeedbackAction("close", "إغلاق", true));
     }
     private void ArchiveRows(IEnumerable<ManagedCardRow> rows)
     {
@@ -205,19 +256,24 @@ public partial class UserManagerCardsView
         _archiveFilter = ArchiveFilterMode.ActiveOnly;
         ApplyFilters();
         CardsScopeTextBlock.Text = $"تمت أرشفة {selected.Count:N0} كرت في حالة العرض المحلية فقط.";
+        WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تمت الأرشفة المحلية", "تم إخفاء الكروت من العرض الحالي فقط؛ لم يتغير أي حساب على الراوتر.", WorkflowFeedbackKind.Success,
+            [new("عدد الكروت", selected.Count.ToString("N0"))], new WorkflowFeedbackAction("close", "إغلاق", true));
     }
     private void DeleteRows(IEnumerable<ManagedCardRow> rows)
     {
         var selected = rows.Distinct().ToList();
         if (selected.Count == 0) return;
-        var answer = MessageBox.Show(Window.GetWindow(this),
-            $"سيتم إخفاء {selected.Count:N0} سجل من عرض الديمو الحالي. لن يُرسل طلب حذف إلى الراوتر ولن تُحذف سجلات الإنتاج. هل تريد المتابعة؟",
-            "تأكيد الحذف المحلي", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
-        if (answer != MessageBoxResult.Yes) return;
+        var answer = WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تأكيد الإخفاء المحلي",
+            $"سيتم إخفاء {selected.Count:N0} سجل من عرض الديمو الحالي. لن يُرسل طلب حذف إلى الراوتر ولن تُحذف سجلات الإنتاج.",
+            WorkflowFeedbackKind.Warning, [new("عدد السجلات", selected.Count.ToString("N0")), new("الأثر", "إخفاء من عرض الديمو فقط")],
+            new WorkflowFeedbackAction("confirm", "تأكيد الإخفاء", true), new WorkflowFeedbackAction("cancel", "إلغاء"));
+        if (answer != "confirm") return;
         foreach (var row in selected) row.State.IsDeleted = true;
         CardsGrid.UnselectAll();
         ApplyFilters();
         CardsScopeTextBlock.Text = $"تم إخفاء {selected.Count:N0} سجل من العرض المحلي لهذه الجلسة؛ بيانات الخدمة الأصلية لم تُحذف.";
+        WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تم الإخفاء المحلي", "أُخفيت السجلات من العرض الحالي فقط. لم تُحذف بيانات الخدمة الأصلية.", WorkflowFeedbackKind.Success,
+            [new("عدد السجلات", selected.Count.ToString("N0"))], new WorkflowFeedbackAction("close", "إغلاق", true));
     }
     private void ChangePackage(IEnumerable<ManagedCardRow> rows)
     {
@@ -226,7 +282,8 @@ public partial class UserManagerCardsView
         var packages = DemoCardPackageCatalog.Load(DemoAccountSystem.UserManager).ToList();
         if (packages.Count == 0)
         {
-            MessageBox.Show(Window.GetWindow(this), "لا توجد باقات User Manager مفعّلة في كتالوج الديمو. لم يتغير شيء.", "تعديل الباقة", MessageBoxButton.OK, MessageBoxImage.Information);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا توجد باقات متاحة", "لا توجد باقات User Manager مفعّلة في كتالوج الديمو. لم يتغير شيء.", WorkflowFeedbackKind.Warning, null,
+                new WorkflowFeedbackAction("close", "إغلاق", true));
             return;
         }
         var dialog = new Window
@@ -254,6 +311,9 @@ public partial class UserManagerCardsView
         {
             ApplyFilters();
             CardsScopeTextBlock.Text = $"تم تغيير عرض الباقة لـ {selected.Count:N0} كرت محليًا فقط؛ لم يتم تغيير الراوتر أو سجل الباقة الأصلي.";
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تم تطبيق الباقة محليًا", "تغيرت قيم العرض للكروت المحددة فقط، ولم تتغير إعدادات الراوتر أو الباقة الأصلية.", WorkflowFeedbackKind.Success,
+                [new("عدد الكروت", selected.Count.ToString("N0")), new("الباقة", (combo.SelectedItem as DemoCardPackage)?.DisplayName ?? string.Empty)],
+                new WorkflowFeedbackAction("close", "متابعة", true));
         }
     }
     private void ChangePointOfSale(IEnumerable<ManagedCardRow> rows)
@@ -269,7 +329,8 @@ public partial class UserManagerCardsView
             .ToList();
         if (choices.Count == 0)
         {
-            MessageBox.Show(Window.GetWindow(this), "لا توجد نقاط بيع مسجلة في بيانات الديمو لاختيارها.", "تغيير نقطة البيع", MessageBoxButton.OK, MessageBoxImage.Information);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا توجد نقاط بيع", "أضف نقطة بيع من شاشة الإصدار أولًا، ثم أعد المحاولة.", WorkflowFeedbackKind.Warning, null,
+                new WorkflowFeedbackAction("close", "إغلاق", true));
             return;
         }
         var combo = new ComboBox { ItemsSource = choices, SelectedItem = selected[0].PointOfSale, MinWidth = 280, Height = 35 };
@@ -294,30 +355,59 @@ public partial class UserManagerCardsView
             foreach (var row in selected) { row.State.PointOfSaleOverride = pointOfSale; row.RefreshValues(); }
             ApplyFilters();
             CardsScopeTextBlock.Text = $"تم تغيير نقطة البيع لـ {selected.Count:N0} كرت في عرض الديمو فقط.";
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تم تغيير نقطة البيع محليًا", "تم تحديث معلومات العرض للكروت المحددة فقط.", WorkflowFeedbackKind.Success,
+                [new("عدد الكروت", selected.Count.ToString("N0")), new("نقطة البيع", pointOfSale)],
+                new WorkflowFeedbackAction("close", "إغلاق", true));
         }
     }
-    private void SimulateRouterSync(IEnumerable<ManagedCardRow> rows)
+    private async void SimulateRouterSync(IEnumerable<ManagedCardRow> rows)
     {
         var selected = rows.Distinct().ToList();
+        var owner = Window.GetWindow(this);
         if (selected.Count == 0)
         {
-            MessageBox.Show(Window.GetWindow(this), "حدد كرتًا واحدًا أو أكثر أولًا.", "مزامنة الراوتر", MessageBoxButton.OK, MessageBoxImage.Information);
+            WorkflowFeedbackWindow.ShowNotice(owner, "لا توجد كروت محددة", "حدد كرتًا واحدًا أو أكثر قبل تسجيل طلب المزامنة.", WorkflowFeedbackKind.Warning, null,
+                new WorkflowFeedbackAction("close", "العودة للقائمة", true));
             return;
         }
-        _workflowStore.RecordRouterUpload(selected.Select(row => row.ToEffectiveCard()).ToList());
-        MessageBox.Show(Window.GetWindow(this), $"تم تسجيل طلب المزامنة لـ {selected.Count:N0} كرت.", "محاكاة مزامنة الراوتر", MessageBoxButton.OK, MessageBoxImage.Information);
+        var confirm = WorkflowFeedbackWindow.ShowNotice(owner, "تأكيد طلب المزامنة", "سيحفظ Nexora طلبًا محليًا فقط. موصل RouterOS في هذا المشروع للقراءة فقط، لذلك لن يتم إرسال الحسابات إلى الراوتر.",
+            WorkflowFeedbackKind.Warning, [new("عدد الكروت", selected.Count.ToString("N0")), new("النتيجة", "تسجيل محلي دون كتابة إلى الراوتر")],
+            new WorkflowFeedbackAction("confirm", "تسجيل الطلب المحلي", true), new WorkflowFeedbackAction("cancel", "إلغاء"));
+        if (confirm != "confirm") return;
+
+        var progress = WorkflowFeedbackWindow.ShowProgress(owner, "تسجيل طلب متابعة محلي", "لا يتم تنفيذ مزامنة فعلية مع الراوتر في هذه النسخة.", "حفظ سجل المتابعة…");
+        try
+        {
+            await Task.Delay(300);
+            _workflowStore.RecordRouterUpload(selected.Select(row => row.ToEffectiveCard()).ToList());
+            progress.Close();
+            CardsScopeTextBlock.Text = $"تم تسجيل طلب متابعة محلي لـ {selected.Count:N0} كرت؛ لم تُرسل بيانات إلى الراوتر.";
+            WorkflowFeedbackWindow.ShowNotice(owner, "تم تسجيل الطلب المحلي", "تم حفظ طلب المتابعة في سجل Nexora. لم يتم إنشاء حسابات على الراوتر أو تغيير حالتها.", WorkflowFeedbackKind.Warning,
+                [new("عدد الكروت", selected.Count.ToString("N0")), new("حالة الراوتر", "لم تتغير")],
+                new WorkflowFeedbackAction("close", "إغلاق", true));
+        }
+        catch (Exception ex)
+        {
+            WorkflowFeedbackWindow.ShowNotice(owner, "تعذر تسجيل الطلب", ex.Message, WorkflowFeedbackKind.Error, null,
+                new WorkflowFeedbackAction("close", "إغلاق", true));
+        }
+        finally
+        {
+            if (progress.IsVisible) progress.Close();
+        }
     }
     private void ShowSessionsNotice(IEnumerable<ManagedCardRow> rows)
     {
         var selected = rows.Distinct().ToList();
         if (selected.Count == 0)
         {
-            MessageBox.Show(Window.GetWindow(this), "حدد كرتًا أو أكثر أولًا.", "إدارة الجلسات", MessageBoxButton.OK, MessageBoxImage.Information);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا توجد كروت محددة", "حدد كرتًا أو أكثر لعرض حالة توفر إدارة الجلسات.", WorkflowFeedbackKind.Warning, null,
+                new WorkflowFeedbackAction("close", "حسنًا", true));
             return;
         }
-        MessageBox.Show(Window.GetWindow(this),
-            $"تم تحديد {selected.Count:N0} كرت. نموذج الديمو الحالي لا يحتوي على سجلات جلسات فعلية، ولن تُعرض بيانات جلسات تخمينية. إدارة الجلسات الفعلية تتطلب اتصالًا بالراوتر، وهو غير مفعّل هنا.",
-            "إدارة الجلسات — غير متاحة في الديمو", MessageBoxButton.OK, MessageBoxImage.Information);
+        WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "إدارة الجلسات غير متاحة", "نموذج الديمو لا يحتوي على سجلات جلسات فعلية. لن نعرض بيانات تخمينية، وتحتاج الإدارة الحقيقية إلى اتصال كتابة/قراءة مناسب بالراوتر.",
+            WorkflowFeedbackKind.Warning, [new("عدد الكروت المحددة", selected.Count.ToString("N0")), new("الحالة", "لا توجد بيانات جلسات فعلية")],
+            new WorkflowFeedbackAction("close", "إغلاق", true));
     }
     private void ShowCardDetails(ManagedCardRow row)
     {

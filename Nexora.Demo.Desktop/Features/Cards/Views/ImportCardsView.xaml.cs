@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -37,7 +37,7 @@ public partial class ImportCardsView : UserControl
             ? "النظام المحدد: هوتسبوت"
             : "النظام المحدد: يوزر منجر";
 
-        BatchIdTextBox.Text = $"IMP-{DateTime.Now:yyMMdd-HHmmss}";
+        BatchIdTextBox.Text = $"IMP-{DateTime.Now:yyMMdd-HHmmss}-{DateTime.Now:fff}";
         ManagerAccountTextBox.Text = targetSystem == DemoAccountSystem.UserManager
             ? "admin"
             : "غير منطبق";

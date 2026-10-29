@@ -41,6 +41,25 @@ public partial class ReportsCenterView : UserControl
 
     public event EventHandler<FeatureNavigationRequestedEventArgs>? NavigationRequested;
 
+    public void FocusSalesDay(DateOnly day)
+    {
+        _refreshing = true;
+        try
+        {
+            ReportTypeComboBox.SelectedIndex = 2;
+            SourceFilterComboBox.SelectedIndex = 0;
+            StatusFilterComboBox.SelectedIndex = 0;
+            SearchTextBox.Clear();
+            FromDatePicker.SelectedDate = day.ToDateTime(TimeOnly.MinValue);
+            ToDatePicker.SelectedDate = day.ToDateTime(TimeOnly.MaxValue);
+        }
+        finally
+        {
+            _refreshing = false;
+        }
+        RefreshReport();
+    }
+
     private void ReportsCenterView_Loaded(object sender, RoutedEventArgs e)
     {
         if (!_isSubscribed)

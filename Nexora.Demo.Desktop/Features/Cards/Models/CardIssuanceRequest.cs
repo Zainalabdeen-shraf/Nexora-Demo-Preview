@@ -19,4 +19,5 @@ public sealed record CardIssuanceRequest(
     string PointOfSale,
     string Comment,
     string ManagerAccount = "admin",
-    int SharedUsers = 1);
+    int SharedUsers = 1,
+    string BatchName = "");

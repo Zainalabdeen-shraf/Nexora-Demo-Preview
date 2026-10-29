@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:Nexora.Demo.Desktop.Features.Cards.Views" x:Class="Nexora.Demo.Desktop.Features.Cards.Views.CardIssuanceView" FlowDirection="RightToLeft" Background="#F7F8FA" SnapsToDevicePixels="True">
   <!-- NexoraIssuanceWorkspaceV1: task-first Arabic RTL issuance workspace; shared shell/navigation remain external. -->
 <!-- NexoraIssuancePrecisePolish02 -->
@@ -210,7 +210,7 @@
             <StackPanel Grid.Row="1">
               <TextBlock Text="معاينة الكرت" Style="{StaticResource TabCardSectionTitle}" FontSize="13" Margin="0,0,0,3" HorizontalAlignment="Stretch" TextAlignment="Right"/>
               <Border x:Name="CardPreviewBorder" Background="#FFFFFF" BorderBrush="#E2C7C9" BorderThickness="1" CornerRadius="11" Padding="5" Height="112" MinHeight="108" MaxHeight="116" HorizontalAlignment="Stretch" ClipToBounds="True">
-                <Grid FlowDirection="RightToLeft">
+                <Grid x:Name="CardPreviewFallbackLayout" FlowDirection="RightToLeft">
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="2"/>
@@ -406,7 +406,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="الدفعة" Binding="{Binding BatchId}" Width="1.15*" ElementStyle="{StaticResource TabCardRecentBatchCellText}"/>
+                    <DataGridTextColumn Header="الدفعة" Binding="{Binding DisplayName}" Width="1.15*" ElementStyle="{StaticResource TabCardRecentBatchCellText}"/>
                     <DataGridTextColumn Header="التاريخ" Binding="{Binding CreatedAtLabel}" Width="1.2*" ElementStyle="{StaticResource TabCardRecentBatchCellText}"/>
                     <DataGridTextColumn Header="العدد" Binding="{Binding Quantity}" Width="38" ElementStyle="{StaticResource TabCardRecentBatchCellText}"/>
                     <DataGridTemplateColumn Header="حالة الدفعة" Width="90">
@@ -534,7 +534,7 @@
                         <ColumnDefinition Width="*"/>
                       </Grid.ColumnDefinitions>
                       <Button x:Name="OpenTemplateDesignerButton" Grid.Column="0" Content="+" Style="{StaticResource TabCardPlusButton}" Width="25" MinWidth="25" Height="25" ToolTip="فتح شاشة تصميم القالب" Click="OpenTemplateDesignerButton_Click"/>
-                      <ComboBox x:Name="PrintTemplateComboBox" Grid.Column="1" Height="25" Style="{StaticResource TabCardComboBox}" ToolTip="القالب المحفوظ من شاشة الطباعة والتصميم">
+                      <ComboBox x:Name="PrintTemplateComboBox" Grid.Column="1" Height="25" Style="{StaticResource TabCardComboBox}" ToolTip="اختر قالبًا محفوظًا مرتبطًا بالباقة" SelectionChanged="PrintTemplateComboBox_SelectionChanged">
                         <ComboBoxItem Content="القالب الافتراضي" Tag="designer" IsSelected="True"/>
                       </ComboBox>
                     </Grid>
@@ -608,13 +608,13 @@
                   <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,2" FlowDirection="RightToLeft">
-                  <TextBlock x:Name="CardNumberPatternLabelTextBlock" Text="طول ونمط رقم الكرت" Style="{StaticResource TabCardInlineLabelRuntimeRepair}" Margin="0,0,0,2"/>
+                  <TextBlock x:Name="CardNumberPatternLabelTextBlock" Text="طول الرقم التسلسلي ونمط اسم المستخدم" Style="{StaticResource TabCardInlineLabelRuntimeRepair}" Margin="0,0,0,2"/>
                   <Grid Height="25" FlowDirection="LeftToRight">
                     <Grid.ColumnDefinitions>
                       <ColumnDefinition Width="42"/>
                       <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBox x:Name="CardNumberLengthTextBox" Grid.Column="0" Height="25" Style="{StaticResource TabCardTextBox}" Text="8" FlowDirection="LeftToRight" HorizontalContentAlignment="Center" TextChanged="FormTextChanged" ToolTip="طول رقم الكرت أو اسم المستخدم وفق جهة الإصدار"/>
+                    <TextBox x:Name="CardNumberLengthTextBox" Grid.Column="0" Height="25" Style="{StaticResource TabCardTextBox}" Text="8" FlowDirection="LeftToRight" HorizontalContentAlignment="Center" TextChanged="FormTextChanged" ToolTip="طول الرقم التسلسلي؛ اسم المستخدم يُولّد منفصلًا وبشكل فريد"/>
                     <ComboBox x:Name="CardNumberCharacterSetComboBox" Grid.Column="1" Height="25" Style="{StaticResource TabCardComboBox}" SelectionChanged="FormSelectionChanged">
                       <ComboBoxItem Content="أرقام فقط" Tag="NumericOnly" IsSelected="True"/>
                       <ComboBoxItem Content="حروف وأرقام" Tag="AlphaNumeric"/>
@@ -724,7 +724,7 @@
               </StackPanel>
             </Button>
             <Button x:Name="AddBatchActionButton" Content="إنشاء الدفعة فقط" Style="{StaticResource TabCardActionButton}" Height="26" FontSize="11" Click="GenerateBatchButton_Click" Margin="1,0" MinWidth="0" Padding="4,0"/>
-            <Button x:Name="OnlineSaleButton" Click="OnlineSaleButton_Click" Height="26" Content="إضافة للبيع الإلكتروني" Style="{StaticResource TabCardActionButton}" ToolTip="إعداد الدفعة للبيع عبر الإنترنت" FontSize="11" Margin="1,0" MinWidth="0" Padding="4,0"/>
+            <Button x:Name="OnlineSaleButton" Click="OnlineSaleButton_Click" Height="26" Content="كروت الشبكات" Style="{StaticResource TabCardActionButton}" ToolTip="إنشاء دفعة كروت الشبكات محليًا؛ المزامنة الفعلية تتطلب موصل كتابة للراوتر" FontSize="11" Margin="1,0" MinWidth="0" Padding="4,0"/>
             <Button x:Name="OffersButton" Content="العروض" Style="{StaticResource TabCardActionButton}" Height="26" FontSize="11" Click="OffersButton_Click" Margin="1,0" MinWidth="0" Padding="4,0"/>
             <Button x:Name="OpenPrintQueueButton" Content="معاينة الطباعة" Style="{StaticResource TabCardActionButton}" Height="26" FontSize="11" Click="OpenPrintQueueButton_Click" Margin="1,0" MinWidth="0" Padding="4,0"/>
           </UniformGrid>

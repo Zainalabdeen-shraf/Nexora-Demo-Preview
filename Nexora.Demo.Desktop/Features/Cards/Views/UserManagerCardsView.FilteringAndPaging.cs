@@ -129,13 +129,15 @@ public partial class UserManagerCardsView
         var row = selected.FirstOrDefault();
         if (row is null)
         {
-            MessageBox.Show(Window.GetWindow(this), "حدد كرتًا أولًا، ثم افتح قائمة رأس العمود لتصفية القيمة.", "التصفية", MessageBoxButton.OK, MessageBoxImage.Information);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "حدد كرتًا أولًا", "حدد كرتًا ثم افتح قائمة رأس العمود لتصفية النتائج حسب قيمة ذلك الحقل.", WorkflowFeedbackKind.Warning, null,
+                new WorkflowFeedbackAction("close", "متابعة", true));
             return;
         }
         var value = definition.Display(row);
         if (string.IsNullOrWhiteSpace(value) || value == "—")
         {
-            MessageBox.Show(Window.GetWindow(this), "لا توجد قيمة مسجلة في هذا الحقل لتطبيق التصفية.", "التصفية", MessageBoxButton.OK, MessageBoxImage.Information);
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا توجد قيمة للتصفية", "هذا الحقل فارغ لهذا الكرت، لذلك لم تتغير الفلاتر.", WorkflowFeedbackKind.Warning,
+                [new("الحقل", definition.Title)], new WorkflowFeedbackAction("close", "إغلاق", true));
             return;
         }
         _columnFilterKey = definition.Key;

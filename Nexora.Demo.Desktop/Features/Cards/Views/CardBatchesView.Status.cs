@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Nexora.Demo.Desktop.Features.Cards.Models;
 using Nexora.Demo.Desktop.Features.Cards.Services;
 
@@ -62,6 +62,7 @@ public partial class CardBatchesView
         public IReadOnlyList<GeneratedDemoCard> Cards { get; }
         public BatchManagementMetadata Metadata { get; }
         public string BatchId => Batch.BatchId;
+        public string DisplayName => Batch.DisplayName;
         public string TargetSystem => Batch.TargetSystem;
         public string SystemKey => Batch.TargetSystem.Contains("هوتسبوت", StringComparison.OrdinalIgnoreCase) ||
                                    Batch.TargetSystem.Contains("HotSpot", StringComparison.OrdinalIgnoreCase)
@@ -110,7 +111,7 @@ public partial class CardBatchesView
             : IsArchived ? "استعد الدفعة قبل مزامنتها."
             : IsDisabled ? "أعد تفعيل الدفعة قبل مزامنتها."
             : HasQuantityMismatch ? $"الكمية المسجلة {Quantity:N0} لكن عدد سجلات الكروت {LinkedCardCount:N0}; لا يمكن مزامنتها حتى يتطابق العدد."
-            : "محاكاة المزامنة داخل الديمو وتحديث حالة الحسابات محلياً دون اتصال بالراوتر.";
+            : "تسجيل طلب متابعة محلي فقط. لن تتغير حالة الحساب حتى يكتمل موصل الكتابة الفعلي للراوتر.";
         public string PrintToolTip => CanPrint
             ? $"فتح نافذة الطباعة للقالب الحالي وإرسال الكروت غير المؤرشفة وغير المنتهية. سبق إرسال {PrintedCount:N0} بطاقة للطباعة."
             : "لا توجد كروت متاحة للطباعة في هذه الدفعة.";

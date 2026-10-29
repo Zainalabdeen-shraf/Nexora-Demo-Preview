@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -84,6 +84,8 @@ public partial class MainWindow
 
         SectionTabsPanel.Children.Clear();
         var tabs = _sectionTabs.TryGetValue(key, out var list) ? list : ["نظرة عامة"];
+        if (string.Equals(key, "printing", StringComparison.Ordinal))
+            tabs = ["تصميم القالب"]; // One dedicated design workspace; printing actions live in its toolbar.
         foreach (var tab in tabs)
         {
             var btn = new Button
@@ -128,7 +130,24 @@ public partial class MainWindow
         _ => "تاب كارد"
     };
 
+    // The template designer uses the full workspace width/height; hide only its breadcrumb row.
+    // Other application sections keep the same breadcrumb behavior.
+    if (PageTitleTextBlock.Parent is FrameworkElement titlePanel &&
+        titlePanel.Parent is FrameworkElement breadcrumbRow)
+    {
+        breadcrumbRow.Visibility = string.Equals(key, "printing", StringComparison.Ordinal)
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+    }
+
     PageTitleIconTextBlock.Visibility = Visibility.Collapsed;
+    PageTitleTextBlock.Visibility = string.Equals(key, "printing", StringComparison.Ordinal)
+        ? Visibility.Collapsed
+        : Visibility.Visible;
+    if (PrintingStudioShellTitlePanel is not null)
+        PrintingStudioShellTitlePanel.Visibility = string.Equals(key, "printing", StringComparison.Ordinal)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     PageSubtitleTextBlock.Visibility = Visibility.Collapsed;
 
     PageTitleTextBlock.Inlines.Clear();
@@ -394,7 +413,7 @@ private void RefreshSectionTabButtonStyles()
             PageSubtitleTextBlock.Visibility = (_currentSection == "dashboard" || _currentSection == "cards" || _currentSection == "network-center" || _currentSection == "network-users") ? Visibility.Collapsed : Visibility.Visible;
         }
         SectionContentDescriptionTextBlock.Text = GetSectionDescription(_currentSection, tab);
-        SectionTabsScrollViewer.Visibility = (_currentSection == "packages" || _currentSection == "network-users") ? Visibility.Collapsed : Visibility.Visible;
+        SectionTabsScrollViewer.Visibility = (_currentSection == "packages" || _currentSection == "network-users" || _currentSection == "printing") ? Visibility.Collapsed : Visibility.Visible;
         SectionPlaceholderTextBlock.Text = GetSectionPlaceholder(_currentSection, tab);
         RenderFeatureContent(tab);
         if (string.Equals(_currentSection, "cards", StringComparison.Ordinal) &&
@@ -457,7 +476,7 @@ foreach (var child in SectionTabsPanel.Children.OfType<Button>())
 
         var featureOwnsWorkspace = SectionFeatureContentHost.Content is
             CardIssuanceView or IssuanceWorkspaceView or CardManagementView or GeneratedCardsView or NetworkUsersView or CardBatchesView or PendingCardsView or ImportCardsView or
-            PackageManagementView or SalesReportView or SalesTransactionsView or SalesPointsView or PrintQueueView or TemplateDesignerView or ReportsCenterView or NetworkSourcesView or NetworkCenterView or NetworkSitesDevicesView or NetworkClientsView or NetworkMonitoringView or NetworkMaintenanceView or NetworkAnalyticsView or SystemSettingsView or ScreenAppearanceSettingsView or WorkspaceIdentityView or BackupSettingsView;
+            PackageManagementView or SalesOperationsDashboardView or SalesOperationEntryView or SalesStockMovementView or SalesAccountsView or SalesOperationsLedgerView or SalesReportView or SalesTransactionsView or SalesPointManagementView or SalesPointsView or PrintQueueView or TemplateDesignerView or ReportsCenterView or NetworkSourcesView or NetworkCenterView or NetworkSitesDevicesView or NetworkClientsView or NetworkMonitoringView or NetworkMaintenanceView or NetworkAnalyticsView or SystemSettingsView or ScreenAppearanceSettingsView or WorkspaceIdentityView or BackupSettingsView;
         var compactIssuanceWorkspace = SectionFeatureContentHost.Content is IssuanceWorkspaceView;
         SectionContentBorder.Padding = compactIssuanceWorkspace ? new Thickness(6) : new Thickness(14);
         SectionTabsScrollViewer.Margin = compactIssuanceWorkspace
@@ -473,6 +492,11 @@ foreach (var child in SectionTabsPanel.Children.OfType<Button>())
         SectionBodyHost.Visibility = Visibility.Collapsed;
         SectionBodyHost.Content = null;
     }
+
+    private readonly Dictionary<
+    Grid,
+    (GridLength First, GridLength Second, HorizontalAlignment Alignment)>
+    _sidebarExpandedGridLayouts = new();
     private void ToggleSidebarButton_Click(object sender, RoutedEventArgs e)
     {
         _isSidebarCollapsed = !_isSidebarCollapsed;
@@ -595,28 +619,41 @@ foreach (var child in SectionTabsPanel.Children.OfType<Button>())
 
         return null;
     }
-    private static void SetSidebarNavigationLayout(
-    DependencyObject parent,
-    bool collapsed)
+    private void SetSidebarNavigationLayout(
+        DependencyObject parent,
+        bool collapsed)
     {
         if (parent is Grid grid && grid.ColumnDefinitions.Count == 2)
         {
+            // احفظ التخطيط الأصلي مرة واحدة قبل أول عملية طي.
+            if (!_sidebarExpandedGridLayouts.ContainsKey(grid))
+            {
+                _sidebarExpandedGridLayouts[grid] = (
+                    grid.ColumnDefinitions[0].Width,
+                    grid.ColumnDefinitions[1].Width,
+                    grid.HorizontalAlignment);
+            }
+
             if (collapsed)
             {
+                // وضع الطي: تخصيص المساحة للأيقونة فقط.
                 grid.ColumnDefinitions[0].Width =
                     new GridLength(1, GridUnitType.Star);
 
                 grid.ColumnDefinitions[1].Width =
                     new GridLength(0, GridUnitType.Pixel);
 
-                grid.HorizontalAlignment = HorizontalAlignment.Stretch;
+                grid.HorizontalAlignment =
+                    HorizontalAlignment.Stretch;
             }
             else
             {
-                grid.ColumnDefinitions[0].Width = GridLength.Auto;
-                grid.ColumnDefinitions[1].Width = GridLength.Auto;
+                // استعادة تصميم XAML الأصلي دون فرض Auto على الأعمدة.
+                var original = _sidebarExpandedGridLayouts[grid];
 
-                grid.HorizontalAlignment = HorizontalAlignment.Right;
+                grid.ColumnDefinitions[0].Width = original.First;
+                grid.ColumnDefinitions[1].Width = original.Second;
+                grid.HorizontalAlignment = original.Alignment;
             }
         }
 

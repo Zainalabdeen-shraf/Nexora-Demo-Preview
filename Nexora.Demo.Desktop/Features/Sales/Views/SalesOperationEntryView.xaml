@@ -1,0 +1,596 @@
+﻿<UserControl x:Class="Nexora.Demo.Desktop.Features.Sales.Views.SalesOperationEntryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FlowDirection="RightToLeft"
+             Background="{StaticResource AppBgBrush}"
+             FontFamily="Segoe UI">
+    <UserControl.Resources>
+        <Style x:Key="SalesFieldLabel" TargetType="TextBlock" BasedOn="{StaticResource FieldLabel}">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            <Setter Property="Margin" Value="0,0,0,5" />
+        </Style>
+        <Style x:Key="SalesReadOnlyValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <!-- Sales entry controls: same visual language as Network Users filters. -->
+        <SolidColorBrush x:Key="SalesEntryInk" Color="#172849" />
+        <SolidColorBrush x:Key="SalesEntryMuted" Color="#71809A" />
+        <SolidColorBrush x:Key="SalesEntryRed" Color="#C71932" />
+        <SolidColorBrush x:Key="SalesEntryRedDark" Color="#A70F25" />
+        <SolidColorBrush x:Key="SalesEntryRedSoft" Color="#FFF0F2" />
+        <SolidColorBrush x:Key="SalesEntryLine" Color="#DCE4EF" />
+
+        <Style x:Key="SalesEntryTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="Background" Value="#FCFDFE" />
+            <Setter Property="BorderBrush" Value="#CED9E8" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource SalesEntryInk}" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="InputChrome"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                SnapsToDevicePixels="True">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          Focusable="False"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Hidden" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="InputChrome" Property="BorderBrush" Value="{StaticResource SalesEntryRed}" />
+                                <Setter TargetName="InputChrome" Property="Background" Value="White" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="InputChrome" Property="Opacity" Value="0.58" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SalesEntryComboItemStyle" TargetType="{x:Type ComboBoxItem}">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="Foreground" Value="{StaticResource SalesEntryInk}" />
+            <Setter Property="Padding" Value="10,7" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Style.Triggers>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter Property="Background" Value="{StaticResource SalesEntryRedSoft}" />
+                    <Setter Property="Foreground" Value="{StaticResource SalesEntryRedDark}" />
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#FFFFF7F8" />
+                    <Setter Property="Foreground" Value="{StaticResource SalesEntryRedDark}" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.55" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SalesEntryComboBoxStyle" TargetType="{x:Type ComboBox}">
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Padding" Value="8,2" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#CED9E8" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource SalesEntryInk}" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="ItemContainerStyle" Value="{StaticResource SalesEntryComboItemStyle}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ComboBox}">
+                        <Grid SnapsToDevicePixels="True">
+                            <ToggleButton x:Name="ToggleButton"
+                                          Focusable="False"
+                                          ClickMode="Press"
+                                          Background="{TemplateBinding Background}"
+                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                                        <Border x:Name="ComboChrome"
+                                                Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="6" />
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="ComboChrome" Property="BorderBrush" Value="#E49AA8" />
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter TargetName="ComboChrome" Property="Background" Value="#FFF7F8" />
+                                            </Trigger>
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter TargetName="ComboChrome" Property="Opacity" Value="0.55" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter x:Name="SelectionPresenter"
+                                              Margin="27,0,9,0"
+                                              IsHitTestVisible="False"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Stretch"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              TextElement.Foreground="{TemplateBinding Foreground}"
+                                              TextElement.FontSize="{TemplateBinding FontSize}" />
+                            <TextBox x:Name="PART_EditableTextBox"
+                                     Style="{x:Null}"
+                                     Visibility="Collapsed"
+                                     Margin="27,0,9,0"
+                                     Padding="0"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     Foreground="{TemplateBinding Foreground}"
+                                     FontFamily="{TemplateBinding FontFamily}"
+                                     FontSize="{TemplateBinding FontSize}"
+                                     VerticalContentAlignment="Center"
+                                     IsReadOnly="{TemplateBinding IsReadOnly}"
+                                     Focusable="True"
+                                     Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <Path x:Name="DropDownArrow"
+                                  Data="M1,1 L5,5 L9,1"
+                                  Stroke="#62738F"
+                                  StrokeThickness="1.5"
+                                  StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round"
+                                  Fill="Transparent"
+                                  Width="10" Height="6"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="10,0,0,0"
+                                  IsHitTestVisible="False" />
+                            <Popup x:Name="PART_Popup"
+                                   Placement="Bottom"
+                                   PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                   PopupAnimation="Fade">
+                                <Border MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                        Background="White"
+                                        BorderBrush="#CED9E8"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        Padding="3">
+                                    <ScrollViewer CanContentScroll="True" MaxHeight="320">
+                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEditable" Value="True">
+                                <Setter TargetName="SelectionPresenter" Property="Visibility" Value="Collapsed" />
+                                <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible" />
+                                <Setter TargetName="DropDownArrow" Property="Visibility" Value="Collapsed" />
+                            </Trigger>
+                            <Trigger Property="IsDropDownOpen" Value="True">
+                                <Setter TargetName="ToggleButton" Property="BorderBrush" Value="{StaticResource SalesEntryRed}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter TargetName="ToggleButton" Property="BorderBrush" Value="{StaticResource SalesEntryRed}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.55" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SalesEntryActionButtonStyle" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="MinWidth" Value="56" />
+        </Style>
+
+    </UserControl.Resources>
+    <Grid Margin="2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="1*" MinHeight="170" />
+            <RowDefinition Height="1*" MinHeight="185" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Compact operational fields: one selector controls the sale route; no redundant title or duplicate selector. -->
+        <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="12,9" Margin="0,0,0,8">
+            <Grid FlowDirection="RightToLeft">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.2*" /><ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="1*" /><ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="1.2*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="قناة البيع" Style="{StaticResource SalesFieldLabel}" />
+                    <ComboBox x:Name="ChannelSelectorComboBox"
+                              Style="{StaticResource SalesEntryComboBoxStyle}"
+                              Height="40"
+                              SelectedValuePath="Tag"
+                              SelectedIndex="0"
+                              Padding="10,0,12,0"
+                              SelectionChanged="ChannelSelectorComboBox_SelectionChanged"
+                              FlowDirection="RightToLeft"
+                              ToolTip="حدد مسار البيع؛ سيطبق النظام قواعد التحصيل والعمولة والتجهيز المناسبة.">
+                        <ComboBoxItem Content="البيع المباشر" Tag="direct" />
+                        <ComboBoxItem Content="كروت الشبكات" Tag="network-cards" />
+                        <ComboBoxItem Content="محافظ إلكترونية" Tag="wallet" />
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="التاريخ والوقت" Style="{StaticResource SalesFieldLabel}" />
+                    <Border BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="6" Padding="0" Height="40" Background="#FCFDFE">
+                        <DockPanel LastChildFill="True" FlowDirection="RightToLeft">
+                            <TextBlock DockPanel.Dock="Right" Text="&#xE787;" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" Margin="10,0,10,0" />
+                            <TextBlock x:Name="DateTimeDisplayTextBlock" Text="يُحدَّد عند التسجيل" Style="{StaticResource SalesReadOnlyValue}" Margin="8,0,8,0" HorizontalAlignment="Right" TextAlignment="Right" FlowDirection="LeftToRight" />
+                        </DockPanel>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Column="4">
+                    <TextBlock Text="رقم المرجع / رقم الإيصال" Style="{StaticResource SalesFieldLabel}" />
+                    <Grid Height="40">
+                        <TextBox x:Name="ExternalReferenceTextBox" Style="{StaticResource SalesEntryTextBoxStyle}" Height="40" Padding="10,4" VerticalContentAlignment="Center" ToolTip="اختياري؛ يُنشأ مرجع داخلي تلقائيًا عند التسجيل" TextChanged="Inputs_TextChanged" />
+                        <TextBlock Text="يولد تلقائياً بعد التسجيل" Margin="10,0" VerticalAlignment="Center" Foreground="#8995A7" IsHitTestVisible="False">
+                            <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=ExternalReferenceTextBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- POS workspace: live batch catalogue on the right, transaction cart on the left. -->
+        <Grid Grid.Row="1" FlowDirection="LeftToRight" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.08*" />
+                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="1.22*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Cart / current sale -->
+            <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="10" FlowDirection="RightToLeft">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="8" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <Border Width="31" Height="31" Background="#FCEBED" CornerRadius="7" VerticalAlignment="Center">
+                            <TextBlock Text="&#xE7BF;" FontFamily="Segoe MDL2 Assets" FontSize="17" Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="سلة البيع الحالية" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="راجع الأصناف والكميات قبل إتمام البيع" FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Border Grid.Column="2" Background="#F5F7FA" BorderBrush="#E3E8F0" BorderThickness="1" CornerRadius="12" Padding="9,4" VerticalAlignment="Center">
+                            <TextBlock x:Name="CartResultCountTextBlock" Text="0 صنف" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                        </Border>
+                    </Grid>
+
+                    <Grid Grid.Row="2">
+                        <DataGrid x:Name="SaleItemsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" SelectionMode="Single" SelectionUnit="FullRow" RowHeight="36" ColumnHeaderHeight="36" FontSize="10.8" AlternatingRowBackground="#F7F8FA" RowBackground="White" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#E4E8EE" VerticalGridLinesBrush="#EEF1F5" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="الصنف" Binding="{Binding ProductName}" Width="1.25*" />
+                                <DataGridTextColumn Header="الكمية" Binding="{Binding QuantityLabel}" Width="48" />
+                                <DataGridTextColumn Header="السعر" Binding="{Binding UnitPriceLabel}" Width="67" />
+                                <DataGridTextColumn Header="الخصم" Binding="{Binding DiscountLabel}" Width="58" />
+                                <DataGridTextColumn Header="الإجمالي" Binding="{Binding TotalLabel}" Width="75" />
+                                <DataGridTemplateColumn Header="" Width="92">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                <Button Content="تعديل" Style="{StaticResource SalesEntryActionButtonStyle}" Height="27" Padding="6,0" Margin="0,0,3,0" Click="EditCartItemButton_Click" FlowDirection="RightToLeft" />
+                                                <Button Content="حذف" Style="{StaticResource SalesEntryActionButtonStyle}" Height="27" Padding="6,0" Foreground="{StaticResource DangerBrush}" Click="RemoveCartItemButton_Click" FlowDirection="RightToLeft" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <Border x:Name="EmptyStatePanel" Panel.ZIndex="10" Background="White" BorderBrush="#EEF0F4" BorderThickness="1" CornerRadius="7" Margin="0,36,0,0" IsHitTestVisible="False">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasItems, ElementName=SaleItemsGrid}" Value="False"><Setter Property="Visibility" Value="Visible" /></DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
+                                <TextBlock Text="&#xE7BF;" FontFamily="Segoe MDL2 Assets" FontSize="28" Foreground="#B9C1CD" HorizontalAlignment="Center"/>
+                                <TextBlock Text="السلة فارغة" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                                <TextBlock Text="اختر دفعة من كتالوج البيع لإضافتها هنا." FontSize="10.5" Foreground="{StaticResource MutedBrush}" TextAlignment="Center" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Grid Grid.Row="3" Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock x:Name="CartFooterTextBlock" Text="لا توجد أصناف" FontSize="10.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
+                        <Border Grid.Column="1" Background="#FFF0F2" CornerRadius="6" Padding="8,4">
+                            <TextBlock Text="يُحدّث الإجمالي تلقائيًا" FontSize="10" Foreground="{StaticResource SalesEntryRedDark}"/>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- Available batches / product catalogue -->
+            <Border Grid.Column="2" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="10" FlowDirection="RightToLeft">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="8" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="8" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <Border Width="31" Height="31" Background="#FCEBED" CornerRadius="7" VerticalAlignment="Center">
+                            <TextBlock Text="&#xE8EF;" FontFamily="Segoe MDL2 Assets" FontSize="17" Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="الدفعات المتاحة للبيع" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="اختر دفعة لإضافة كروتها إلى السلة" FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="2" FlowDirection="LeftToRight">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="7"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Style="{StaticResource SecondaryButton}" Height="40" Width="42" VerticalAlignment="Center" ToolTip="استخدم قارئ الباركود للبحث عن دفعة" Click="ScannerButton_Click">
+                            <TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="17" Foreground="{StaticResource TextBrush}"/>
+                        </Button>
+                        <Grid Grid.Column="2">
+                            <ComboBox x:Name="PackageComboBox" Style="{StaticResource SalesEntryComboBoxStyle}" Height="40" Padding="8,0,28,0" IsEditable="True" IsTextSearchEnabled="True" StaysOpenOnEdit="True" DisplayMemberPath="DisplayLabel" ToolTip="ابحث برقم الدفعة أو اسم الباقة ثم اخترها" SelectionChanged="Package_SelectionChanged" Loaded="PackageComboBox_Loaded" FlowDirection="RightToLeft" />
+                            <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="15" Foreground="{StaticResource SalesEntryMuted}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="11,0,0,0" IsHitTestVisible="False"/>
+                            <TextBlock Text="بحث باسم الباقة أو رقم الدفعة..." Margin="35,0,10,0" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="#8995A7" FontSize="11" IsHitTestVisible="False" TextTrimming="CharacterEllipsis">
+                                <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=PackageComboBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                    </Grid>
+
+                    <ListBox x:Name="BatchCatalogListBox" Grid.Row="4"
+                             ItemsSource="{Binding ItemsSource, ElementName=PackageComboBox}"
+                             SelectedItem="{Binding SelectedItem, ElementName=PackageComboBox, Mode=TwoWay}"
+                             SelectionMode="Single"
+                             BorderThickness="0" Background="Transparent"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             KeyboardNavigation.DirectionalNavigation="Contained">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" FlowDirection="RightToLeft"/></ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Width" Value="218"/>
+                                <Setter Property="Height" Value="118"/>
+                                <Setter Property="Margin" Value="3"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border x:Name="CardChrome" Background="#FCFDFE" BorderBrush="#E0E6F0" BorderThickness="1" CornerRadius="8" Padding="9" SnapsToDevicePixels="True">
+                                                <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="CardChrome" Property="BorderBrush" Value="{StaticResource SalesEntryRed}"/>
+                                                    <Setter TargetName="CardChrome" Property="Background" Value="{StaticResource SalesEntryRedSoft}"/>
+                                                </Trigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="CardChrome" Property="BorderBrush" Value="#E49AA8"/>
+                                                </Trigger>
+                                                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="CardChrome" Property="Opacity" Value="0.55"/></Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid FlowDirection="RightToLeft">
+                                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                    <TextBlock Text="{Binding Name}" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis"/>
+                                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,4,0,0">
+                                        <TextBlock Text="دفعة " FontSize="10" Foreground="{StaticResource SalesEntryMuted}"/>
+                                        <TextBlock Text="{Binding BatchId}" FontSize="10" Foreground="{StaticResource SalesEntryMuted}"/>
+                                    </StackPanel>
+                                    <Grid Grid.Row="2" Margin="0,7,0,0" VerticalAlignment="Bottom">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="السعر" FontSize="9.5" Foreground="{StaticResource SalesEntryMuted}"/>
+                                            <TextBlock Text="{Binding UnitPrice, StringFormat='{}{0:N0} ريال'}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource SalesEntryRedDark}" Margin="0,1,0,0"/>
+                                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                <TextBlock Text="المتاح: " FontSize="9.5" Foreground="{StaticResource SalesEntryMuted}"/>
+                                                <TextBlock Text="{Binding AvailableQuantity}" FontSize="9.5" FontWeight="SemiBold" Foreground="{StaticResource SalesEntryInk}"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Content="＋ إضافة" Style="{StaticResource SecondaryButton}" Height="30" MinWidth="73" Padding="7,0" FontSize="10.5" Foreground="{StaticResource SalesEntryRedDark}" BorderBrush="#E9B8C1" Background="White" VerticalAlignment="Bottom" Click="BatchCatalogAddButton_Click"/>
+                                    </Grid>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <Border x:Name="BatchCatalogEmptyPanel" Grid.Row="4" Panel.ZIndex="2" Background="White" BorderBrush="#EEF0F4" BorderThickness="1" CornerRadius="8" Padding="15" IsHitTestVisible="False">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasItems, ElementName=BatchCatalogListBox}" Value="False"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="&#xE8EF;" FontFamily="Segoe MDL2 Assets" FontSize="27" Foreground="#BAC2CE" HorizontalAlignment="Center"/>
+                            <TextBlock Text="لا توجد دفعات متاحة للبيع" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                            <TextBlock Text="أنشئ دفعة أو تحقق من الكميات المتاحة في إصدار الكروت." FontSize="10.5" Foreground="{StaticResource MutedBrush}" TextAlignment="Center" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock x:Name="BatchAvailabilityTextBlock" Grid.Row="5" Text="ستظهر الدفعات المتاحة هنا من مخزون إصدار الكروت." FontSize="10" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="2,7,2,0"/>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Invoice notes, totals and payment information are shown together without a side-scrolling form. -->
+        <Grid Grid.Row="2" FlowDirection="LeftToRight" Margin="0,0,0,9">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="1.18*" /><ColumnDefinition Width="9" /><ColumnDefinition Width="0.92*" /><ColumnDefinition Width="9" /><ColumnDefinition Width="1.00*" /></Grid.ColumnDefinitions>
+            <Border Grid.Column="0" FlowDirection="RightToLeft" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="8">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="8" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0">
+                        <Border DockPanel.Dock="Right" Width="27" Height="27" Background="#FCEBED" CornerRadius="6"><Path Data="M 3,3 H 15 V 12 H 8 L 4,15 V 12 H 3 Z M 6,6 H 12 M 6,9 H 11" Stroke="{StaticResource PrimaryBrush}" StrokeThickness="1.3" StrokeLineJoin="Round" Width="17" Height="17" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                        <TextBlock Text="ملاحظات (اختياري)" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                    </DockPanel>
+                    <TextBox x:Name="NotesTextBox" Style="{StaticResource SalesEntryTextBoxStyle}" Grid.Row="2" MaxLength="500" TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top" Padding="8" ToolTip="ملاحظات عامة على عملية البيع" TextChanged="Inputs_TextChanged" />
+                    <TextBlock x:Name="NotesCounterTextBlock" Grid.Row="3" Text="0 / 500" FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" HorizontalAlignment="Left" FlowDirection="LeftToRight" />
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" FlowDirection="RightToLeft" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="8">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="8" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" LastChildFill="True">
+                        <Border DockPanel.Dock="Right" Width="27" Height="27" Background="#FCEBED" CornerRadius="6"><Path Data="M 4,2 H 14 V 16 H 4 Z M 6,5 H 12 M 6,8 H 8 M 10,8 H 12 M 6,11 H 8 M 10,11 H 12 M 6,14 H 8" Stroke="{StaticResource PrimaryBrush}" StrokeThickness="1.2" StrokeLineJoin="Round" Width="16" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                        <TextBlock Text="ملخص الفاتورة" FontSize="14.5" FontWeight="Bold" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                    </DockPanel>
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                        <TextBlock Text="المجموع الفرعي" FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0" />
+                        <TextBlock x:Name="PreviewGrossTextBlock" Grid.Column="1" Text="0.00 ريال" FontSize="11" FontWeight="SemiBold" Margin="0,2,0,0" />
+                        <TextBlock Grid.Row="1" Text="إجمالي الخصم" FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" />
+                        <TextBlock x:Name="DiscountSummaryTextBlock" Grid.Row="1" Grid.Column="1" Text="0.00 ريال" FontSize="10.5" Margin="0,4,0,0" />
+                        <Border Grid.Row="2" Grid.ColumnSpan="2" Background="#FCEBED" CornerRadius="6" Padding="7,5" Margin="0,5,0,0">
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock Text="المبلغ المستحق" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" /><TextBlock x:Name="PreviewNetTextBlock" Grid.Column="1" Text="0.00 ريال" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" /></Grid>
+                        </Border>
+                        <TextBlock Grid.Row="3" Text="المبلغ المدفوع" FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" />
+                        <Border Grid.Row="3" Grid.Column="1" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="6" Margin="0,3,0,0" MinWidth="122" Height="30" Background="White">
+                            <Grid FlowDirection="RightToLeft">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#F6F7FA" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="0,0,1,0" Padding="9,0">
+                                    <TextBlock Text="ريال" FontSize="11" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock x:Name="PreviewReceivedTextBlock" Grid.Column="1" Text="0.00" FontSize="10.5" FontWeight="SemiBold" Margin="6,0" VerticalAlignment="Center" HorizontalAlignment="Center" FlowDirection="LeftToRight" />
+                            </Grid>
+                        </Border>
+                        <TextBlock Grid.Row="4" Text="المتبقي" FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" />
+                        <TextBlock x:Name="PreviewBalanceTextBlock" Grid.Row="4" Grid.Column="1" Text="0.00 ريال" FontSize="10.5" FontWeight="SemiBold" Margin="0,4,0,0" />
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="4" FlowDirection="RightToLeft" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="8">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="8" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0">
+                        <Border DockPanel.Dock="Right" Width="27" Height="27" Background="#FCEBED" CornerRadius="6"><Path Data="M 2,4 H 16 V 14 H 2 Z M 2,7 H 16 M 5,11 H 9" Stroke="{StaticResource PrimaryBrush}" StrokeThickness="1.25" StrokeLineJoin="Round" Width="17" Height="16" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                        <TextBlock Text="ملخص الدفع" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                    </DockPanel>
+                    <StackPanel x:Name="PaymentMethodFieldPanel" Grid.Row="2">
+                        <TextBlock Text="طريقة الدفع" Style="{StaticResource SalesFieldLabel}" />
+                        <ComboBox x:Name="PaymentMethodComboBox" Style="{StaticResource SalesEntryComboBoxStyle}" Height="38" SelectedIndex="0" SelectedValuePath="Tag">
+                            <ComboBoxItem Content="اختر طريقة الدفع" Tag="" IsEnabled="False" />
+                            <ComboBoxItem Content="نقدي" Tag="نقدي" />
+                            <ComboBoxItem Content="تحويل بنكي" Tag="تحويل بنكي" />
+                            <ComboBoxItem Content="محفظة إلكترونية" Tag="محفظة إلكترونية" />
+                            <ComboBoxItem Content="كروت الشبكات / تجميع مركزي" Tag="كروت الشبكات / تجميع مركزي" />
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel x:Name="PrintingCostFieldPanel" Grid.Row="3" Margin="0,8,0,0" Visibility="Collapsed">
+                        <TextBlock Text="تكلفة الطباعة والخدش لكل كرت" Style="{StaticResource SalesFieldLabel}" />
+                        <TextBox x:Name="PrintingCostTextBox" Style="{StaticResource SalesEntryTextBoxStyle}" Text="0" Height="38" Padding="10,4" VerticalContentAlignment="Center" FlowDirection="LeftToRight" TextChanged="Inputs_TextChanged" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="4" Margin="0,5,0,0">
+                        <TextBlock Text="ملاحظات الدفع (اختياري)" Style="{StaticResource SalesFieldLabel}" />
+                        <TextBox x:Name="PaymentNotesTextBox" Style="{StaticResource SalesEntryTextBoxStyle}" MaxLength="250" TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top" Padding="6" Height="38" ToolTip="تُحفظ مع ملاحظات العملية" TextChanged="Inputs_TextChanged" />
+                        <TextBlock x:Name="PaymentNotesCounterTextBlock" Text="0 / 250" FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" HorizontalAlignment="Left" FlowDirection="LeftToRight" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Footer actions remain visible at the bottom of the work area. -->
+        <Grid Grid.Row="3" FlowDirection="LeftToRight" Margin="0,0,0,1">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Orientation="Horizontal" FlowDirection="LeftToRight">
+                <Button Content="✕ إلغاء" Style="{StaticResource SecondaryButton}" Height="40" Width="118" FontSize="12" Margin="0,0,8,0" Click="CancelButton_Click" FlowDirection="RightToLeft" />
+                <Button x:Name="SaveDraftButton" Style="{StaticResource SecondaryButton}" Height="40" Padding="14,0" FontSize="12" Click="SaveDraftButton_Click" FlowDirection="RightToLeft">
+                    <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft"><TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="16" Margin="0,0,7,0" VerticalAlignment="Center"/><TextBlock Text="حفظ كمسودة" VerticalAlignment="Center"/></StackPanel>
+                </Button>
+            </StackPanel>
+            <Button x:Name="SaveOperationButton" Grid.Column="2" Style="{StaticResource PrimaryButton}" Height="40" MinWidth="270" Padding="20,0" FontSize="12.5" Foreground="White" Background="#B51F32" Opacity="0.86" Click="SaveOperationButton_Click" IsEnabled="False" FlowDirection="RightToLeft">
+                <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center">
+                    <Path Data="M 2,8 L 6,12 L 14,3" Stroke="White" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="15" Height="15" Stretch="Uniform" Margin="0,0,7,0" />
+                    <TextBlock Text="تأكيد تسجيل البيع" Foreground="White" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <!-- Internal, non-visible controls preserve the existing channel rules and store contract. -->
+        <StackPanel Visibility="Collapsed">
+            <!-- Compatibility elements retained for existing code-behind; the old toolbar button is hidden. -->
+            <Button x:Name="AddToListButton" Click="AddToListButton_Click" />
+            <TextBlock x:Name="SelectedPointDisplayTextBlock" />
+            <TextBlock x:Name="NextReferenceTextBlock" Visibility="Collapsed" />
+            <!-- These values are edited through the row-level item editor so the search/add strip matches the approved screenshot. -->
+            <TextBox x:Name="QuantityTextBox" Text="1" TextChanged="Inputs_TextChanged" />
+            <TextBox x:Name="UnitPriceTextBox" Text="500" TextChanged="Inputs_TextChanged" />
+            <TextBox x:Name="DiscountAmountTextBox" Text="0" TextChanged="Inputs_TextChanged" />
+            <ComboBox x:Name="PointComboBox" SelectionChanged="Inputs_Changed" />
+            <RadioButton x:Name="DirectChannelRadio" GroupName="SalesChannel" Checked="Channel_Changed" />
+            <RadioButton x:Name="NetworkCardsChannelRadio" GroupName="SalesChannel" Checked="Channel_Changed" />
+            <RadioButton x:Name="WalletChannelRadio" GroupName="SalesChannel" Checked="Channel_Changed" />
+            <ComboBox x:Name="CollectionModeComboBox" SelectedIndex="0" SelectedValuePath="Tag" SelectionChanged="Inputs_Changed">
+                <ComboBoxItem Content="محصل بالكامل" Tag="paid" /><ComboBoxItem Content="محصل جزئيًا" Tag="partial" /><ComboBoxItem Content="آجل / غير محصل" Tag="credit" /><ComboBoxItem Content="ضمن تجميع الشركة" Tag="central" />
+            </ComboBox>
+            <TextBlock x:Name="AmountReceivedLabelTextBlock" />
+            <TextBox x:Name="AmountReceivedTextBox" Text="0" TextChanged="Inputs_TextChanged" />
+            <TextBlock x:Name="PreviewCommissionTextBlock" />
+            <TextBlock x:Name="PreviewPrintingCostTextBlock" />
+            <TextBlock x:Name="PreviewProfitTextBlock" />
+            <Border x:Name="ChannelNoticeBorder"><TextBlock x:Name="ChannelNoticeTextBlock" /></Border>
+            <Border x:Name="ValidationStatusBorder" Background="#F7F8FB" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="6" Padding="5"><TextBlock x:Name="ValidationTextBlock" Text="أضف صنفًا واحدًا على الأقل." /></Border>
+        </StackPanel>
+    </Grid>
+</UserControl>

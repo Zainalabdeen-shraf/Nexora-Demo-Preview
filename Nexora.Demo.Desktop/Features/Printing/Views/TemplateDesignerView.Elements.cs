@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Microsoft.Win32;
 using System.IO;
 using System.Text.Json;
@@ -19,26 +19,26 @@ public partial class TemplateDesignerView
 {
     private static Dictionary<string, bool> CreateDefaultVisibility() => new(StringComparer.Ordinal)
     {
-        ["رمز الدخول"] = true,
+        ["رمز الدخول"] = false,
         ["اسم المستخدم"] = true,
         ["كلمة المرور"] = true,
-        ["الصلاحية"] = true,
-        ["الوقت"] = true,
-        ["السعر"] = true,
-        ["التحميل"] = true,
+        ["الصلاحية"] = false,
+        ["الوقت"] = false,
+        ["السعر"] = false,
+        ["التحميل"] = false,
         ["الرقم التسلسلي"] = false,
         ["تاريخ الطباعة"] = false,
         ["رقم الدفعة"] = false,
         ["نقطة البيع"] = false,
         ["معلومات إضافية"] = false,
-        ["أرقام التواصل"] = true,
+        ["أرقام التواصل"] = false,
         ["كود المكافأة"] = false,
         ["رمز QR"] = false,
         ["الباركود"] = false,
-        ["شعار الشبكة"] = true,
-        ["الباقة"] = true,
-        ["الشريط العلوي"] = true,
-        ["الفاصل"] = true
+        ["شعار الشبكة"] = false,
+        ["الباقة"] = false,
+        ["الشريط العلوي"] = false,
+        ["الفاصل"] = false
     };
     private static Dictionary<string, ElementDesignProperties> CreateDefaultElementProperties()
     {
@@ -46,15 +46,15 @@ public partial class TemplateDesignerView
         // geometry to physical WPF DIPs. FontSize intentionally is NOT scaled.
         var properties = new Dictionary<string, ElementDesignProperties>(StringComparer.Ordinal)
         {
-            ["login"] = new() { X = 98, Y = 5, Width = 245, Height = 28, Text = "50723015", IsBold = true, FontSize = 11.5, FontFamily = "Segoe UI" },
-            ["username"] = new() { X = 98, Y = 39, Width = 174, Height = 18, Text = "اسم المستخدم: 50723015", FontSize = 7.7, FontFamily = "Segoe UI" },
-            ["password"] = new() { X = 277, Y = 39, Width = 174, Height = 18, Text = "كلمة المرور: 1432", FontSize = 7.7, FontFamily = "Segoe UI" },
-            ["validity"] = new() { X = 98, Y = 58, Width = 118, Height = 18, Text = "الصلاحية: 7 أيام", IsBold = true, FontSize = 7.4, FontFamily = "Segoe UI" },
-            ["time"] = new() { X = 221, Y = 58, Width = 96, Height = 18, Text = "الوقت: 1 س 0 د", FontSize = 7.4, FontFamily = "Segoe UI" },
-            ["price"] = new() { X = 320, Y = 58, Width = 124, Height = 18, Text = "السعر: 100 ريال", IsBold = true, FontSize = 7.4, FontFamily = "Segoe UI" },
-            ["package"] = new() { X = 98, Y = 77, Width = 170, Height = 18, Text = "الباقة: —", FontSize = 7.7, FontFamily = "Segoe UI" },
-            ["download"] = new() { X = 276, Y = 77, Width = 174, Height = 18, Text = "التحميل: —", FontSize = 7.7, FontFamily = "Segoe UI" },
-            ["contact"] = new() { X = 98, Y = 94, Width = 350, Height = 14, Text = "", FontSize = 6, FontFamily = "Segoe UI" },
+            ["login"] = new() { X = 285, Y = 52, Width = 145, Height = 40, Text = "50723015", IsBold = true, FontSize = 11, FontFamily = "Segoe UI", TextAlignment = "Right" },
+            ["username"] = new() { X = 285, Y = 52, Width = 145, Height = 40, Text = "50723015", IsBold = true, FontSize = 11.5, FontFamily = "Segoe UI", TextAlignment = "Right" },
+            ["password"] = new() { X = 285, Y = 122, Width = 145, Height = 40, Text = "1432", IsBold = true, FontSize = 10.5, FontFamily = "Segoe UI", TextAlignment = "Right" },
+            ["validity"] = new() { X = 145, Y = 89, Width = 68, Height = 16, Text = "الصلاحية: 7 أيام", IsBold = true, FontSize = 6.5, FontFamily = "Segoe UI" },
+            ["time"] = new() { X = 215, Y = 89, Width = 76, Height = 16, Text = "الوقت: 1 س", FontSize = 6.5, FontFamily = "Segoe UI" },
+            ["price"] = new() { X = 225, Y = 151, Width = 76, Height = 15, Text = "السعر: 100 ريال", IsBold = true, FontSize = 5.8, FontFamily = "Segoe UI" },
+            ["package"] = new() { X = 228, Y = 119, Width = 70, Height = 15, Text = "الباقة: —", FontSize = 6, FontFamily = "Segoe UI" },
+            ["download"] = new() { X = 145, Y = 119, Width = 80, Height = 15, Text = "التحميل: —", FontSize = 6, FontFamily = "Segoe UI" },
+            ["contact"] = new() { X = 145, Y = 151, Width = 152, Height = 15, Text = "", FontSize = 5.8, FontFamily = "Segoe UI" },
             ["serial"] = new() { X = 98, Y = 95, Width = 145, Height = 12, Text = "الرقم التسلسلي: 0001", FontSize = 9, FontFamily = "Segoe UI" },
             ["printDate"] = new() { X = 98, Y = 95, Width = 145, Height = 12, Text = "تاريخ الطباعة", FontSize = 9, FontFamily = "Segoe UI" },
             ["batch"] = new() { X = 277, Y = 95, Width = 174, Height = 12, Text = "رقم الدفعة: B-0001", FontSize = 9, FontFamily = "Segoe UI" },
@@ -63,10 +63,10 @@ public partial class TemplateDesignerView
             ["reward"] = new() { X = 277, Y = 95, Width = 174, Height = 12, Text = "كود المكافأة", FontSize = 9, FontFamily = "Segoe UI" },
             ["qr"] = new() { X = 373, Y = 3, Width = 32, Height = 32 },
             ["barcode"] = new() { X = 98, Y = 94, Width = 145, Height = 13 },
-            ["brand"] = new() { X = 7, Y = 48, Width = 72, Height = 17, Text = "TAB CARD", IsBold = true, FontSize = 7.4, FontFamily = "Segoe UI" },
-            ["networkName"] = new() { X = 7, Y = 68, Width = 72, Height = 30, Text = "اسم الشبكة", FontSize = 6.5, FontFamily = "Segoe UI" },
-            ["logoBadge"] = new() { X = 25, Y = 7, Width = 36, Height = 36 },
-            ["logoMark"] = new() { X = 30, Y = 14, Width = 26, Height = 20, Text = "TC", IsBold = true, FontSize = 8.5, FontFamily = "Segoe UI" },
+            ["brand"] = new() { X = 350, Y = 104, Width = 54, Height = 15, Text = "TAB CARD", IsBold = true, FontSize = 6.5, FontFamily = "Segoe UI" },
+            ["networkName"] = new() { X = 350, Y = 136, Width = 54, Height = 26, Text = "اسم الشبكة", FontSize = 5.5, FontFamily = "Segoe UI" },
+            ["logoBadge"] = new() { X = 365, Y = 12, Width = 38, Height = 38 },
+            ["logoMark"] = new() { X = 371, Y = 20, Width = 26, Height = 20, Text = "TC", IsBold = true, FontSize = 8.5, FontFamily = "Segoe UI" },
             ["header"] = new() { X = 0, Y = 0, Width = 86, Height = 112 },
             ["divider"] = new() { X = 94, Y = 34, Width = 310, Height = 1 }
         };
@@ -84,14 +84,14 @@ public partial class TemplateDesignerView
     {
         var options = new (string Tag, string Label)[]
         {
-            ("login", "رمز الدخول"), ("username", "اسم المستخدم"), ("password", "كلمة المرور"),
+            ("username", "اسم المستخدم"), ("password", "كلمة المرور"),
             ("validity", "الصلاحية"), ("time", "الوقت"), ("price", "السعر"),
             ("package", "الباقة"), ("download", "التحميل"), ("contact", "أرقام التواصل"),
             ("serial", "الرقم التسلسلي"), ("printDate", "تاريخ الطباعة"), ("batch", "رقم الدفعة"),
             ("pointOfSale", "نقطة البيع"), ("extra", "معلومات إضافية"), ("reward", "كود المكافأة"),
             ("qr", "رمز QR"), ("barcode", "الباركود"), ("brand", "اسم العلامة"),
             ("networkName", "اسم الشبكة"), ("logoBadge", "خلفية الشعار"), ("logoMark", "رمز الشعار"),
-            ("header", "الشريط الجانبي"), ("divider", "الفاصل")
+            ("header", "الشريط العلوي"), ("divider", "الفاصل")
         };
 
         SelectedElementComboBox.Items.Clear();
@@ -103,38 +103,30 @@ public partial class TemplateDesignerView
     {
         if (!_isReady) return;
         var style = GetSelectedTag(TemplateStyleComboBox);
-        if (style == "dark") ColorThemeComboBox.SelectedIndex = 1;
-        else if (style == "light") ColorThemeComboBox.SelectedIndex = 2;
-        else ColorThemeComboBox.SelectedIndex = 0;
+        SelectComboTag(ColorThemeComboBox, style switch
+        {
+            "dark" => "dark",
+            "light" => "white",
+            _ => "blue"
+        });
         UpdatePreview();
     }
     private void ColorThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_isReady) ApplyTheme();
+        if (!_isReady) return;
+        ApplyTheme();
+        RefreshStudioPreviews();
     }
     private void FontFamilyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_isReady) return;
         var font = GetSelectedTag(FontFamilyComboBox) ?? "Segoe UI";
-        var family = new FontFamily(font);
-        PreviewBrandTextBlock.FontFamily = family;
-        PreviewLogoMarkTextBlock.FontFamily = family;
-        PreviewNetworkTextBlock.FontFamily = family;
-        PreviewLoginCodeTextBlock.FontFamily = family;
-        PreviewUsernameTextBlock.FontFamily = family;
-        PreviewPasswordTextBlock.FontFamily = family;
-        PreviewValidityTextBlock.FontFamily = family;
-        PreviewTimeBlock.FontFamily = family;
-        PreviewPriceTextBlock.FontFamily = family;
-        PreviewPackageTextBlock.FontFamily = family;
-        PreviewDownloadTextBlock.FontFamily = family;
-        PreviewSerialTextBlock.FontFamily = family;
-        PreviewPointOfSaleTextBlock.FontFamily = family;
-        PreviewBatchTextBlock.FontFamily = family;
-        PreviewPrintDateTextBlock.FontFamily = family;
-        PreviewExtraTextBlock.FontFamily = family;
-        PreviewContactBlock.FontFamily = family;
-        PreviewRewardTextBlock.FontFamily = family;
+        if (GetSelectedElement() is not TextBlock selectedText) return;
+        selectedText.FontFamily = new FontFamily(font);
+        if (ReferenceEquals(selectedText, PreviewUsernameTextBlock)) PreviewUsernameCaptionTextBlock.FontFamily = selectedText.FontFamily;
+        if (ReferenceEquals(selectedText, PreviewPasswordTextBlock)) PreviewPasswordCaptionTextBlock.FontFamily = selectedText.FontFamily;
+        UpdateSelectionFrame();
+        RefreshStudioPreviews();
     }
     private static void ResetPackageComboForItemsSource(ComboBox combo)
     {
@@ -206,12 +198,32 @@ public partial class TemplateDesignerView
     private void SelectedElementComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_isReady) return;
+        _studioSelectedFieldTag = GetSelectedTag(SelectedElementComboBox);
+        SyncFieldToggleButtons();
         SyncSelectedElementEditor();
     }
     private void SyncSelectedElementEditor()
     {
+        if (SelectedElementComboBox is not null)
+        {
+            SelectedElementComboBox.Visibility = Visibility.Collapsed;
+            SelectedElementComboBox.Width = 0;
+            SelectedElementComboBox.Height = 0;
+        }
+        if (SelectedFieldNameTextBlock is not null) SelectedFieldNameTextBlock.Visibility = Visibility.Visible;
         var element = GetSelectedElement();
-        if (element is null) return;
+        if (element is null)
+        {
+            if (SelectedFieldNameTextBlock is not null) SelectedFieldNameTextBlock.Text = "لم يتم تحديد حقل";
+            if (ToggleSelectedFieldVisibilityButton is not null) ToggleSelectedFieldVisibilityButton.Content = "اختر حقلًا";
+            UpdateSelectionFrame();
+            return;
+        }
+        if (SelectedFieldNameTextBlock is not null)
+        {
+            SelectedFieldNameTextBlock.Text = GetFieldDisplayName(_studioSelectedFieldTag ?? GetSelectedTag(SelectedElementComboBox));
+            SelectedFieldNameTextBlock.Visibility = Visibility.Visible;
+        }
 
         var left = Canvas.GetLeft(element);
         var top = Canvas.GetTop(element);
@@ -223,14 +235,35 @@ public partial class TemplateDesignerView
         ElementHeightTextBox.Text = GetElementHeight(element).ToString("0.#", CultureInfo.InvariantCulture);
         ElementAngleTextBox.Text = GetElementRotation(element).ToString("0.#", CultureInfo.InvariantCulture);
 
+        SetDesignerTextBoxText("ElementForegroundHexTextBox", GetElementForegroundHex(element));
+        SetDesignerTextBoxText("ElementBackgroundHexTextBox", GetElementBackgroundHex(element));
+        UpdateElementColorSwatches(GetElementForegroundHex(element), GetElementBackgroundHex(element));
         if (element is TextBlock textBlock)
         {
+            if (ReferenceEquals(element, PreviewUsernameTextBlock))
+            {
+                textBlock.Text = NormalizeUsernameText(textBlock.Text);
+                textBlock.FlowDirection = FlowDirection.LeftToRight;
+            }
+            else if (ReferenceEquals(element, PreviewPasswordTextBlock))
+            {
+                textBlock.Text = NormalizePasswordText(textBlock.Text);
+                textBlock.FlowDirection = FlowDirection.LeftToRight;
+            }
+            SelectedElementTextBox.FlowDirection = ReferenceEquals(textBlock, PreviewUsernameTextBlock) || ReferenceEquals(textBlock, PreviewPasswordTextBlock)
+                ? FlowDirection.LeftToRight
+                : FlowDirection.RightToLeft;
             SelectedElementTextBox.Text = textBlock.Text;
             ElementFontSizeTextBox.Text = textBlock.FontSize.ToString("0.#", CultureInfo.InvariantCulture);
             BoldElementCheckBox.IsChecked = textBlock.FontWeight == FontWeights.Bold || textBlock.FontWeight == FontWeights.SemiBold;
             SelectedElementTextBox.IsEnabled = true;
             ElementFontSizeTextBox.IsEnabled = true;
             BoldElementCheckBox.IsEnabled = true;
+            ElementTextAlignLeftButton.IsEnabled = true;
+            ElementTextAlignCenterButton.IsEnabled = true;
+            ElementTextAlignRightButton.IsEnabled = true;
+            SyncTextAlignmentButtons(textBlock.TextAlignment);
+            SelectComboTag(FontFamilyComboBox, textBlock.FontFamily.Source);
         }
         else
         {
@@ -240,13 +273,35 @@ public partial class TemplateDesignerView
             ElementFontSizeTextBox.IsEnabled = false;
             BoldElementCheckBox.IsChecked = false;
             BoldElementCheckBox.IsEnabled = false;
+            ElementTextAlignLeftButton.IsChecked = false;
+            ElementTextAlignCenterButton.IsChecked = false;
+            ElementTextAlignRightButton.IsChecked = false;
+            ElementTextAlignLeftButton.IsEnabled = false;
+            ElementTextAlignCenterButton.IsEnabled = false;
+            ElementTextAlignRightButton.IsEnabled = false;
         }
         UpdateSelectionFrame();
     }
     private void ElementVisibility_Changed(object sender, RoutedEventArgs e)
     {
         if (!_isReady || sender is not CheckBox checkBox || checkBox.Tag is not string key) return;
-        _visibleElements[key] = checkBox.IsChecked == true;
+
+        // Legacy "login code" and username are the same account identifier.
+        // Never allow the old checkbox path to create a duplicate printed value.
+        if (string.Equals(key, "رمز الدخول", StringComparison.Ordinal))
+        {
+            _visibleElements["رمز الدخول"] = false;
+            if (checkBox.IsChecked == true)
+            {
+                _visibleElements["اسم المستخدم"] = true;
+                // The legacy checkbox is hidden, but normalize it if old UI state sets it.
+                if (checkBox.IsChecked == true) checkBox.IsChecked = false;
+            }
+        }
+        else
+        {
+            _visibleElements[key] = checkBox.IsChecked == true;
+        }
         UpdatePreview();
     }
     private void OpenElementsButton_Click(object sender, RoutedEventArgs e)
@@ -314,19 +369,43 @@ public partial class TemplateDesignerView
             SetStatus("تم تطبيق عناصر البطاقة على المعاينة. احفظ القالب للاحتفاظ بالتغييرات.", isSuccess: true);
         }
     }
+    private void ElementTextAlignLeftButton_Click(object sender, RoutedEventArgs e) => SetSelectedTextAlignment(TextAlignment.Left);
+    private void ElementTextAlignCenterButton_Click(object sender, RoutedEventArgs e) => SetSelectedTextAlignment(TextAlignment.Center);
+    private void ElementTextAlignRightButton_Click(object sender, RoutedEventArgs e) => SetSelectedTextAlignment(TextAlignment.Right);
+
+    private void SetSelectedTextAlignment(TextAlignment alignment)
+    {
+        if (!_isReady) return;
+        if (GetSelectedElement() is not TextBlock textBlock)
+        {
+            SetStatus("اختر عنصرًا نصيًا لتغيير المحاذاة.", isSuccess: false);
+            return;
+        }
+        textBlock.TextAlignment = alignment;
+        SyncTextAlignmentButtons(alignment);
+        UpdateSelectionFrame();
+        RefreshStudioPreviews();
+        var label = alignment switch
+        {
+            TextAlignment.Left => "اليسار",
+            TextAlignment.Center => "الوسط",
+            _ => "اليمين"
+        };
+        SetStatus($"تمت محاذاة النص إلى {label}. احفظ القالب للاحتفاظ بالتغيير.", isSuccess: true);
+    }
+
+    private void SyncTextAlignmentButtons(TextAlignment alignment)
+    {
+        ElementTextAlignLeftButton.IsChecked = alignment == TextAlignment.Left;
+        ElementTextAlignCenterButton.IsChecked = alignment == TextAlignment.Center;
+        ElementTextAlignRightButton.IsChecked = alignment == TextAlignment.Right;
+    }
+
     private void ApplyPropertiesButton_Click(object sender, RoutedEventArgs e)
     {
         if (!_isReady) return;
         var font = GetSelectedTag(FontFamilyComboBox) ?? "Segoe UI";
         var family = new FontFamily(font);
-        foreach (var textBlock in new[]
-        {
-            PreviewBrandTextBlock, PreviewNetworkTextBlock, PreviewLoginCodeTextBlock, PreviewUsernameTextBlock,
-            PreviewPasswordTextBlock, PreviewValidityTextBlock, PreviewPriceTextBlock, PreviewPackageTextBlock,
-            PreviewDownloadTextBlock, PreviewSerialTextBlock, PreviewPointOfSaleTextBlock, PreviewBatchTextBlock,
-            PreviewPrintDateTextBlock, PreviewExtraTextBlock, PreviewContactBlock, PreviewRewardTextBlock, PreviewLogoMarkTextBlock
-        }) textBlock.FontFamily = family;
-
         var selected = GetSelectedElement();
         if (selected is not null)
         {
@@ -346,9 +425,26 @@ public partial class TemplateDesignerView
             Canvas.SetTop(selected, clampedPosition.Y);
             if (selected is TextBlock textBlock)
             {
-                textBlock.Text = SelectedElementTextBox.Text;
+                textBlock.Text = ReferenceEquals(textBlock, PreviewUsernameTextBlock)
+                    ? NormalizeUsernameText(SelectedElementTextBox.Text)
+                    : ReferenceEquals(textBlock, PreviewPasswordTextBlock)
+                        ? NormalizePasswordText(SelectedElementTextBox.Text)
+                        : SelectedElementTextBox.Text;
+                if (ReferenceEquals(textBlock, PreviewUsernameTextBlock) || ReferenceEquals(textBlock, PreviewPasswordTextBlock))
+                    textBlock.FlowDirection = FlowDirection.LeftToRight;
+                textBlock.FontFamily = family;
                 textBlock.FontWeight = BoldElementCheckBox.IsChecked == true ? FontWeights.Bold : FontWeights.Normal;
-                textBlock.FontSize = ParseDouble(ElementFontSizeTextBox.Text, textBlock.FontSize, 6, 60);
+                textBlock.FontSize = ParseDouble(ElementFontSizeTextBox.Text, textBlock.FontSize, 4, 60);
+                if (TryParseBrush(GetDesignerTextBoxText("ElementForegroundHexTextBox", GetElementForegroundHex(textBlock)), out var foreground)) textBlock.Foreground = foreground;
+                if (TryParseBrush(GetDesignerTextBoxText("ElementBackgroundHexTextBox", GetElementBackgroundHex(textBlock)), out var background)) textBlock.Background = background;
+            }
+            else if (selected is Shape shape && TryParseBrush(GetDesignerTextBoxText("ElementBackgroundHexTextBox", GetElementBackgroundHex(shape)), out var shapeFill))
+            {
+                shape.Fill = shapeFill;
+            }
+            else if (selected is Border border && TryParseBrush(GetDesignerTextBoxText("ElementBackgroundHexTextBox", GetElementBackgroundHex(border)), out var borderFill))
+            {
+                border.Background = borderFill;
             }
             ElementXTextBox.Text = clampedPosition.X.ToString("0.#", CultureInfo.InvariantCulture);
             ElementYTextBox.Text = clampedPosition.Y.ToString("0.#", CultureInfo.InvariantCulture);
@@ -357,8 +453,8 @@ public partial class TemplateDesignerView
             ElementAngleTextBox.Text = angle.ToString("0.#", CultureInfo.InvariantCulture);
         }
 
-        var cardWidth = ParseDouble(CardWidthTextBox.Text, 66, 10, 200);
-        var cardHeight = ParseDouble(CardHeightTextBox.Text, 15.5, 10, 200);
+        var cardWidth = ParseDouble(CardWidthTextBox.Text, 46, 10, 200);
+        var cardHeight = ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200);
         var cardAngle = ParseDouble(CardRotationTextBox.Text, 0, -180, 180);
         CardWidthTextBox.Text = cardWidth.ToString("0.#", CultureInfo.InvariantCulture);
         CardHeightTextBox.Text = cardHeight.ToString("0.#", CultureInfo.InvariantCulture);
@@ -368,8 +464,10 @@ public partial class TemplateDesignerView
         ApplyTheme();
         ApplyElementVisibility();
         UpdateSelectionFrame();
-        ElementCountTextBlock.Text = $"{_visibleElements.Count(pair => pair.Value && pair.Key != "شعار الشبكة")} عناصر";
+        ElementCountTextBlock.Text = $"{_visibleElements.Count(pair => pair.Value && pair.Key != "شعار الشبكة")} عناصر ظاهرة";
+        SyncFieldToggleButtons();
         SyncSelectedElementEditor();
+        RefreshStudioPreviews();
         SetStatus($"تم تطبيق الخصائص. القالب {cardWidth:0.#} × {cardHeight:0.#} مم والدوران {cardAngle:0.#}°.", isSuccess: true);
     }
     private void UpdatePreview()
@@ -380,10 +478,18 @@ public partial class TemplateDesignerView
         ApplyImportedBackgroundAppearance();
         ApplyTheme();
         ApplyElementVisibility();
+        if (_isRasterTemplateMode) ApplyRasterTemplateModeVisibility();
         ApplyCardDimensionTransform();
-        var count = _visibleElements.Count(pair => pair.Value && pair.Key != "شعار الشبكة");
-        ElementCountTextBlock.Text = $"{count} عناصر";
+        var count = _visibleElements.Count(pair => pair.Value && pair.Key != "شعار الشبكة" && pair.Key != "رمز الدخول");
+        ElementCountTextBlock.Text = $"{count} عناصر ظاهرة";
+        KeepUsernameCaptionAligned();
+        KeepPasswordCaptionAligned();
+        EnsureElementBorderOverlays();
+        UpdateElementBorderOverlays();
         UpdateSelectionFrame();
+        RefreshDesignerLayers();
+        SyncFieldToggleButtons();
+        RefreshStudioPreviews();
     }
     private void ApplyTheme()
     {
@@ -391,6 +497,22 @@ public partial class TemplateDesignerView
         var theme = GetSelectedTag(ColorThemeComboBox) ?? "red";
         switch (theme)
         {
+            case "blue":
+                CardSurfaceBorder.Background = Brushes.White;
+                CardSurfaceBorder.BorderBrush = new SolidColorBrush(Color.FromRgb(0x0B, 0x6E, 0xA8));
+                CardHeaderBorder.Background = new SolidColorBrush(Color.FromRgb(0x08, 0x4D, 0x8C));
+                PreviewBrandTextBlock.Foreground = Brushes.White;
+                PreviewNetworkTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0xD8, 0xF5, 0xFF));
+                PreviewLoginCodeTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x07, 0x3D, 0x82));
+                PreviewUsernameTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x13, 0x3B, 0x5A));
+                PreviewPasswordTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x13, 0x3B, 0x5A));
+                PreviewValidityTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0x8F, 0xC8));
+                PreviewTimeBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0x8F, 0xC8));
+                PreviewPriceTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0x8F, 0xC8));
+                PreviewPackageTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x13, 0x3B, 0x5A));
+                PreviewDownloadTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x13, 0x3B, 0x5A));
+                PreviewContactBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x13, 0x3B, 0x5A));
+                break;
             case "dark":
                 CardSurfaceBorder.Background = new SolidColorBrush(Color.FromRgb(0x8F, 0x11, 0x19));
                 CardSurfaceBorder.BorderBrush = new SolidColorBrush(Color.FromRgb(0x5E, 0x0B, 0x10));
@@ -443,9 +565,16 @@ public partial class TemplateDesignerView
     }
     private void ApplyElementVisibility()
     {
-        PreviewLoginCodeTextBlock.Visibility = IsTemplateElementVisible("رمز الدخول") ? Visibility.Visible : Visibility.Collapsed;
+        // Product rule: card number and username refer to one value.
+        // Normalize legacy templates before applying visibility to the actual visuals.
+        if (IsTemplateElementVisible("رمز الدخول")) _visibleElements["اسم المستخدم"] = true;
+        _visibleElements["رمز الدخول"] = false;
+        PreviewLoginCodeTextBlock.Visibility = Visibility.Collapsed;
         PreviewUsernameTextBlock.Visibility = IsTemplateElementVisible("اسم المستخدم") ? Visibility.Visible : Visibility.Collapsed;
+        if (PreviewUsernameCaptionTextBlock is not null)
+            PreviewUsernameCaptionTextBlock.Visibility = PreviewUsernameTextBlock.Visibility;
         PreviewPasswordTextBlock.Visibility = IsTemplateElementVisible("كلمة المرور") ? Visibility.Visible : Visibility.Collapsed;
+        PreviewPasswordCaptionTextBlock.Visibility = PreviewPasswordTextBlock.Visibility;
         PreviewValidityTextBlock.Visibility = IsTemplateElementVisible("الصلاحية") ? Visibility.Visible : Visibility.Collapsed;
         PreviewTimeBlock.Visibility = IsTemplateElementVisible("الوقت") ? Visibility.Visible : Visibility.Collapsed;
         PreviewPriceTextBlock.Visibility = IsTemplateElementVisible("السعر") ? Visibility.Visible : Visibility.Collapsed;
@@ -468,6 +597,217 @@ public partial class TemplateDesignerView
         CardHeaderBorder.Visibility = IsTemplateElementVisible("الشريط العلوي") ? Visibility.Visible : Visibility.Collapsed;
         CardDividerBorder.Visibility = IsTemplateElementVisible("الفاصل") ? Visibility.Visible : Visibility.Collapsed;
     }
+    private static string VisibilityKeyForLayerTag(string tag) => tag switch
+    {
+        "login" => "رمز الدخول",
+        "username" => "اسم المستخدم",
+        "password" => "كلمة المرور",
+        "validity" => "الصلاحية",
+        "time" => "الوقت",
+        "price" => "السعر",
+        "package" => "الباقة",
+        "download" => "التحميل",
+        "contact" => "أرقام التواصل",
+        "serial" => "الرقم التسلسلي",
+        "printDate" => "تاريخ الطباعة",
+        "batch" => "رقم الدفعة",
+        "pointOfSale" => "نقطة البيع",
+        "extra" => "معلومات إضافية",
+        "reward" => "كود المكافأة",
+        "qr" => "رمز QR",
+        "barcode" => "الباركود",
+        "brand" or "networkName" or "logoBadge" or "logoMark" => "شعار الشبكة",
+        "header" => "الشريط العلوي",
+        "divider" => "الفاصل",
+        _ => string.Empty
+    };
+
+    private bool IsLayerVisible(string tag)
+    {
+        if (tag.StartsWith("custom-", StringComparison.Ordinal))
+            return GetElementByTag(tag)?.Visibility == Visibility.Visible;
+        var key = VisibilityKeyForLayerTag(tag);
+        return !string.IsNullOrEmpty(key) && IsTemplateElementVisible(key);
+    }
+
+    private static string GetLayerGlyph(string tag) => tag switch
+    {
+        "price" => "▤",
+        "time" => "◷",
+        "qr" => "▦",
+        "barcode" => "▥",
+        "contact" => "☎",
+        "brand" or "networkName" or "logoBadge" or "logoMark" => "◈",
+        "header" => "▬",
+        "divider" => "—",
+        _ => "T"
+    };
+
+    private void RefreshDesignerLayers()
+    {
+        if (DesignerLayersPanel is null || !_isReady) return;
+        DesignerLayersPanel.Children.Clear();
+
+        // Show all editable layers, even hidden ones, so the user can restore them.
+        var tags = GetAllEditableElementTags()
+            .Where(tag => !string.Equals(tag, "login", StringComparison.Ordinal))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        if (tags.Count == 0)
+        {
+            DesignerLayersPanel.Children.Add(new TextBlock
+            {
+                Text = "لا توجد عناصر مضافة بعد.",
+                FontSize = 10.5,
+                Foreground = (Brush)FindResource("MutedBrush"),
+                Margin = new Thickness(4, 8, 4, 8),
+                TextWrapping = TextWrapping.Wrap
+            });
+            return;
+        }
+
+        var selectedTag = _studioSelectedFieldTag ?? GetSelectedTag(SelectedElementComboBox);
+        foreach (var tag in tags)
+        {
+            var isVisible = IsLayerVisible(tag);
+            var selected = string.Equals(selectedTag, tag, StringComparison.Ordinal);
+            var row = new Border
+            {
+                Background = selected ? new SolidColorBrush(Color.FromRgb(0xFC, 0xEA, 0xED)) : Brushes.White,
+                BorderBrush = selected ? new SolidColorBrush(Color.FromRgb(0xE7, 0xA8, 0xB0)) : new SolidColorBrush(Color.FromRgb(0xE4, 0xE9, 0xF0)),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(7),
+                Padding = new Thickness(3),
+                Margin = new Thickness(0, 0, 0, 4)
+            };
+            var line = new Grid { FlowDirection = FlowDirection.RightToLeft, Height = 31 };
+            line.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(29) });
+            line.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(25) });
+            line.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+            var eye = new Button
+            {
+                Content = isVisible ? "◉" : "○",
+                Tag = tag,
+                FontSize = 15,
+                Padding = new Thickness(0),
+                Margin = new Thickness(0),
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                Foreground = isVisible ? new SolidColorBrush(Color.FromRgb(0xC5, 0x1D, 0x2E)) : new SolidColorBrush(Color.FromRgb(0x94, 0x9D, 0xAA)),
+                ToolTip = isVisible ? "إخفاء العنصر" : "إظهار العنصر",
+                VerticalAlignment = VerticalAlignment.Stretch
+            };
+            eye.Click += LayerVisibilityButton_Click;
+            Grid.SetColumn(eye, 0);
+            line.Children.Add(eye);
+
+            var glyph = new TextBlock
+            {
+                Text = GetLayerGlyph(tag),
+                FontSize = 15,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = selected ? new SolidColorBrush(Color.FromRgb(0xA9, 0x15, 0x25)) : new SolidColorBrush(Color.FromRgb(0x42, 0x54, 0x6B)),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            Grid.SetColumn(glyph, 1);
+            line.Children.Add(glyph);
+
+            var select = new Button
+            {
+                Content = GetFieldDisplayName(tag),
+                Tag = tag,
+                HorizontalContentAlignment = HorizontalAlignment.Right,
+                VerticalContentAlignment = VerticalAlignment.Center,
+                Padding = new Thickness(4, 2, 7, 2),
+                Margin = new Thickness(0),
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                Foreground = selected ? new SolidColorBrush(Color.FromRgb(0xA9, 0x15, 0x25)) : (Brush)FindResource("TextBrush"),
+                FontSize = 10.5,
+                FontWeight = selected ? FontWeights.SemiBold : FontWeights.Normal,
+                FlowDirection = FlowDirection.RightToLeft,
+                ToolTip = "تحديد العنصر وتعديل خصائصه"
+            };
+            select.Click += LayerSelectButton_Click;
+            Grid.SetColumn(select, 2);
+            line.Children.Add(select);
+            row.Child = line;
+            DesignerLayersPanel.Children.Add(row);
+        }
+    }
+
+    private void LayerSelectButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_isReady || sender is not Button button || button.Tag is not string tag) return;
+        if (string.Equals(tag, "login", StringComparison.Ordinal)) tag = "username";
+
+        if (!SelectedElementComboBox.Items.OfType<ComboBoxItem>().Any(item => string.Equals(item.Tag as string, tag, StringComparison.Ordinal)))
+            SelectedElementComboBox.Items.Add(new ComboBoxItem { Content = GetFieldDisplayName(tag), Tag = tag });
+        SelectComboTag(SelectedElementComboBox, tag);
+        _studioSelectedFieldTag = tag;
+        SyncFieldToggleButtons();
+        SyncSelectedElementEditor();
+        UpdateSelectionFrame();
+        RefreshDesignerLayers();
+    }
+
+    private void LayerVisibilityButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_isReady || sender is not Button button || button.Tag is not string tag) return;
+        if (tag.StartsWith("custom-", StringComparison.Ordinal))
+        {
+            if (GetElementByTag(tag) is FrameworkElement custom)
+                custom.Visibility = custom.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+        }
+        else
+        {
+            var key = VisibilityKeyForLayerTag(tag);
+            if (string.IsNullOrEmpty(key)) return;
+            if (key == "رمز الدخول")
+            {
+                _visibleElements["رمز الدخول"] = false;
+                _visibleElements["اسم المستخدم"] = true;
+            }
+            else
+            {
+                _visibleElements[key] = !IsTemplateElementVisible(key);
+            }
+        }
+        SyncMainElementChecks();
+        UpdatePreview();
+        SyncSelectedElementEditor();
+        SetStatus(IsLayerVisible(tag) ? $"تم إظهار العنصر: {GetFieldDisplayName(tag)}." : $"تم إخفاء العنصر: {GetFieldDisplayName(tag)}.", isSuccess: true);
+    }
+
+    private void KeepUsernameCaptionAligned()
+    {
+        if (PreviewUsernameCaptionTextBlock is null || PreviewUsernameTextBlock is null) return;
+        var left = Canvas.GetLeft(PreviewUsernameTextBlock);
+        var top = Canvas.GetTop(PreviewUsernameTextBlock);
+        if (!double.IsFinite(left)) left = 0;
+        if (!double.IsFinite(top)) top = 0;
+        Canvas.SetLeft(PreviewUsernameCaptionTextBlock, left);
+        Canvas.SetTop(PreviewUsernameCaptionTextBlock, Math.Max(0, top - Math.Max(7, PreviewUsernameCaptionTextBlock.Height)));
+        PreviewUsernameCaptionTextBlock.Width = GetElementWidth(PreviewUsernameTextBlock);
+        PreviewUsernameCaptionTextBlock.Visibility = PreviewUsernameTextBlock.Visibility;
+    }
+
+    private void KeepPasswordCaptionAligned()
+    {
+        if (PreviewPasswordCaptionTextBlock is null || PreviewPasswordTextBlock is null) return;
+        var left = Canvas.GetLeft(PreviewPasswordTextBlock);
+        var top = Canvas.GetTop(PreviewPasswordTextBlock);
+        if (!double.IsFinite(left)) left = 0;
+        if (!double.IsFinite(top)) top = 0;
+        Canvas.SetLeft(PreviewPasswordCaptionTextBlock, left);
+        Canvas.SetTop(PreviewPasswordCaptionTextBlock, Math.Max(0, top - Math.Max(7, PreviewPasswordCaptionTextBlock.Height)));
+        PreviewPasswordCaptionTextBlock.Width = GetElementWidth(PreviewPasswordTextBlock);
+        PreviewPasswordCaptionTextBlock.Visibility = PreviewPasswordTextBlock.Visibility;
+    }
+
     private void UpdateSamplePackageFields()
     {
         if (!_isReady || PreviewPackageTextBlock is null) return;
@@ -491,7 +831,8 @@ public partial class TemplateDesignerView
     }
     private void SyncMainElementChecks()
     {
-        ShowLoginCodeCheckBox.IsChecked = IsTemplateElementVisible("رمز الدخول");
+        // Hidden compatibility control only; the duplicate field is never enabled.
+        ShowLoginCodeCheckBox.IsChecked = false;
         ShowUsernameCheckBox.IsChecked = IsTemplateElementVisible("اسم المستخدم");
         ShowPasswordCheckBox.IsChecked = IsTemplateElementVisible("كلمة المرور");
         ShowValidityCheckBox.IsChecked = IsTemplateElementVisible("الصلاحية");
@@ -512,39 +853,507 @@ public partial class TemplateDesignerView
         ShowHeaderCheckBox.IsChecked = IsTemplateElementVisible("الشريط العلوي");
         ShowDividerCheckBox.IsChecked = IsTemplateElementVisible("الفاصل");
     }
-    private FrameworkElement? GetSelectedElement() => GetElementByTag(GetSelectedTag(SelectedElementComboBox) ?? "login");
-    private FrameworkElement? GetElementByTag(string tag) => tag switch
+    private FrameworkElement? GetSelectedElement()
     {
-        "login" => PreviewLoginCodeTextBlock,
-        "username" => PreviewUsernameTextBlock,
-        "password" => PreviewPasswordTextBlock,
-        "validity" => PreviewValidityTextBlock,
-        "time" => PreviewTimeBlock,
-        "price" => PreviewPriceTextBlock,
-        "package" => PreviewPackageTextBlock,
-        "download" => PreviewDownloadTextBlock,
-        "contact" => PreviewContactBlock,
-        "serial" => PreviewSerialTextBlock,
-        "printDate" => PreviewPrintDateTextBlock,
-        "batch" => PreviewBatchTextBlock,
-        "pointOfSale" => PreviewPointOfSaleTextBlock,
-        "extra" => PreviewExtraTextBlock,
-        "reward" => PreviewRewardTextBlock,
-        "qr" => PreviewQrBorder,
-        "barcode" => PreviewBarcodeBorder,
-        "brand" => PreviewBrandTextBlock,
-        "networkName" => PreviewNetworkTextBlock,
-        "logoBadge" => PreviewLogoBadgeEllipse,
-        "logoMark" => PreviewLogoMarkTextBlock,
-        "header" => CardHeaderBorder,
-        "divider" => CardDividerBorder,
-        _ => null
+        var tag = _studioSelectedFieldTag ?? GetSelectedTag(SelectedElementComboBox);
+        return string.IsNullOrWhiteSpace(tag) ? null : GetElementByTag(tag);
+    }
+
+    private static string GetFieldDisplayName(string? tag) => tag switch
+    {
+        "login" or "username" => "اسم المستخدم",
+        "password" => "كلمة المرور",
+        "qr" => "رمز QR",
+        "barcode" => "الباركود",
+        "validity" => "الصلاحية",
+        "time" => "الوقت",
+        "price" => "السعر",
+        "package" => "الباقة",
+        "download" => "التحميل",
+        "contact" => "أرقام التواصل",
+        "serial" => "الرقم التسلسلي",
+        "printDate" => "تاريخ الطباعة",
+        "batch" => "رقم الدفعة",
+        "pointOfSale" => "نقطة البيع",
+        "extra" => "معلومات إضافية",
+        "reward" => "كود المكافأة",
+        "brand" => "اسم العلامة",
+        "networkName" => "اسم الشبكة",
+        "logoBadge" => "خلفية الشعار",
+        "logoMark" => "رمز الشعار",
+        "header" => "الشريط العلوي",
+        "divider" => "الفاصل",
+        _ when tag is not null && tag.StartsWith("custom-", StringComparison.Ordinal) => "حقل مخصص " + tag[7..],
+        _ => tag ?? "لم يتم تحديد حقل"
     };
+
+    private void SyncFieldToggleButtons()
+    {
+        // Chip state represents visibility, not selection. A click selects the field
+        // and toggles whether it is rendered on the card.
+        if (FieldLoginToggleButton is not null) FieldLoginToggleButton.IsChecked = false;
+        if (FieldUsernameToggleButton is not null) FieldUsernameToggleButton.IsChecked = IsTemplateElementVisible("اسم المستخدم");
+        if (FieldPasswordToggleButton is not null) FieldPasswordToggleButton.IsChecked = IsTemplateElementVisible("كلمة المرور");
+        if (FieldValidityToggleButton is not null) FieldValidityToggleButton.IsChecked = IsTemplateElementVisible("الصلاحية");
+        if (FieldTimeToggleButton is not null) FieldTimeToggleButton.IsChecked = IsTemplateElementVisible("الوقت");
+        if (FieldPriceToggleButton is not null) FieldPriceToggleButton.IsChecked = IsTemplateElementVisible("السعر");
+        if (FieldDownloadToggleButton is not null) FieldDownloadToggleButton.IsChecked = IsTemplateElementVisible("التحميل");
+        if (FieldContactToggleButton is not null) FieldContactToggleButton.IsChecked = IsTemplateElementVisible("أرقام التواصل");
+        if (FieldPackageToggleButton is not null) FieldPackageToggleButton.IsChecked = IsTemplateElementVisible("الباقة");
+        if (FieldNetworkLogoToggleButton is not null) FieldNetworkLogoToggleButton.IsChecked = IsTemplateElementVisible("شعار الشبكة");
+        if (ToggleSelectedFieldVisibilityButton is not null && !string.IsNullOrWhiteSpace(_studioSelectedFieldTag))
+        {
+            var key = VisibilityKeyForLayerTag(_studioSelectedFieldTag);
+            ToggleSelectedFieldVisibilityButton.Content = !string.IsNullOrEmpty(key) && IsTemplateElementVisible(key) ? "إخفاء الحقل" : "إظهار الحقل";
+        }
+    }
+
+    private void StudioFieldToggleButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_isReady || sender is not ToggleButton button || button.Tag is not string tag) return;
+        var key = VisibilityKeyForLayerTag(tag);
+        if (string.IsNullOrWhiteSpace(key)) return;
+
+        // Checked means visible; unchecking removes the field from the live card
+        // without deleting its saved position or styling.
+        _visibleElements[key] = button.IsChecked == true;
+        if (string.Equals(key, "اسم المستخدم", StringComparison.Ordinal))
+            _visibleElements["رمز الدخول"] = false;
+
+        _studioSelectedFieldTag = tag;
+        if (!SelectedElementComboBox.Items.OfType<ComboBoxItem>().Any(item => string.Equals(item.Tag as string, tag, StringComparison.Ordinal)))
+            SelectedElementComboBox.Items.Add(new ComboBoxItem { Content = GetFieldDisplayName(tag), Tag = tag });
+        SelectComboTag(SelectedElementComboBox, tag);
+        UpdatePreview();
+        SyncFieldToggleButtons();
+        SyncSelectedElementEditor();
+        SetStatus(IsTemplateElementVisible(key) ? $"تم إظهار العنصر: {GetFieldDisplayName(tag)}." : $"تم إخفاء العنصر: {GetFieldDisplayName(tag)}.", isSuccess: true);
+    }
+
+    private void ToggleSelectedFieldVisibilityButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_isReady) return;
+        var tag = _studioSelectedFieldTag ?? GetSelectedTag(SelectedElementComboBox);
+        var key = tag switch
+        {
+            "login" or "username" => "اسم المستخدم",
+            "password" => "كلمة المرور",
+            _ => string.Empty
+        };
+        if (string.IsNullOrEmpty(key))
+        {
+            SetStatus("حدد اسم المستخدم أو كلمة المرور أولًا.", isSuccess: false);
+            return;
+        }
+        _visibleElements[key] = !IsTemplateElementVisible(key);
+        SyncMainElementChecks();
+        UpdatePreview();
+        SyncFieldToggleButtons();
+        SyncSelectedElementEditor();
+    }
+
+    private void RotateSelectedFieldButton_Click(object sender, RoutedEventArgs e)
+    {
+        var element = GetSelectedElement();
+        if (element is null) return;
+        var nextAngle = GetElementRotation(element) + 90d;
+        if (nextAngle > 180d) nextAngle -= 360d;
+        element.RenderTransformOrigin = new Point(0.5, 0.5);
+        element.RenderTransform = new RotateTransform(nextAngle);
+        ElementAngleTextBox.Text = nextAngle.ToString("0.#", CultureInfo.InvariantCulture);
+        UpdateSelectionFrame();
+        SyncSelectedElementEditor();
+        RefreshStudioPreviews();
+    }
+    private FrameworkElement? GetElementByTag(string tag)
+    {
+        var element = tag switch
+        {
+            "login" => (FrameworkElement?)PreviewLoginCodeTextBlock,
+            "username" => PreviewUsernameTextBlock,
+            "password" => PreviewPasswordTextBlock,
+            "validity" => PreviewValidityTextBlock,
+            "time" => PreviewTimeBlock,
+            "price" => PreviewPriceTextBlock,
+            "package" => PreviewPackageTextBlock,
+            "download" => PreviewDownloadTextBlock,
+            "contact" => PreviewContactBlock,
+            "serial" => PreviewSerialTextBlock,
+            "printDate" => PreviewPrintDateTextBlock,
+            "batch" => PreviewBatchTextBlock,
+            "pointOfSale" => PreviewPointOfSaleTextBlock,
+            "extra" => PreviewExtraTextBlock,
+            "reward" => PreviewRewardTextBlock,
+            "qr" => PreviewQrBorder,
+            "barcode" => PreviewBarcodeBorder,
+            "brand" => PreviewBrandTextBlock,
+            "networkName" => PreviewNetworkTextBlock,
+            "logoBadge" => PreviewLogoBadgeEllipse,
+            "logoMark" => PreviewLogoMarkTextBlock,
+            "header" => CardHeaderBorder,
+            "divider" => CardDividerBorder,
+            _ => null
+        };
+        if (element is not null) return element;
+        return _customElements.TryGetValue(tag, out var custom) ? custom : null;
+    }
+    private static string BrushToHex(Brush? brush)
+    {
+        if (brush is SolidColorBrush solid) return solid.Color.ToString();
+        return "#00000000";
+    }
+    // Resolve the two color inputs through the control tree instead of generated XAML fields.
+    // This avoids a WPF namescope/code-generation mismatch while keeping the editor controls editable.
+    private void SetDesignerTextBoxText(string name, string value)
+    {
+        var input = FindDesignerTextBox(name);
+        if (input is not null)
+            input.Text = value;
+    }
+
+    private string GetDesignerTextBoxText(string name, string fallback)
+    {
+        var input = FindDesignerTextBox(name);
+        return input?.Text ?? fallback;
+    }
+
+    private TextBox? FindDesignerTextBox(string name)
+    {
+        if (FindName(name) is TextBox named)
+            return named;
+
+        return FindDesignerTextBoxLogical(this, name)
+            ?? FindDesignerTextBoxVisual(this, name);
+    }
+
+    private static TextBox? FindDesignerTextBoxLogical(DependencyObject parent, string name)
+    {
+        if (parent is TextBox textBox && string.Equals(textBox.Name, name, StringComparison.Ordinal))
+            return textBox;
+
+        foreach (var child in LogicalTreeHelper.GetChildren(parent))
+        {
+            if (child is not DependencyObject dependencyChild)
+                continue;
+
+            var match = FindDesignerTextBoxLogical(dependencyChild, name);
+            if (match is not null)
+                return match;
+        }
+
+        return null;
+    }
+
+    private static TextBox? FindDesignerTextBoxVisual(DependencyObject parent, string name)
+    {
+        if (parent is TextBox textBox && string.Equals(textBox.Name, name, StringComparison.Ordinal))
+            return textBox;
+
+        var childCount = VisualTreeHelper.GetChildrenCount(parent);
+        for (var index = 0; index < childCount; index++)
+        {
+            var match = FindDesignerTextBoxVisual(VisualTreeHelper.GetChild(parent, index), name);
+            if (match is not null)
+                return match;
+        }
+
+        return null;
+    }
+    private static bool TryParseBrush(string? value, out Brush brush)
+    {
+        brush = Brushes.Transparent;
+        if (string.IsNullOrWhiteSpace(value)) return false;
+        try
+        {
+            var parsed = new BrushConverter().ConvertFromString(value.Trim());
+            if (parsed is not Brush converted) return false;
+            converted.Freeze();
+            brush = converted;
+            return true;
+        }
+        catch { return false; }
+    }
+    private static string NormalizeUsernameText(string? value)
+    {
+        var text = (value ?? string.Empty).Trim();
+        foreach (var prefix in new[] { "اسم المستخدم", "رقم الكرت", "رقم الكارت", "رقم الدخول", "رمز الدخول" })
+        {
+            if (text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                text = text[prefix.Length..].TrimStart(' ', ':', '：', '-', '–', '—');
+                break;
+            }
+        }
+        return string.IsNullOrWhiteSpace(text) ? "50723015" : text;
+    }
+
+    private static string NormalizePasswordText(string? value)
+    {
+        var text = (value ?? string.Empty).Trim();
+        foreach (var prefix in new[] { "كلمة المرور", "كلمة السر", "Password", "Pass" })
+        {
+            if (text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                text = text[prefix.Length..].TrimStart(' ', ':', '：', '-', '–', '—');
+                break;
+            }
+        }
+        return string.IsNullOrWhiteSpace(text) ? "1432" : text;
+    }
+
+    private void SelectedElementTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (!_isReady || GetSelectedElement() is not TextBlock selectedText) return;
+        var value = ReferenceEquals(selectedText, PreviewUsernameTextBlock)
+            ? NormalizeUsernameText(SelectedElementTextBox.Text)
+            : ReferenceEquals(selectedText, PreviewPasswordTextBlock)
+                ? NormalizePasswordText(SelectedElementTextBox.Text)
+                : SelectedElementTextBox.Text;
+        if (string.Equals(selectedText.Text, value, StringComparison.Ordinal)) return;
+        selectedText.Text = value;
+        if (ReferenceEquals(selectedText, PreviewUsernameTextBlock))
+        {
+            selectedText.FlowDirection = FlowDirection.LeftToRight;
+            KeepUsernameCaptionAligned();
+        }
+        if (ReferenceEquals(selectedText, PreviewPasswordTextBlock))
+        {
+            selectedText.FlowDirection = FlowDirection.LeftToRight;
+            KeepPasswordCaptionAligned();
+        }
+        UpdateSelectionFrame();
+        RefreshStudioPreviews();
+    }
+
+    private void SelectedElementTextBox_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (!_isReady || GetSelectedElement() is not TextBlock textBlock) return;
+        if (ReferenceEquals(textBlock, PreviewUsernameTextBlock)) textBlock.Text = NormalizeUsernameText(textBlock.Text);
+        if (ReferenceEquals(textBlock, PreviewPasswordTextBlock)) textBlock.Text = NormalizePasswordText(textBlock.Text);
+        SyncSelectedElementEditor();
+        RefreshStudioPreviews();
+        SetStatus("تم تحديث نص العنصر. احفظ القالب للاحتفاظ بالتغيير.", isSuccess: true);
+    }
+
+    private void ElementProperty_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (!_isReady) return;
+        ApplyPropertiesButton_Click(this, new RoutedEventArgs());
+    }
+
+    private void ElementProperty_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter) return;
+        e.Handled = true;
+        ApplyPropertiesButton_Click(this, new RoutedEventArgs());
+        Keyboard.ClearFocus();
+    }
+
+    private void ElementStyleControl_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isReady) ApplyPropertiesButton_Click(this, new RoutedEventArgs());
+    }
+
+    private void ElementForegroundColorButton_Click(object sender, RoutedEventArgs e)
+    {
+        ElementForegroundColorPopup.IsOpen = true;
+    }
+
+    private void ElementBackgroundColorButton_Click(object sender, RoutedEventArgs e)
+    {
+        ElementBackgroundColorPopup.IsOpen = true;
+    }
+
+    private void ForegroundColorSwatch_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string hex) return;
+        SetDesignerTextBoxText("ElementForegroundHexTextBox", hex);
+        UpdateElementColorSwatches(hex, GetDesignerTextBoxText("ElementBackgroundHexTextBox", "#00000000"));
+        ElementForegroundColorPopup.IsOpen = false;
+        ApplyPropertiesButton_Click(this, new RoutedEventArgs());
+    }
+
+    private void BackgroundColorSwatch_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string hex) return;
+        SetDesignerTextBoxText("ElementBackgroundHexTextBox", hex);
+        UpdateElementColorSwatches(GetDesignerTextBoxText("ElementForegroundHexTextBox", "#22252A"), hex);
+        ElementBackgroundColorPopup.IsOpen = false;
+        ApplyPropertiesButton_Click(this, new RoutedEventArgs());
+    }
+
+    private void UpdateElementColorSwatches(string foregroundHex, string backgroundHex)
+    {
+        if (ElementForegroundColorSwatch is not null && TryParseBrush(foregroundHex, out var foreground))
+            ElementForegroundColorSwatch.Background = foreground;
+        if (ElementBackgroundColorSwatch is not null && TryParseBrush(backgroundHex, out var background))
+            ElementBackgroundColorSwatch.Background = background;
+    }
+
+    private static string GetElementForegroundHex(FrameworkElement element) => element switch
+    {
+        TextBlock text => BrushToHex(text.Foreground),
+        Shape shape => BrushToHex(shape.Fill),
+        _ => "#22252A"
+    };
+    private static string GetElementBackgroundHex(FrameworkElement element) => element switch
+    {
+        TextBlock text => BrushToHex(text.Background),
+        Border border => BrushToHex(border.Background),
+        _ => "#00000000"
+    };
+
+    private readonly Dictionary<string, Border> _elementBorderOverlays = new(StringComparer.Ordinal);
+
+    private void EnsureElementBorderOverlays()
+    {
+        if (CardDesignCanvas is null || SelectionFrameBorder is null) return;
+        foreach (var tag in GetAllEditableElementTags())
+        {
+            if (_elementBorderOverlays.ContainsKey(tag)) continue;
+            var overlay = new Border
+            {
+                Tag = "element-border:" + tag,
+                Background = Brushes.Transparent,
+                BorderBrush = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                CornerRadius = new CornerRadius(2),
+                IsHitTestVisible = false,
+                Visibility = Visibility.Collapsed,
+                SnapsToDevicePixels = true
+            };
+            _elementBorderOverlays[tag] = overlay;
+            var selectionIndex = CardDesignCanvas.Children.IndexOf(SelectionFrameBorder);
+            if (selectionIndex >= 0) CardDesignCanvas.Children.Insert(selectionIndex, overlay);
+            else CardDesignCanvas.Children.Add(overlay);
+        }
+    }
+
+    private void UpdateElementBorderOverlays()
+    {
+        if (CardDesignCanvas is null) return;
+        EnsureElementBorderOverlays();
+        foreach (var pair in _elementBorderOverlays)
+        {
+            var element = GetElementByTag(pair.Key);
+            var overlay = pair.Value;
+            if (element is null) { overlay.Visibility = Visibility.Collapsed; continue; }
+            var left = Canvas.GetLeft(element);
+            var top = Canvas.GetTop(element);
+            if (!double.IsFinite(left)) left = 0;
+            if (!double.IsFinite(top)) top = 0;
+            overlay.Width = GetElementWidth(element);
+            overlay.Height = GetElementHeight(element);
+            Canvas.SetLeft(overlay, left);
+            Canvas.SetTop(overlay, top);
+            overlay.RenderTransformOrigin = new Point(0.5, 0.5);
+            overlay.RenderTransform = new RotateTransform(GetElementRotation(element));
+            var enabled = overlay.BorderThickness.Left > 0 && overlay.BorderBrush is not SolidColorBrush { Color.A: 0 };
+            overlay.Visibility = enabled && element.Visibility == Visibility.Visible ? Visibility.Visible : Visibility.Collapsed;
+        }
+    }
+
+    private void ElementBorderButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (GetSelectedElement() is null)
+        {
+            SetStatus("اختر عنصرًا من الشرائح العلوية أولًا.", isSuccess: false);
+            return;
+        }
+        ElementBorderColorPopup.IsOpen = true;
+    }
+
+    private void DisableElementBorderButton_Click(object sender, RoutedEventArgs e)
+    {
+        var tag = _studioSelectedFieldTag ?? GetSelectedTag(SelectedElementComboBox);
+        if (string.IsNullOrWhiteSpace(tag) || GetElementByTag(tag) is null) return;
+        EnsureElementBorderOverlays();
+        var overlay = _elementBorderOverlays[tag];
+        overlay.BorderThickness = new Thickness(0);
+        overlay.BorderBrush = Brushes.Transparent;
+        UpdateElementBorderOverlays();
+        ElementBorderColorPopup.IsOpen = false;
+        RefreshStudioPreviews();
+        SetStatus("أزيل إطار العنصر. احفظ القالب للاحتفاظ بالتغيير.", isSuccess: true);
+    }
+
+    private void BorderColorSwatch_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string hex) return;
+        var tag = _studioSelectedFieldTag ?? GetSelectedTag(SelectedElementComboBox);
+        if (string.IsNullOrWhiteSpace(tag) || GetElementByTag(tag) is null) return;
+        if (!TryParseBrush(hex, out var brush))
+        {
+            SetStatus("تعذر قراءة اللون المحدد.", isSuccess: false);
+            return;
+        }
+        EnsureElementBorderOverlays();
+        var overlay = _elementBorderOverlays[tag];
+        overlay.BorderBrush = brush;
+        overlay.BorderThickness = new Thickness(1.2);
+        UpdateElementBorderOverlays();
+        ElementBorderColorPopup.IsOpen = false;
+        RefreshStudioPreviews();
+        SetStatus("تم تغيير إطار العنصر. احفظ القالب للاحتفاظ بالتغيير.", isSuccess: true);
+    }
+
+    private void ApplySavedElementBorder(string tag, ElementDesignProperties design)
+    {
+        EnsureElementBorderOverlays();
+        if (!_elementBorderOverlays.TryGetValue(tag, out var overlay)) return;
+        if (design.HasBorder && TryParseBrush(design.BorderHex, out var brush))
+        {
+            overlay.BorderBrush = brush;
+            var thickness = design.BorderThickness is > 0 and <= 8 ? design.BorderThickness : 1.2;
+            overlay.BorderThickness = new Thickness(thickness);
+        }
+        else
+        {
+            overlay.BorderBrush = Brushes.Transparent;
+            overlay.BorderThickness = new Thickness(0);
+        }
+    }
+
+    private void AddBlankFieldButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_isReady) return;
+        var tag = "custom-" + (++_customElementCounter).ToString(CultureInfo.InvariantCulture);
+        var field = new TextBlock
+        {
+            Tag = tag,
+            Text = string.Empty,
+            Width = 70,
+            Height = 16,
+            FontFamily = new FontFamily("Segoe UI"),
+            FontSize = 8,
+            Foreground = new SolidColorBrush(Color.FromRgb(34, 36, 42)),
+            Background = new SolidColorBrush(Color.FromRgb(255, 231, 234)),
+            TextAlignment = TextAlignment.Center,
+            TextWrapping = TextWrapping.Wrap,
+            FlowDirection = FlowDirection.RightToLeft,
+            Padding = new Thickness(2),
+            IsHitTestVisible = true
+        };
+        _customElements[tag] = field;
+        Canvas.SetLeft(field, Math.Max(0, CardDesignCanvas.Width * 0.42));
+        Canvas.SetTop(field, Math.Max(0, CardDesignCanvas.Height * 0.48));
+        CardDesignCanvas.Children.Add(field);
+        SelectedElementComboBox.Items.Add(new ComboBoxItem { Content = "حقل مخصص " + _customElementCounter.ToString(CultureInfo.InvariantCulture), Tag = tag });
+        SelectComboTag(SelectedElementComboBox, tag);
+        _studioSelectedFieldTag = tag;
+        InspectorTabs.SelectedIndex = 0;
+        SyncFieldToggleButtons();
+        SyncSelectedElementEditor();
+        ApplyPropertiesButton_Click(this, new RoutedEventArgs());
+        SetStatus("أُضيف حقل فارغ مستقل. عدّل النص والألوان والحجم أو اترك النص فارغًا ليعمل كمساحة ملونة.", isSuccess: true);
+    }
+
     private bool IsTemplateElementVisible(string key) => _visibleElements.TryGetValue(key, out var visible) && visible;
     private Dictionary<string, ElementDesignProperties> CaptureElementProperties()
     {
+        EnsureElementBorderOverlays();
         var result = new Dictionary<string, ElementDesignProperties>(StringComparer.Ordinal);
-        foreach (var tag in EditableElementTags)
+        foreach (var tag in GetAllEditableElementTags())
         {
             var element = GetElementByTag(tag);
             if (element is null) continue;
@@ -557,16 +1366,24 @@ public partial class TemplateDesignerView
                 Width = GetElementWidth(element),
                 Height = GetElementHeight(element),
                 RotationDegrees = GetElementRotation(element),
+                IsVisible = element.Visibility == Visibility.Visible,
                 Text = (element as TextBlock)?.Text,
                 IsBold = element is TextBlock textBlock && (textBlock.FontWeight == FontWeights.Bold || textBlock.FontWeight == FontWeights.SemiBold),
+                ForegroundHex = GetElementForegroundHex(element),
+                BackgroundHex = GetElementBackgroundHex(element),
                 FontSize = element is TextBlock tb ? tb.FontSize : 11,
-                FontFamily = element is TextBlock tbf ? tbf.FontFamily.Source : "Segoe UI"
+                FontFamily = element is TextBlock tbf ? tbf.FontFamily.Source : "Segoe UI",
+                TextAlignment = element is TextBlock alignedText ? alignedText.TextAlignment.ToString() : null,
+                HasBorder = _elementBorderOverlays.TryGetValue(tag, out var elementBorder) && elementBorder.BorderThickness.Left > 0 && elementBorder.BorderBrush is not SolidColorBrush { Color.A: 0 },
+                BorderHex = _elementBorderOverlays.TryGetValue(tag, out var savedBorder) ? BrushToHex(savedBorder.BorderBrush) : "#C51D2E",
+                BorderThickness = _elementBorderOverlays.TryGetValue(tag, out var savedThickness) ? savedThickness.BorderThickness.Left : 1.2
             };
         }
         return result;
     }
     private void ApplyElementProperties(Dictionary<string, ElementDesignProperties> properties)
     {
+        EnsureElementBorderOverlays();
         foreach (var pair in properties)
         {
             var element = GetElementByTag(pair.Key);
@@ -580,13 +1397,32 @@ public partial class TemplateDesignerView
             if (double.IsFinite(design.Height) && design.Height >= 1) element.Height = Math.Clamp(design.Height, 1, maxCanvasHeight);
             element.RenderTransformOrigin = new Point(0.5, 0.5);
             element.RenderTransform = new RotateTransform(Math.Clamp(design.RotationDegrees, -180, 180));
+            // Standard field visibility is stored in VisibleElements; custom layer
+            // visibility lives with its element properties and defaults true in old saves.
+            if (pair.Key.StartsWith("custom-", StringComparison.Ordinal))
+                element.Visibility = design.IsVisible ? Visibility.Visible : Visibility.Collapsed;
             if (element is TextBlock textBlock)
             {
-                if (design.Text is not null) textBlock.Text = design.Text;
+                if (design.Text is not null)
+                    textBlock.Text = string.Equals(pair.Key, "username", StringComparison.Ordinal)
+                        ? NormalizeUsernameText(design.Text)
+                        : string.Equals(pair.Key, "password", StringComparison.Ordinal)
+                            ? NormalizePasswordText(design.Text)
+                            : design.Text;
+                if (pair.Key is "username" or "password") textBlock.FlowDirection = FlowDirection.LeftToRight;
                 textBlock.FontWeight = design.IsBold ? FontWeights.Bold : FontWeights.Normal;
                 if (design.FontSize is >= 4 and <= 60) textBlock.FontSize = design.FontSize;
                 if (!string.IsNullOrWhiteSpace(design.FontFamily)) textBlock.FontFamily = new FontFamily(design.FontFamily);
+                if (!string.IsNullOrWhiteSpace(design.TextAlignment) && Enum.TryParse<TextAlignment>(design.TextAlignment, true, out var textAlignment))
+                    textBlock.TextAlignment = textAlignment;
+                if (TryParseBrush(design.ForegroundHex, out var foreground)) textBlock.Foreground = foreground;
+                if (TryParseBrush(design.BackgroundHex, out var background)) textBlock.Background = background;
             }
+            else if (element is Shape shape && TryParseBrush(design.BackgroundHex, out var shapeFill)) shape.Fill = shapeFill;
+            else if (element is Border border && TryParseBrush(design.BackgroundHex, out var borderFill)) border.Background = borderFill;
+            ApplySavedElementBorder(pair.Key, design);
         }
+        UpdateElementBorderOverlays();
     }
 }
+

@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Microsoft.Win32;
 using System.IO;
 using System.Text.Json;
@@ -26,6 +26,7 @@ public partial class TemplateDesignerView
             Width = Math.Max(1, DesignViewportCanvas.Width),
             Height = Math.Max(1, DesignViewportCanvas.Height),
             Background = Brushes.Transparent,
+            FlowDirection = FlowDirection.LeftToRight,
             ClipToBounds = true
         };
         var cardCanvas = new Canvas
@@ -33,6 +34,7 @@ public partial class TemplateDesignerView
             Width = Math.Max(1, CardDesignCanvas.Width),
             Height = Math.Max(1, CardDesignCanvas.Height),
             Background = Brushes.Transparent,
+            FlowDirection = FlowDirection.LeftToRight,
             RenderTransformOrigin = CardDesignCanvas.RenderTransformOrigin,
             RenderTransform = CardDesignCanvas.RenderTransform?.CloneCurrentValue(),
             ClipToBounds = true
@@ -58,13 +60,13 @@ public partial class TemplateDesignerView
     private Canvas BuildDesignedPrintPreviewCard(string number, string username, string password, string hours, string validity, string price, string upload, string network, string packageName, string contact, int cardIndex)
     {
         // This builder is intentionally preview-only. The editor surface is 420 × 245,
-        // but the physical card defaults to 66 × 15.5 mm. Most visible template content
+        // but the physical card defaults to 46 × 15.8 mm. Most visible template content
         // occupies only the upper part of the editor canvas; crop that unused workspace
         // and compact Y coordinates so each preview slot uses the full physical card area.
         var sourceWidth = Math.Max(1, CardDesignCanvas.Width);
         var sourceHeight = Math.Max(1, CardDesignCanvas.Height);
-        var physicalWidth = ParseDouble(CardWidthTextBox.Text, 66, 10, 200);
-        var physicalHeight = ParseDouble(CardHeightTextBox.Text, 15.5, 10, 200);
+        var physicalWidth = ParseDouble(CardWidthTextBox.Text, 46, 10, 200);
+        var physicalHeight = ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200);
 
         // Some default fields deliberately extend slightly past the editor canvas's
         // right edge (for example the password/contact labels). Include their bounds so
@@ -95,6 +97,7 @@ public partial class TemplateDesignerView
             Width = previewWidth,
             Height = previewHeight,
             Background = Brushes.Transparent,
+            FlowDirection = FlowDirection.LeftToRight,
             ClipToBounds = true
         };
 
@@ -115,6 +118,52 @@ public partial class TemplateDesignerView
 
         return previewCanvas;
     }
+
+    public FrameworkElement CreateIssuancePreviewElement(
+    string number,
+    string username,
+    string password,
+    string hours,
+    string validity,
+    string price,
+    string upload,
+    string network,
+    string packageName,
+    string contact,
+    int cardIndex = 0)
+{
+    UpdatePreview();
+
+    var card = BuildDesignedPrintPreviewCard(
+        number,
+        username,
+        password,
+        hours,
+        validity,
+        price,
+        upload,
+        network,
+        packageName,
+        contact,
+        cardIndex);
+
+    return new Viewbox
+    {
+        Stretch = Stretch.Uniform,
+        StretchDirection = StretchDirection.Both,
+        HorizontalAlignment = HorizontalAlignment.Stretch,
+        VerticalAlignment = VerticalAlignment.Stretch,
+        Child = card,
+        Margin = new Thickness(2),
+        ClipToBounds = true
+    };
+}
+
+public Size GetCardLayoutSizeMillimeters() => new Size(
+    ParseDouble(CardWidthTextBox.Text, 66, 10, 200),
+    ParseDouble(CardHeightTextBox.Text, 15.5, 10, 200));
+
+    
     private static bool IsPreviewFullCanvasBackground(FrameworkElement element, double sourceCanvasHeight)
     {
         var elementName = element.Name.Length > 0 ? element.Name : element.Tag?.ToString();
@@ -250,7 +299,7 @@ public partial class TemplateDesignerView
         return source.Name switch
         {
             nameof(PreviewLoginCodeTextBlock) => number,
-            nameof(PreviewUsernameTextBlock) => "اسم المستخدم: " + username,
+            nameof(PreviewUsernameTextBlock) => username,
             nameof(PreviewPasswordTextBlock) => string.IsNullOrWhiteSpace(password) ? string.Empty : "كلمة المرور: " + password,
             nameof(PreviewValidityTextBlock) => "الصلاحية: " + validity,
             "PreviewTimeTextBlock" => "الوقت: " + hours,
@@ -269,8 +318,8 @@ public partial class TemplateDesignerView
     }
     public Size GetPhysicalCardSizeMillimeters()
     {
-        var width = ParseDouble(CardWidthTextBox.Text, 66, 10, 200);
-        var height = ParseDouble(CardHeightTextBox.Text, 15.5, 10, 200);
+        var width = ParseDouble(CardWidthTextBox.Text, 46, 10, 200);
+        var height = ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200);
         var radians = ParseDouble(CardRotationTextBox.Text, 0, -180, 180) * Math.PI / 180d;
         return new Size(
             Math.Abs(width * Math.Cos(radians)) + Math.Abs(height * Math.Sin(radians)),
@@ -321,65 +370,86 @@ public partial class TemplateDesignerView
                 packageName,
                 PreviewContactBlock.Text,
                 cardIndex);
-            return FlattenCardKeepingCredentialsSelectable(cardCanvas);
+            return FlattenCardKeepingNumberSelectable(cardCanvas, card.CardNumber);
         }
         finally
         {
             foreach (var pair in originalVisibility) pair.Key.Visibility = pair.Value;
         }
     }
-    private Canvas FlattenCardKeepingCredentialsSelectable(Canvas viewport)
+    private Canvas FlattenCardKeepingNumberSelectable(Canvas viewport, string cardNumberText)
     {
+        // Keep exactly one credential value as live text. If the design hides the
+        // redundant login-number layer, use the visible username field as the card
+        // number's printable text layer, without duplicating a second number.
+        // Everything else is rasterized so the issued PDF remains non-selectable.
         if (viewport.Children.OfType<Canvas>().FirstOrDefault() is not Canvas cardCanvas)
             return viewport;
 
-        var username = cardCanvas.Children.OfType<FrameworkElement>()
+        var loginLayer = cardCanvas.Children.OfType<FrameworkElement>()
+            .FirstOrDefault(item => string.Equals(item.Tag?.ToString(), nameof(PreviewLoginCodeTextBlock), StringComparison.Ordinal));
+        var usernameLayer = cardCanvas.Children.OfType<FrameworkElement>()
             .FirstOrDefault(item => string.Equals(item.Tag?.ToString(), nameof(PreviewUsernameTextBlock), StringComparison.Ordinal));
-        var password = cardCanvas.Children.OfType<FrameworkElement>()
-            .FirstOrDefault(item => string.Equals(item.Tag?.ToString(), nameof(PreviewPasswordTextBlock), StringComparison.Ordinal));
-        var usernameWasVisible = username?.Visibility == Visibility.Visible;
-        var passwordWasVisible = password?.Visibility == Visibility.Visible;
-        if (username is not null) username.Visibility = Visibility.Collapsed;
-        if (password is not null) password.Visibility = Visibility.Collapsed;
+        var cardNumber = loginLayer?.Visibility == Visibility.Visible
+            ? loginLayer
+            : usernameLayer?.Visibility == Visibility.Visible ? usernameLayer : null;
+        var isUsernameNumberLayer = ReferenceEquals(cardNumber, usernameLayer);
+        var numberOriginalVisibility = cardNumber?.Visibility ?? Visibility.Collapsed;
+        var numberWasVisible = numberOriginalVisibility == Visibility.Visible;
+        if (cardNumber is not null) cardNumber.Visibility = Visibility.Collapsed;
 
         var width = Math.Max(1, viewport.Width);
         var height = Math.Max(1, viewport.Height);
         viewport.Measure(new Size(width, height));
         viewport.Arrange(new Rect(0, 0, width, height));
         viewport.UpdateLayout();
-        const int renderScale = 4;
+        const int renderScale = 5;
         var bitmap = new RenderTargetBitmap(
             Math.Max(1, (int)Math.Ceiling(width * renderScale)),
             Math.Max(1, (int)Math.Ceiling(height * renderScale)),
             96d * renderScale, 96d * renderScale, PixelFormats.Pbgra32);
         bitmap.Render(viewport);
+        bitmap.Freeze();
 
-        var flattened = new Canvas { Width = width, Height = height, Background = Brushes.Transparent, ClipToBounds = true };
-        flattened.Children.Add(new Image { Source = bitmap, Width = width, Height = height, Stretch = Stretch.Fill, IsHitTestVisible = false });
-        var credentialLayer = new Canvas
+        var flattened = new Canvas { Width = width, Height = height, Background = Brushes.Transparent, FlowDirection = FlowDirection.LeftToRight, ClipToBounds = true };
+        flattened.Children.Add(new Image
         {
-            Width = cardCanvas.Width,
-            Height = cardCanvas.Height,
-            Background = Brushes.Transparent,
-            ClipToBounds = cardCanvas.ClipToBounds,
-            RenderTransformOrigin = cardCanvas.RenderTransformOrigin,
-            RenderTransform = cardCanvas.RenderTransform?.CloneCurrentValue(),
+            Source = bitmap,
+            Width = width,
+            Height = height,
+            Stretch = Stretch.Fill,
             IsHitTestVisible = false
-        };
-        Canvas.SetLeft(credentialLayer, double.IsFinite(Canvas.GetLeft(cardCanvas)) ? Canvas.GetLeft(cardCanvas) : 0);
-        Canvas.SetTop(credentialLayer, double.IsFinite(Canvas.GetTop(cardCanvas)) ? Canvas.GetTop(cardCanvas) : 0);
+        });
 
-        if (username is not null)
+        if (cardNumber is not null)
         {
-            cardCanvas.Children.Remove(username);
-            if (usernameWasVisible) credentialLayer.Children.Add(username);
+            cardCanvas.Children.Remove(cardNumber);
+            if (numberWasVisible)
+            {
+                if (isUsernameNumberLayer && cardNumber is TextBlock usernameNumberText)
+                    usernameNumberText.Text = cardNumberText ?? string.Empty;
+                cardNumber.Visibility = numberOriginalVisibility;
+                var numberLayer = new Canvas
+                {
+                    Width = cardCanvas.Width,
+                    Height = cardCanvas.Height,
+                    Background = Brushes.Transparent,
+                    FlowDirection = FlowDirection.LeftToRight,
+                    ClipToBounds = cardCanvas.ClipToBounds,
+                    RenderTransformOrigin = cardCanvas.RenderTransformOrigin,
+                    RenderTransform = cardCanvas.RenderTransform?.CloneCurrentValue(),
+                    IsHitTestVisible = false
+                };
+                Canvas.SetLeft(numberLayer, double.IsFinite(Canvas.GetLeft(cardCanvas)) ? Canvas.GetLeft(cardCanvas) : 0);
+                Canvas.SetTop(numberLayer, double.IsFinite(Canvas.GetTop(cardCanvas)) ? Canvas.GetTop(cardCanvas) : 0);
+                cardNumber.IsHitTestVisible = false;
+                numberLayer.Children.Add(cardNumber);
+                Panel.SetZIndex(numberLayer, 10);
+                flattened.Children.Add(numberLayer);
+            }
         }
-        if (password is not null)
-        {
-            cardCanvas.Children.Remove(password);
-            if (passwordWasVisible) credentialLayer.Children.Add(password);
-        }
-        flattened.Children.Add(credentialLayer);
+
         return flattened;
     }
+
 }

@@ -1,4 +1,4 @@
-<Application x:Class="Nexora.Demo.Desktop.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" StartupUri="MainWindow.xaml">
+﻿<Application x:Class="Nexora.Demo.Desktop.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" StartupUri="MainWindow.xaml">
  <Application.Resources>
   <LinearGradientBrush x:Key="HeaderGradientBrush" StartPoint="0,0" EndPoint="1,0">
    <GradientStop Color="#C72433" Offset="0"/>
@@ -10,6 +10,8 @@
    <GradientStop Color="#BD1B2A" Offset="1"/>
   </LinearGradientBrush>
   <DropShadowEffect x:Key="CardShadowEffect" BlurRadius="12" ShadowDepth="2" Opacity="0.10" Color="#26344A"/>
+  <DropShadowEffect x:Key="DashboardPanelShadowEffect" BlurRadius="7" ShadowDepth="1" Opacity="0.055" Color="#26344A"/>
+  <DropShadowEffect x:Key="DashboardMetricShadowEffect" BlurRadius="6" ShadowDepth="0" Opacity="0.045" Color="#26344A"/>
   <SolidColorBrush x:Key="PrimaryBrush" Color="#BF1B2A"/><SolidColorBrush x:Key="PrimaryDarkBrush" Color="#8F101A"/><SolidColorBrush x:Key="PrimaryLightBrush" Color="#FCEBED"/><SolidColorBrush x:Key="PrimaryBorderBrush" Color="#F0B8BE"/>
   <SolidColorBrush x:Key="AppBgBrush" Color="#F4F6F9"/><SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF"/><SolidColorBrush x:Key="BorderBrushSoft" Color="#DDE3EB"/>
   <SolidColorBrush x:Key="TextBrush" Color="#17243A"/><SolidColorBrush x:Key="MutedBrush" Color="#687990"/><SolidColorBrush x:Key="SuccessBrush" Color="#14845D"/><SolidColorBrush x:Key="WarningBrush" Color="#A96500"/><SolidColorBrush x:Key="DangerBrush" Color="#B42318"/>
@@ -116,20 +118,26 @@
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="Button">
-                <Grid ClipToBounds="True">
+                <Grid ClipToBounds="True" SnapsToDevicePixels="True">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="0" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
                     <Border x:Name="MetricBorder"
+                            Grid.RowSpan="2"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="{StaticResource RadiusCard}"
-                            Effect="{StaticResource CardShadowEffect}"/>
-
-                    <Border Width="34" Height="3" Margin="0,1,12,0" HorizontalAlignment="Right" VerticalAlignment="Top" Background="{StaticResource PrimaryBrush}" CornerRadius="2" IsHitTestVisible="False"/>
-
-                    <ContentPresenter Margin="0,2,0,0"
+                            Effect="{StaticResource DashboardMetricShadowEffect}" />
+                    <Border Grid.Row="0"
+                            Visibility="Collapsed"
+                            Height="0"
+                            IsHitTestVisible="False" />
+                    <ContentPresenter Grid.Row="1"
                                       HorizontalAlignment="Stretch"
                                       VerticalAlignment="Stretch"
-                                      TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                      TextElement.Foreground="{TemplateBinding Foreground}" />
                 </Grid>
 
                 <ControlTemplate.Triggers>
@@ -168,7 +176,7 @@
    <Setter Property="FontFamily" Value="Tahoma"/><Setter Property="FontSize" Value="12.5"/><Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
   </Style>
   <Style x:Key="DashboardPanelStyle" TargetType="Border">
-   <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/><Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="{StaticResource RadiusCard}"/><Setter Property="Padding" Value="{StaticResource DashboardCardPadding}"/><Setter Property="Effect" Value="{StaticResource CardShadowEffect}"/>
+   <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/><Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="{StaticResource RadiusCard}"/><Setter Property="Padding" Value="{StaticResource DashboardCardPadding}"/><Setter Property="Effect" Value="{StaticResource DashboardPanelShadowEffect}"/>
   </Style>
   <Style x:Key="DashboardCardHeadingStyle" TargetType="TextBlock">
    <Setter Property="FontFamily" Value="Tahoma"/><Setter Property="FontSize" Value="18.5"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/>

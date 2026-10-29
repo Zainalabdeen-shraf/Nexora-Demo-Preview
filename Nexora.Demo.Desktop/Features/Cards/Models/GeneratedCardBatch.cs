@@ -13,8 +13,10 @@ public sealed record GeneratedCardBatch(
     string RouterProfile = "",
     string PointOfSale = "",
     string ManagerAccount = "admin",
-    int SharedUsers = 1)
+    int SharedUsers = 1,
+    string BatchName = "")
 {
+    public string DisplayName => string.IsNullOrWhiteSpace(BatchName) ? BatchId : BatchName;
     public decimal Total => Quantity * UnitPrice;
     public string CreatedAtLabel => CreatedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm", CultureInfo.InvariantCulture);
     public string TotalLabel => $"{Total:N0} ريال";

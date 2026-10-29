@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Nexora.Demo.Desktop.Features.Cards.Views.CardBatchesView"
+<UserControl x:Class="Nexora.Demo.Desktop.Features.Cards.Views.CardBatchesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              FlowDirection="RightToLeft"
@@ -340,7 +340,7 @@
             <Border Style="{StaticResource ManagementPanel}" Padding="0" ClipToBounds="True">
                 <DataGrid x:Name="BatchesGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeColumns="True" CanUserSortColumns="True" HeadersVisibility="Column" SelectionMode="Single" SelectionUnit="FullRow" RowHeight="34" ColumnHeaderHeight="36" FontSize="10.8" BorderThickness="0" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F0F2F6" AlternationCount="2" AlternatingRowBackground="#FFFFF8F9" ColumnHeaderStyle="{StaticResource ManagementGridHeaderStyle}" CellStyle="{StaticResource ManagementGridCellStyle}" RowStyle="{StaticResource ManagementGridRowStyle}" CanUserResizeRows="False" EnableRowVirtualization="True" EnableColumnVirtualization="True" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled" Sorting="BatchesGrid_Sorting" MouseDoubleClick="BatchesGrid_MouseDoubleClick">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="رقم الدفعة" Binding="{Binding BatchId}" SortMemberPath="BatchId" Width="1.32*" ElementStyle="{StaticResource ManagementGridTextCellStyle}"/>
+                        <DataGridTextColumn Header="رقم الدفعة" Binding="{Binding DisplayName}" SortMemberPath="BatchId" Width="1.32*" ElementStyle="{StaticResource ManagementGridTextCellStyle}"/>
                         <DataGridTextColumn Header="الباقة" Binding="{Binding PackageName}" SortMemberPath="PackageName" Width="1.16*" ElementStyle="{StaticResource ManagementGridTextCellStyle}"/>
                         <DataGridTextColumn Header="نقطة البيع" Binding="{Binding PointOfSale}" SortMemberPath="PointOfSale" Width="0.9*" ElementStyle="{StaticResource ManagementGridTextCellStyle}"/>
                         <DataGridTextColumn Header="عدد الكروت" Binding="{Binding Quantity, StringFormat={}{0:N0}}" SortMemberPath="Quantity" Width="0.66*" ElementStyle="{StaticResource ManagementGridTextCellStyle}"/>

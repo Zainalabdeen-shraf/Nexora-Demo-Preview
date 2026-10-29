@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
@@ -9,6 +9,7 @@
   <ItemGroup>
     <Resource Include="Assets\Brand\cards-network-logo.png" />
     <Resource Include="Assets\Brand\nexora-network-card-mark.png" />
+    <Content Include="Assets\Printing\TabCard-Modern-Blue-Wave-Background.png" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <Watch Include="**\*.xaml"

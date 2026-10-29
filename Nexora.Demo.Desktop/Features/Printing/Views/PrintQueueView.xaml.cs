@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Documents;
@@ -151,6 +151,7 @@ public partial class PrintQueueView : UserControl
         {
             PrintPreviewStatusTextBlock.Text = "لا توجد كروت في القائمة حتى الآن.";
             PrintPreviewStatusTextBlock.Foreground = (Brush)FindResource("WarningBrush");
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "قائمة الطباعة فارغة", "أنشئ دفعة أولًا ثم أضف الكروت إلى قائمة الطباعة.", WorkflowFeedbackKind.Warning, null, new WorkflowFeedbackAction("close", "حسنًا", true));
             return;
         }
 
@@ -159,6 +160,8 @@ public partial class PrintQueueView : UserControl
             : _issuanceService.Cards.Count;
         PrintPreviewStatusTextBlock.Text = $"تم تحديث معاينة {count:N0} كرت وفق القالب والحقول المحددة.";
         PrintPreviewStatusTextBlock.Foreground = (Brush)FindResource("SuccessBrush");
+        WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "المعاينة جاهزة", "تم تحديث معاينة الكرت بالحقول والقالب الحاليين. هذه خطوة مراجعة فقط ولا ترسل شيئًا للطابعة.", WorkflowFeedbackKind.Success,
+            [new("عدد الكروت", count.ToString("N0")), new("الخطوة التالية", "راجع المعاينة ثم اختر إرسال للطابعة")], new WorkflowFeedbackAction("close", "متابعة", true));
     }
 
     private void SimulatePrintButton_Click(object sender, RoutedEventArgs e) => PrintSelectedCards();
@@ -170,6 +173,7 @@ public partial class PrintQueueView : UserControl
         {
             PrintPreviewStatusTextBlock.Text = "حدد كرتًا واحدًا أو أكثر لإضافتها إلى قائمة الطباعة.";
             PrintPreviewStatusTextBlock.Foreground = (Brush)FindResource("WarningBrush");
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا توجد كروت محددة", "حدد كرتًا أو أكثر لإضافتها إلى قائمة الطباعة.", WorkflowFeedbackKind.Warning, null, new WorkflowFeedbackAction("close", "العودة للقائمة", true));
             return;
         }
 
@@ -179,11 +183,14 @@ public partial class PrintQueueView : UserControl
             UpdateSummary();
             PrintPreviewStatusTextBlock.Text = $"تمت إضافة {selected.Count:N0} كرت إلى قائمة الطباعة.";
             PrintPreviewStatusTextBlock.Foreground = (Brush)FindResource("SuccessBrush");
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تم تحديث قائمة الطباعة", "حُفظت العناصر في قائمة الطباعة المحلية. لم يتم إرسالها للطابعة بعد.", WorkflowFeedbackKind.Success,
+                [new("عدد الكروت", selected.Count.ToString("N0")), new("الحالة", "بانتظار مراجعة المعاينة والإرسال")], new WorkflowFeedbackAction("close", "حسنًا", true));
         }
         catch (Exception ex)
         {
             PrintPreviewStatusTextBlock.Text = "تعذر إضافة الكروت إلى قائمة الطباعة: " + ex.Message;
             PrintPreviewStatusTextBlock.Foreground = (Brush)FindResource("WarningBrush");
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذر تحديث قائمة الطباعة", ex.Message, WorkflowFeedbackKind.Error, null, new WorkflowFeedbackAction("close", "إغلاق", true));
         }
     }
 
@@ -196,6 +203,7 @@ public partial class PrintQueueView : UserControl
         {
             PrintPreviewStatusTextBlock.Text = "حدد الكروت التي تريد طباعتها أولًا.";
             PrintPreviewStatusTextBlock.Foreground = (Brush)FindResource("WarningBrush");
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا توجد كروت للطباعة", "حدد الكروت المطلوب طباعتها أولًا.", WorkflowFeedbackKind.Warning, null, new WorkflowFeedbackAction("close", "حسنًا", true));
             return;
         }
 
@@ -281,17 +289,21 @@ public partial class PrintQueueView : UserControl
                 UpdateSummary();
                 PrintPreviewStatusTextBlock.Text = $"أُرسلت مهمة طباعة تضم {selected.Count:N0} بطاقة إلى {printerName}.";
                 PrintPreviewStatusTextBlock.Foreground = (Brush)FindResource("SuccessBrush");
+                WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "أُرسلت مهمة الطباعة", "تم إرسال مهمة الطباعة إلى صف الطابعة وتسجيلها في سجل المتابعة. هذا لا يثبت أن الورق خرج فعليًا من الطابعة.", WorkflowFeedbackKind.Success,
+                    [new("الطابعة", printerName), new("عدد الكروت", selected.Count.ToString("N0")), new("الحالة", "تم إرسال المهمة")], new WorkflowFeedbackAction("close", "إغلاق", true));
             }
             catch (Exception recordException)
             {
                 PrintPreviewStatusTextBlock.Text = $"أُرسلت مهمة الطباعة إلى {printerName}، لكن تعذر تحديث سجل المتابعة: {recordException.Message}";
                 PrintPreviewStatusTextBlock.Foreground = (Brush)FindResource("WarningBrush");
+                WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تم الإرسال لكن السجل يحتاج مراجعة", PrintPreviewStatusTextBlock.Text, WorkflowFeedbackKind.Warning, null, new WorkflowFeedbackAction("close", "إغلاق", true));
             }
         }
         catch (Exception ex)
         {
             PrintPreviewStatusTextBlock.Text = "تعذر إرسال مهمة الطباعة: " + ex.Message;
             PrintPreviewStatusTextBlock.Foreground = (Brush)FindResource("WarningBrush");
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذر إرسال مهمة الطباعة", ex.Message, WorkflowFeedbackKind.Error, null, new WorkflowFeedbackAction("close", "إغلاق", true));
         }
     }
 

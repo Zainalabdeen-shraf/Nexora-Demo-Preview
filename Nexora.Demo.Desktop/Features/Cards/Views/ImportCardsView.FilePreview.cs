@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -54,6 +54,7 @@ public partial class ImportCardsView
         {
             ClearPreview();
             SetStatus("اختر ملفًا موجودًا أولًا.", true);
+            ShowImportFeedback("اختر ملفًا", "حدد ملفًا موجودًا بصيغة XLSX أو CSV أو TXT.", WorkflowFeedbackKind.Warning);
             return;
         }
 
@@ -65,6 +66,7 @@ public partial class ImportCardsView
             {
                 ClearPreview();
                 SetStatus("لم يتم العثور على أرقام كروت في العمود الأول.", true);
+                ShowImportFeedback("لا توجد أرقام كروت", "لم يعثر Nexora على أرقام في العمود الأول من الملف.", WorkflowFeedbackKind.Warning);
                 return;
             }
 
@@ -74,6 +76,7 @@ public partial class ImportCardsView
                 SetStatus(
                     $"الحد الأعلى للاستيراد في العملية الواحدة هو {MaxImportedCards:N0} كرت.",
                     true);
+                ShowImportFeedback("تجاوز الحد المسموح", $"الحد الأعلى في العملية الواحدة هو {MaxImportedCards:N0} كرت. قسّم الملف ثم أعد المعاينة.", WorkflowFeedbackKind.Warning);
                 return;
             }
 
@@ -83,6 +86,7 @@ public partial class ImportCardsView
         {
             ClearPreview();
             SetStatus("تعذر قراءة الملف: " + ex.Message, true);
+            ShowImportFeedback("تعذر قراءة الملف", ex.Message, WorkflowFeedbackKind.Error);
         }
     }
     private void BuildPreview(IReadOnlyList<string> numbers)
@@ -132,11 +136,20 @@ public partial class ImportCardsView
             $"{_previewRows.Count:N0} رقم — جاهز: {readyCount:N0} — يحتاج معالجة: {problemCount:N0}";
 
         if (problemCount == 0)
+        {
             SetStatus("اكتملت المعاينة. راجع البيانات ثم اعتمد الاستيراد.", false);
+            ShowImportFeedback("المعاينة جاهزة", "اجتازت الأرقام الفحص الأولي. لم يتم استيرادها بعد.", WorkflowFeedbackKind.Success,
+                [new("عدد الكروت", _previewRows.Count.ToString("N0", CultureInfo.CurrentCulture)),
+                 new("الحالة", "جاهز للاعتماد")]);
+        }
         else
-            SetStatus(
-                "توجد أرقام مكررة أو مستخدمة مسبقًا. صحح الملف قبل الاعتماد.",
-                true);
+        {
+            SetStatus("توجد أرقام مكررة أو مستخدمة مسبقًا. صحح الملف قبل الاعتماد.", true);
+            ShowImportFeedback("تحتاج المعاينة إلى تصحيح", "لم يتم اعتماد أو استيراد أي كرت. صحح الصفوف المشار إليها ثم أعد المعاينة.", WorkflowFeedbackKind.Warning,
+                [new("عدد الأرقام", _previewRows.Count.ToString("N0", CultureInfo.CurrentCulture)),
+                 new("جاهز", readyCount.ToString("N0", CultureInfo.CurrentCulture)),
+                 new("يحتاج معالجة", problemCount.ToString("N0", CultureInfo.CurrentCulture))]);
+        }
     }
     private void ClearPreview()
     {

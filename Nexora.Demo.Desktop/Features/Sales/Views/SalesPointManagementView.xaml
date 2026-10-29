@@ -1,0 +1,91 @@
+<UserControl x:Class="Nexora.Demo.Desktop.Features.Sales.Views.SalesPointManagementView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FlowDirection="RightToLeft"
+             Background="{StaticResource AppBgBrush}"
+             FontFamily="Tahoma">
+    <Grid Margin="2">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0" Margin="0,0,0,10" LastChildFill="True">
+            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button x:Name="ExportButton" Content="تصدير القائمة" Style="{StaticResource SecondaryButton}" Height="36" Margin="0,0,7,0" Click="ExportButton_Click" />
+                <Button Content="تحديث" Style="{StaticResource SecondaryButton}" Height="36" Margin="0,0,7,0" Click="RefreshButton_Click" />
+                <Button x:Name="AddPointButton" Content="＋ إضافة نقطة بيع" Style="{StaticResource PrimaryButton}" Height="36" Click="AddPointButton_Click" />
+            </StackPanel>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="إدارة نقاط البيع" FontSize="23" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                <TextBlock Text="إدارة الفروع والوكلاء ومنافذ البيع وبيانات التواصل والحالة التشغيلية." FontSize="11.5" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" />
+            </StackPanel>
+        </DockPanel>
+
+        <Border x:Name="StorageWarningBorder" Grid.Row="1" Visibility="Collapsed" Background="#FFF5E7" BorderBrush="#E8C28A" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,9">
+            <TextBlock x:Name="StorageWarningTextBlock" TextWrapping="Wrap" Foreground="#805200" FontSize="11.5" />
+        </Border>
+
+        <UniformGrid Grid.Row="2" Columns="4" Margin="0,0,0,9">
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="10" Margin="0,0,5,0"><StackPanel><TextBlock Text="إجمالي النقاط" FontSize="10" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="TotalPointsTextBlock" Text="—" FontSize="21" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,3,0,0"/></StackPanel></Border>
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="10" Margin="2,0"><StackPanel><TextBlock Text="نقاط نشطة" FontSize="10" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="ActivePointsTextBlock" Text="—" FontSize="21" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" Margin="0,3,0,0"/></StackPanel></Border>
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="10" Margin="2,0"><StackPanel><TextBlock Text="نقاط موقوفة" FontSize="10" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="InactivePointsTextBlock" Text="—" FontSize="21" FontWeight="Bold" Foreground="{StaticResource DangerBrush}" Margin="0,3,0,0"/></StackPanel></Border>
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="10" Margin="5,0,0,0"><StackPanel><TextBlock Text="قيمة البيع المسجل للنقاط" FontSize="10" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="TrackedRevenueTextBlock" Text="—" FontSize="20" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,3,0,0"/></StackPanel></Border>
+        </UniformGrid>
+
+        <Grid Grid.Row="3" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="1.8*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="0.95*"/></Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="8">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="8"/><ColumnDefinition Width="145"/></Grid.ColumnDefinitions>
+                        <TextBox x:Name="SearchTextBox" Height="35" Padding="9,4" VerticalContentAlignment="Center" ToolTip="ابحث بالاسم أو الرمز أو المسؤول أو الهاتف أو الموقع" TextChanged="SearchTextBox_TextChanged" />
+                        <ComboBox x:Name="StatusFilterComboBox" Grid.Column="2" Height="35" SelectedIndex="0" SelectionChanged="StatusFilterComboBox_SelectionChanged"><ComboBoxItem Content="كل الحالات" Tag="all"/><ComboBoxItem Content="نشطة" Tag="active"/><ComboBoxItem Content="موقوفة" Tag="inactive"/></ComboBox>
+                    </Grid>
+                    <Grid Grid.Row="1">
+                        <DataGrid x:Name="PointsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" SelectionMode="Single" SelectionUnit="FullRow" SelectionChanged="PointsGrid_SelectionChanged" HeadersVisibility="Column" RowHeight="40" ColumnHeaderHeight="36" FontSize="10.2" EnableRowVirtualization="True" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="الرمز" Binding="{Binding Point.Code}" Width="72" />
+                                <DataGridTemplateColumn Header="نقطة البيع" Width="1.25*"><DataGridTemplateColumn.CellTemplate><DataTemplate><StackPanel VerticalAlignment="Center"><TextBlock Text="{Binding Point.Name}" FontWeight="SemiBold" FontSize="10.5"/><TextBlock Text="{Binding LocationLabel}" Foreground="{StaticResource MutedBrush}" FontSize="9" Margin="0,2,0,0"/></StackPanel></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+                                <DataGridTextColumn Header="المسؤول / التواصل" Binding="{Binding ContactAndPhoneLabel}" Width="1.1*" />
+                                <DataGridTextColumn Header="العمولة" Binding="{Binding CommissionLabel}" Width="65" />
+                                <DataGridTextColumn Header="المعاملات" Binding="{Binding TransactionCount}" Width="70" />
+                                <DataGridTextColumn Header="البيع المسجل" Binding="{Binding RevenueLabel}" Width="93" />
+                                <DataGridTemplateColumn Header="الحالة" Width="66"><DataGridTemplateColumn.CellTemplate><DataTemplate><Border x:Name="StatusPill" Background="#E8F6EF" CornerRadius="9" Padding="6,3" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock x:Name="StatusText" Text="{Binding Point.StatusLabel}" Foreground="{StaticResource SuccessBrush}" FontSize="9" FontWeight="SemiBold"/></Border><DataTemplate.Triggers><DataTrigger Binding="{Binding Point.IsActive}" Value="False"><Setter TargetName="StatusPill" Property="Background" Value="#FCEBED"/><Setter TargetName="StatusText" Property="Foreground" Value="{StaticResource DangerBrush}"/></DataTrigger></DataTemplate.Triggers></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="الإجراءات" Width="190"><DataGridTemplateColumn.CellTemplate><DataTemplate><StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Button Content="تعديل" Style="{StaticResource SecondaryButton}" Height="28" Padding="7,0" Margin="0,0,4,0" IsEnabled="{Binding CanModify}" Click="EditPointButton_Click"/><Button Content="{Binding ToggleLabel}" Style="{StaticResource SecondaryButton}" Height="28" Padding="7,0" Margin="0,0,4,0" IsEnabled="{Binding CanModify}" Click="TogglePointButton_Click"/><Button Content="عرض" Style="{StaticResource SecondaryButton}" Height="28" Padding="7,0" Margin="0,0,4,0" IsEnabled="{Binding HasTransactions}" Click="ViewTransactionsButton_Click"/><Button Content="حذف" Style="{StaticResource SecondaryButton}" Height="28" Padding="7,0" Foreground="{StaticResource DangerBrush}" IsEnabled="{Binding CanDelete}" Click="DeletePointButton_Click"/></StackPanel></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <Border x:Name="EmptyStatePanel" Background="#F8F9FB" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="8" Visibility="Collapsed"><StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20"><TextBlock x:Name="EmptyStateTitleTextBlock" Text="لا توجد نقاط بيع" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center"/><TextBlock x:Name="EmptyStateDescriptionTextBlock" Text="أضف أول نقطة بيع لبدء تنظيم الفروع والوكلاء." FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,6,0,0" TextAlignment="Center" TextWrapping="Wrap"/><Button Content="＋ إضافة نقطة بيع" Style="{StaticResource PrimaryButton}" Height="34" Margin="0,12,0,0" Padding="12,0" Click="AddPointButton_Click" IsEnabled="{Binding ElementName=AddPointButton, Path=IsEnabled}"/></StackPanel></Border>
+                    </Grid>
+                    <TextBlock Grid.Row="2" x:Name="ResultSummaryTextBlock" Text="—" FontSize="9.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="1,6,1,0"/>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="12">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" Margin="0,0,0,8"><TextBlock Text="تفاصيل نقطة البيع" FontSize="13.5" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/><TextBlock x:Name="SelectedPointStatusTextBlock" DockPanel.Dock="Left" Text="—" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></DockPanel>
+                    <Grid Grid.Row="1">
+                        <StackPanel x:Name="SelectedPointEmptyPanel" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="8"><TextBlock Text="حدد نقطة بيع من القائمة" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center"/><TextBlock Text="ستظهر معلومات الاتصال وسياسة الحساب والحركة المسجلة هنا." FontSize="9.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" TextAlignment="Center" Margin="0,6,0,0"/></StackPanel>
+                        <ScrollViewer x:Name="SelectedPointDetailsPanel" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel>
+                            <Border Background="#FBF1F2" BorderBrush="#F1CFD3" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,8"><StackPanel><TextBlock x:Name="SelectedPointNameTextBlock" Text="—" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/><TextBlock x:Name="SelectedPointCodeTextBlock" Text="—" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0"/></StackPanel></Border>
+                            <Grid Margin="0,0,0,5"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                <TextBlock Text="نوع النقطة" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,8,5"/><TextBlock x:Name="SelectedPointTypeTextBlock" Grid.Column="1" Text="—" FontSize="10" Margin="0,3,0,5"/>
+                                <TextBlock Grid.Row="1" Text="المسؤول" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,8,5"/><TextBlock x:Name="SelectedPointContactTextBlock" Grid.Row="1" Grid.Column="1" Text="—" FontSize="10" Margin="0,3,0,5" TextWrapping="Wrap"/>
+                                <TextBlock Grid.Row="2" Text="رقم التواصل" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,8,5"/><TextBlock x:Name="SelectedPointPhoneTextBlock" Grid.Row="2" Grid.Column="1" Text="—" FontSize="10" Margin="0,3,0,5" FlowDirection="LeftToRight"/>
+                                <TextBlock Grid.Row="3" Text="الموقع" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,8,5"/><TextBlock x:Name="SelectedPointLocationTextBlock" Grid.Row="3" Grid.Column="1" Text="—" FontSize="10" Margin="0,3,0,5" TextWrapping="Wrap"/>
+                                <TextBlock Grid.Row="4" Text="العمولة" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,8,5"/><TextBlock x:Name="SelectedPointCommissionTextBlock" Grid.Row="4" Grid.Column="1" Text="—" FontSize="10" Margin="0,3,0,5"/>
+                                <TextBlock Grid.Row="5" Text="سياسة الحساب" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,8,5"/><TextBlock x:Name="SelectedPointPolicyTextBlock" Grid.Row="5" Grid.Column="1" Text="—" FontSize="10" Margin="0,3,0,5"/>
+                                <TextBlock Grid.Row="6" Text="المعاملات" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,8,5"/><TextBlock x:Name="SelectedPointTransactionsTextBlock" Grid.Row="6" Grid.Column="1" Text="—" FontSize="10" Margin="0,3,0,5"/>
+                                <TextBlock Grid.Row="7" Text="قيمة البيع المسجل" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,8,5"/><TextBlock x:Name="SelectedPointRevenueTextBlock" Grid.Row="7" Grid.Column="1" Text="—" FontSize="10.5" FontWeight="Bold" Margin="0,3,0,5"/>
+                                <TextBlock Grid.Row="8" Text="آخر حركة" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,8,5"/><TextBlock x:Name="SelectedPointLastSaleTextBlock" Grid.Row="8" Grid.Column="1" Text="—" FontSize="9.5" Margin="0,3,0,5"/>
+                                <TextBlock Grid.Row="9" Text="ملاحظات" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,8,0"/><TextBlock x:Name="SelectedPointNotesTextBlock" Grid.Row="9" Grid.Column="1" Text="—" FontSize="9.5" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                            </Grid>
+                        </StackPanel></ScrollViewer>
+                    </Grid>
+                    <Button Grid.Row="2" x:Name="ViewSelectedTransactionsButton" Content="عرض سجل عمليات النقطة" Style="{StaticResource PrimaryButton}" Height="34" Margin="0,8,0,0" Click="ViewSelectedTransactionsButton_Click" IsEnabled="False"/>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <TextBlock Grid.Row="4" Text="النقاط المرتبطة بمعاملات لا تُحذف؛ يمكن إيقافها مع الاحتفاظ بالسجل." FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="1,0,1,0"/>
+    </Grid>
+</UserControl>

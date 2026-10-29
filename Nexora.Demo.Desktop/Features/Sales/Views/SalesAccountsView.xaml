@@ -1,0 +1,151 @@
+<UserControl x:Class="Nexora.Demo.Desktop.Features.Sales.Views.SalesAccountsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FlowDirection="RightToLeft"
+             Background="{StaticResource AppBgBrush}"
+             FontFamily="Tahoma">
+    <Grid Margin="2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="1.15*" />
+            <RowDefinition Height="0.85*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="حسابات نقاط البيع" FontSize="23" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                <TextBlock Text="متابعة أرصدة البقالات والوكلاء والتوريدات والتسويات المسجلة." FontSize="11.5" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button x:Name="OpenSettlementButton" Content="＋ تسجيل تحصيل" Style="{StaticResource PrimaryButton}" Height="37" Margin="0,0,8,0" Click="OpenSettlementButton_Click" />
+                <Button Content="تحديث الحسابات" Style="{StaticResource SecondaryButton}" Height="37" Click="RefreshButton_Click" />
+            </StackPanel>
+        </Grid>
+
+        <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,9">
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="11" Margin="0,0,5,0">
+                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <Border Width="36" Height="36" Background="#EAF4FF" CornerRadius="19"><TextBlock Text="▤" FontSize="17" Foreground="#2878C8" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0"><TextBlock Text="إجمالي التوريدات" FontSize="10.5" Foreground="{StaticResource MutedBrush}" /><TextBlock x:Name="GrossTextBlock" Text="0 ريال" FontSize="21" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,4,0,0" /><TextBlock Text="القيمة الإجمالية للفواتير المسجلة" FontSize="9.5" Foreground="{StaticResource MutedBrush}" /></StackPanel>
+                </Grid>
+            </Border>
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="11" Margin="3,0">
+                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <Border Width="36" Height="36" Background="#FFF3E5" CornerRadius="19"><TextBlock Text="◷" FontSize="18" Foreground="#A96500" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0"><TextBlock Text="أرصدة مستحقة" FontSize="10.5" Foreground="{StaticResource MutedBrush}" /><TextBlock x:Name="OutstandingTextBlock" Text="0 ريال" FontSize="21" FontWeight="Bold" Foreground="#A96500" Margin="0,4,0,0" /><TextBlock Text="صافي الرصيد المفتوح بعد التحصيل" FontSize="9.5" Foreground="{StaticResource MutedBrush}" /></StackPanel>
+                </Grid>
+            </Border>
+            <Border Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="11" Margin="5,0,0,0">
+                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <Border Width="36" Height="36" Background="#E8F7F0" CornerRadius="19"><TextBlock Text="▣" FontSize="17" Foreground="#16845B" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0"><TextBlock Text="نقاط بيع نشطة" FontSize="10.5" Foreground="{StaticResource MutedBrush}" /><TextBlock x:Name="ActivePointsTextBlock" Text="0" FontSize="21" FontWeight="Bold" Foreground="#16845B" Margin="0,4,0,0" /><TextBlock Text="باستثناء النقاط الافتراضية للنظام" FontSize="9.5" Foreground="{StaticResource MutedBrush}" /></StackPanel>
+                </Grid>
+            </Border>
+        </UniformGrid>
+
+        <Border Grid.Row="2" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Padding="9" Margin="0,0,0,9">
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="9" /><ColumnDefinition Width="180" /><ColumnDefinition Width="9" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <TextBox x:Name="AccountSearchTextBox" Grid.Column="0" Height="35" Padding="10,4" VerticalContentAlignment="Center" ToolTip="ابحث باسم نقطة البيع أو الرمز أو نوع النقطة" TextChanged="AccountSearchTextBox_TextChanged" />
+                <ComboBox x:Name="AccountStatusFilterComboBox" Grid.Column="2" Height="35" SelectedIndex="0" SelectedValuePath="Tag" SelectionChanged="AccountStatusFilterComboBox_SelectionChanged">
+                    <ComboBoxItem Content="كل الحسابات" Tag="all" /><ComboBoxItem Content="عليها رصيد" Tag="open" /><ComboBoxItem Content="مسددة" Tag="settled" /><ComboBoxItem Content="يسمح بالآجل" Tag="credit" />
+                </ComboBox>
+                <TextBlock x:Name="AccountResultCountTextBlock" Grid.Column="4" Text="0 حساب" VerticalAlignment="Center" FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="5,0,2,0" />
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="3" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="8" Margin="0,0,0,9">
+            <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                <DockPanel Grid.Row="0" Margin="1,0,1,7">
+                    <TextBlock Text="قائمة حسابات نقاط البيع" FontSize="13.5" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                    <TextBlock DockPanel.Dock="Left" Text="اختر حسابًا لعرض ملخصه وحركاته المالية أدناه" FontSize="9.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
+                </DockPanel>
+                <DataGrid Grid.Row="1" x:Name="AccountsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single" SelectionUnit="FullRow" HeadersVisibility="Column" RowHeight="34" ColumnHeaderHeight="34" FontSize="10.2" SelectionChanged="AccountsGrid_SelectionChanged" EnableRowVirtualization="True" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="نقطة البيع" Binding="{Binding PointName}" Width="1.25*" />
+                        <DataGridTextColumn Header="التوريدات" Binding="{Binding TransferCount}" Width="62" />
+                        <DataGridTextColumn Header="عدد الكروت" Binding="{Binding CardsSupplied}" Width="74" />
+                        <DataGridTextColumn Header="إجمالي التوريد" Binding="{Binding GrossValueLabel}" Width="1*" />
+                        <DataGridTextColumn Header="العمولة" Binding="{Binding CommissionValueLabel}" Width="0.85*" />
+                        <DataGridTextColumn Header="المحصّل" Binding="{Binding PaidLabel}" Width="0.9*" />
+                        <DataGridTextColumn Header="الرصيد الحالي" Binding="{Binding BalanceLabel}" Width="0.95*" />
+                        <DataGridTextColumn Header="آخر حركة" Binding="{Binding LastMovementLabel}" Width="1.05*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+                <Border x:Name="AccountsEmptyStatePanel" Grid.Row="1" Background="#F8F9FB" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="8" Visibility="Collapsed" IsHitTestVisible="False">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="لا توجد حسابات مطابقة" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" /><TextBlock Text="غيّر عبارة البحث أو فلتر الحالة لعرض حسابات أخرى." FontSize="10.5" Foreground="{StaticResource MutedBrush}" Margin="0,6,0,0" /></StackPanel>
+                </Border>
+                <TextBlock Grid.Row="2" x:Name="AccountsFootnoteTextBlock" Text="تُحسب الأرصدة من فواتير التوريد ناقص التحصيلات المسجلة." FontSize="9.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="1,6,1,0" />
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="1.2*" /><ColumnDefinition Width="10" /><ColumnDefinition Width="0.9*" /></Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="8">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                    <TextBlock Text="آخر الحركات المالية" FontSize="13" FontWeight="Bold" Margin="1,0,0,7" />
+                    <Grid Grid.Row="1">
+                        <DataGrid x:Name="RecentMovementsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" RowHeight="31" ColumnHeaderHeight="31" FontSize="9.5" EnableRowVirtualization="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="التاريخ" Binding="{Binding DateLabel}" Width="105" />
+                                <DataGridTextColumn Header="الحركة / المرجع" Binding="{Binding ActivityLabel}" Width="1.1*" />
+                                <DataGridTextColumn Header="المبلغ" Binding="{Binding AmountLabel}" Width="0.85*" />
+                                <DataGridTextColumn Header="الرصيد بعد الحركة" Binding="{Binding BalanceAfterLabel}" Width="0.95*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <Border x:Name="RecentMovementsEmptyPanel" Background="#F8F9FB" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="8" Visibility="Visible" IsHitTestVisible="False">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12"><TextBlock Text="لا توجد حركات مالية" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" /><TextBlock Text="ستظهر التوريدات والتحصيلات المسجلة للحساب المحدد هنا." FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0" TextAlignment="Center" TextWrapping="Wrap" /></StackPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Column="2">
+                <Border x:Name="AccountDetailsPanel" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="10" Padding="12">
+                    <Grid>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                        <DockPanel Grid.Row="0" Margin="0,0,0,6">
+                            <TextBlock Text="ملخص حساب نقطة البيع" FontSize="13" FontWeight="Bold" />
+                            <TextBlock x:Name="SelectedPointStatusTextBlock" DockPanel.Dock="Left" Text="—" FontSize="9.5" FontWeight="SemiBold" Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                            <TextBlock Text="اسم نقطة البيع" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,2,8,5" /><TextBlock x:Name="SelectedPointNameTextBlock" Grid.Column="1" Text="اختر حسابًا من القائمة" FontSize="10.5" FontWeight="SemiBold" Margin="0,2,0,5" TextWrapping="Wrap" />
+                            <TextBlock Grid.Row="1" Text="الرمز" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,2,8,5" /><TextBlock x:Name="SelectedPointCodeTextBlock" Grid.Row="1" Grid.Column="1" Text="—" FontSize="10" Margin="0,2,0,5" />
+                            <TextBlock Grid.Row="2" Text="المسؤول / التواصل" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,2,8,5" /><TextBlock x:Name="SelectedPointOwnerTextBlock" Grid.Row="2" Grid.Column="1" Text="—" FontSize="10" Margin="0,2,0,5" TextWrapping="Wrap" />
+                            <TextBlock Grid.Row="3" Text="سياسة الحساب" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,2,8,5" /><TextBlock x:Name="SelectedPointPolicyTextBlock" Grid.Row="3" Grid.Column="1" Text="—" FontSize="10" Margin="0,2,0,5" TextWrapping="Wrap" />
+                            <TextBlock Grid.Row="4" Text="الرصيد الحالي" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,2,8,5" /><TextBlock x:Name="AccountDetailBalanceTextBlock" Grid.Row="4" Grid.Column="1" Text="—" FontSize="11.5" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,2,0,5" />
+                            <TextBlock Grid.Row="5" Text="آخر حركة" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,2,8,0" /><TextBlock x:Name="SelectedPointLastMovementTextBlock" Grid.Row="5" Grid.Column="1" Text="—" FontSize="9.5" Margin="0,2,0,0" />
+                        </Grid>
+                        <Button Grid.Row="2" x:Name="OpenSettlementFromDetailsButton" Content="تسجيل تحصيل / تسوية" Style="{StaticResource PrimaryButton}" Height="34" Margin="0,8,0,0" Click="OpenSettlementButton_Click" />
+                    </Grid>
+                </Border>
+
+                <Border x:Name="SettlementPanel" Background="White" BorderBrush="{StaticResource PrimaryBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="11" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                        <DockPanel Grid.Row="0" Margin="0,0,0,6"><TextBlock Text="تسجيل تحصيل / تسوية" FontSize="13" FontWeight="Bold" /><Button DockPanel.Dock="Left" x:Name="CloseSettlementButton" Content="رجوع للتفاصيل" Style="{StaticResource SecondaryButton}" Height="28" Padding="8,0" Click="CloseSettlementButton_Click" /></DockPanel>
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel>
+                                <TextBlock Text="نقطة البيع" Style="{StaticResource FieldLabel}" /><ComboBox x:Name="AccountPointComboBox" Height="34" DisplayMemberPath="DisplayLabel" SelectionChanged="AccountPointComboBox_SelectionChanged" Margin="0,0,0,7" />
+                                <Border Background="#F7F8FB" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="8" Padding="8" Margin="0,0,0,7"><StackPanel><TextBlock Text="الرصيد المفتوح الحالي" FontSize="9.5" Foreground="{StaticResource MutedBrush}" /><TextBlock x:Name="SelectedBalanceTextBlock" Text="0 ريال" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,3,0,0" /><TextBlock x:Name="SelectedAccountDetailTextBlock" Text="اختر نقطة البيع من القائمة." FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0" TextWrapping="Wrap" /></StackPanel></Border>
+                                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="7" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="المبلغ المستلم (ريال)" Style="{StaticResource FieldLabel}" /><TextBox x:Name="SettlementAmountTextBox" Height="34" FlowDirection="LeftToRight" Text="0" Margin="0,0,0,7" /></StackPanel><StackPanel Grid.Column="2"><TextBlock Text="وسيلة التحصيل" Style="{StaticResource FieldLabel}" /><ComboBox x:Name="SettlementMethodComboBox" Height="34" SelectedIndex="0" SelectedValuePath="Tag" Margin="0,0,0,7"><ComboBoxItem Content="نقدي" Tag="نقدي" /><ComboBoxItem Content="تحويل بنكي" Tag="تحويل بنكي" /><ComboBoxItem Content="محفظة إلكترونية" Tag="محفظة إلكترونية" /></ComboBox></StackPanel></Grid>
+                                <TextBlock Text="رقم إيصال / مرجع (اختياري)" Style="{StaticResource FieldLabel}" /><TextBox x:Name="SettlementReferenceTextBox" Height="32" Margin="0,0,0,7" />
+                                <TextBlock Text="ملاحظات التسوية" Style="{StaticResource FieldLabel}" /><TextBox x:Name="SettlementNotesTextBox" Height="44" TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top" Padding="7" Margin="0,0,0,8" />
+                                <Button x:Name="SaveSettlementButton" Content="تأكيد التحصيل وتحديث الرصيد" Style="{StaticResource PrimaryButton}" Height="37" Click="SaveSettlementButton_Click" />
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <StackPanel Visibility="Collapsed"><TextBlock x:Name="CommissionTextBlock" /><TextBlock x:Name="SettledTextBlock" /></StackPanel>
+    </Grid>
+</UserControl>

@@ -37,23 +37,36 @@ public partial class GeneratedCardsView
         if (selected.Count == 0)
         {
             CardsScopeTextBlock.Text = "حدد كرتًا أو أكثر من القائمة أولًا.";
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا توجد كروت محددة", "حدد كرتًا أو أكثر قبل طلب المزامنة.", WorkflowFeedbackKind.Warning, null, new WorkflowFeedbackAction("close", "العودة للقائمة", true));
             return;
         }
         try
         {
             _workflowStore.RecordRouterUpload(selected);
             SetPreferredBatchesForSelection(selected);
-            CardsScopeTextBlock.Text = $"تم تسجيل طلب مزامنة لـ {selected.Count:N0} كرت.";
+            CardsScopeTextBlock.Text = $"تم تسجيل طلب مزامنة محلي لـ {selected.Count:N0} كرت؛ لم يتم الاتصال بالراوتر.";
             RefreshFilteredCards();
+            WorkflowFeedbackWindow.ShowNotice(
+                Window.GetWindow(this), "تم تسجيل طلب المزامنة محليًا",
+                "حُفظت حالة سير العمل في Nexora فقط. موصل RouterOS الموجود في المشروع للقراءة فقط، لذلك لم يتم إنشاء الحسابات على الراوتر ولم تتغير إعداداته.",
+                WorkflowFeedbackKind.Warning,
+                [new("عدد الكروت", selected.Count.ToString("N0")), new("النتيجة", "طلب محلي فقط — بانتظار موصل كتابة معتمد")],
+                new WorkflowFeedbackAction("close", "مفهوم", true));
         }
-        catch (Exception ex) { CardsScopeTextBlock.Text = "تعذر تسجيل الإجراء: " + ex.Message; }
+        catch (Exception ex)
+        {
+            CardsScopeTextBlock.Text = "تعذر تسجيل الإجراء: " + ex.Message;
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذر تسجيل طلب المزامنة", ex.Message, WorkflowFeedbackKind.Error, null, new WorkflowFeedbackAction("close", "إغلاق", true));
+        }
     }
+
     private void UploadSelectedAndPrintButton_Click(object sender, RoutedEventArgs e)
     {
         var selected = GetSelectedCards();
         if (selected.Count == 0)
         {
             CardsScopeTextBlock.Text = "حدد كرتًا أو أكثر قبل الرفع والطباعة.";
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا توجد كروت محددة", "حدد الكروت التي تريد تجهيزها للطباعة أولًا.", WorkflowFeedbackKind.Warning, null, new WorkflowFeedbackAction("close", "العودة للقائمة", true));
             return;
         }
         try
@@ -61,29 +74,54 @@ public partial class GeneratedCardsView
             _workflowStore.RecordRouterUpload(selected);
             _workflowStore.QueuePrintSelection(selected);
             SetPreferredBatchesForSelection(selected);
-            CardsScopeTextBlock.Text = $"تم تسجيل طلب مزامنة لـ {selected.Count:N0} كرت وإضافتها إلى قائمة الطباعة.";
+            CardsScopeTextBlock.Text = $"تم تسجيل طلب مزامنة محلي لـ {selected.Count:N0} كرت وتجهيزها في قائمة الطباعة؛ لم يتم الاتصال بالراوتر.";
             RefreshFilteredCards();
-            NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("printing", "قائمة الطباعة"));
+            var choice = WorkflowFeedbackWindow.ShowNotice(
+                Window.GetWindow(this), "تم تجهيز الكروت للطباعة",
+                "أُضيفت الكروت إلى قائمة الطباعة. طلب المزامنة المسجل محلي فقط ولم يرسل حسابات إلى الراوتر.",
+                WorkflowFeedbackKind.Success,
+                [new("عدد الكروت", selected.Count.ToString("N0")), new("الطباعة", "لم تُرسل للطابعة بعد")],
+                new WorkflowFeedbackAction("print", "فتح قائمة الطباعة", true),
+                new WorkflowFeedbackAction("close", "لاحقًا"));
+            if (choice == "print")
+                NavigationRequested?.Invoke(this, new FeatureNavigationRequestedEventArgs("printing", "قائمة الطباعة"));
         }
-        catch (Exception ex) { CardsScopeTextBlock.Text = "تعذر تجهيز مسار الطباعة: " + ex.Message; }
+        catch (Exception ex)
+        {
+            CardsScopeTextBlock.Text = "تعذر تجهيز مسار الطباعة: " + ex.Message;
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذر تجهيز مسار الطباعة", ex.Message, WorkflowFeedbackKind.Error, null, new WorkflowFeedbackAction("close", "إغلاق", true));
+        }
     }
+
     private void PrepareSelectedForOnlineSaleButton_Click(object sender, RoutedEventArgs e)
     {
         var selected = GetSelectedCards();
         if (selected.Count == 0)
         {
             CardsScopeTextBlock.Text = "حدد كرتًا أو أكثر قبل تجهيز البيع أونلاين.";
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "لا توجد كروت محددة", "حدد الكروت التي تريد تجهيزها للبيع الإلكتروني أولًا.", WorkflowFeedbackKind.Warning, null, new WorkflowFeedbackAction("close", "العودة للقائمة", true));
             return;
         }
         try
         {
             _workflowStore.RecordOnlineSalePreparation(selected);
             SetPreferredBatchesForSelection(selected);
-            CardsScopeTextBlock.Text = $"تم تسجيل تجهيز {selected.Count:N0} كرت للبيع الإلكتروني.";
+            CardsScopeTextBlock.Text = $"تم تجهيز {selected.Count:N0} كرت للبيع الإلكتروني محليًا؛ لم يتم نشرها على متجر خارجي.";
             RefreshFilteredCards();
+            WorkflowFeedbackWindow.ShowNotice(
+                Window.GetWindow(this), "تم تجهيز الكروت للبيع الإلكتروني محليًا",
+                "حُفظت علامة التجهيز في سجل Nexora. هذا الإجراء لا ينشر منتجات على متجر إلكتروني ولا ينفذ مزامنة مع الراوتر.",
+                WorkflowFeedbackKind.Info,
+                [new("عدد الكروت", selected.Count.ToString("N0")), new("الحالة", "جاهز ضمن سجل العمل المحلي")],
+                new WorkflowFeedbackAction("close", "حسنًا", true));
         }
-        catch (Exception ex) { CardsScopeTextBlock.Text = "تعذر تجهيز البيع الإلكتروني: " + ex.Message; }
+        catch (Exception ex)
+        {
+            CardsScopeTextBlock.Text = "تعذر تجهيز البيع الإلكتروني: " + ex.Message;
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذر تجهيز البيع الإلكتروني", ex.Message, WorkflowFeedbackKind.Error, null, new WorkflowFeedbackAction("close", "إغلاق", true));
+        }
     }
+
     private void SetPreferredBatchesForSelection(IEnumerable<GeneratedDemoCard> cards)
     {
         foreach (var group in cards.GroupBy(card => SystemKeyForCard(card)))
@@ -131,35 +169,63 @@ public partial class GeneratedCardsView
     }
     private void RowSyncIcon_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button button && button.DataContext is GeneratedDemoCard card)
+        if (sender is not Button button || button.DataContext is not GeneratedDemoCard card)
+            return;
+        try
         {
             _workflowStore.RecordRouterUpload(new[] { card });
             RefreshFilteredCards();
-            MessageBox.Show(Window.GetWindow(this),
-                $"⚡ تم تسجيل طلب المزامنة للكرت ({card.CardNumber}) بنجاح إلى الراوتر.",
-                "المزامنة الفورية", MessageBoxButton.OK, MessageBoxImage.Information);
+            WorkflowFeedbackWindow.ShowNotice(
+                Window.GetWindow(this), "تم تسجيل طلب المزامنة محليًا",
+                $"تم حفظ طلب مزامنة للكرت {card.CardNumber} داخل سجل Nexora فقط. لم يتم إرسال الحساب إلى الراوتر لأن موصل RouterOS المتاح للقراءة فقط.",
+                WorkflowFeedbackKind.Warning,
+                [new("الكرت", card.CardNumber), new("النتيجة", "لم تتم مزامنة فعلية")],
+                new WorkflowFeedbackAction("close", "إغلاق", true));
+        }
+        catch (Exception ex)
+        {
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذر تسجيل المزامنة", ex.Message, WorkflowFeedbackKind.Error, null, new WorkflowFeedbackAction("close", "إغلاق", true));
         }
     }
     private void RowPrintIcon_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button button && button.DataContext is GeneratedDemoCard card)
+        if (sender is not Button button || button.DataContext is not GeneratedDemoCard card)
+            return;
+        try
         {
             _workflowStore.QueuePrintSelection(new[] { card });
             RefreshFilteredCards();
-            MessageBox.Show(Window.GetWindow(this),
-                $"🖨️ تم تجهيز الكرت ({card.CardNumber}) وإضافته مباشرة إلى قائمة الطباعة.",
-                "تجهيز الطباعة", MessageBoxButton.OK, MessageBoxImage.Information);
+            WorkflowFeedbackWindow.ShowNotice(
+                Window.GetWindow(this), "أُضيف الكرت إلى قائمة الطباعة",
+                "تم تجهيز سجل الكرت للطباعة. لم يتم إرسال مستند إلى الطابعة بعد.",
+                WorkflowFeedbackKind.Success,
+                [new("الكرت", card.CardNumber), new("الخطوة التالية", "افتح قائمة الطباعة لمراجعة المعاينة ثم الإرسال")],
+                new WorkflowFeedbackAction("close", "حسنًا", true));
+        }
+        catch (Exception ex)
+        {
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذر تجهيز الطباعة", ex.Message, WorkflowFeedbackKind.Error, null, new WorkflowFeedbackAction("close", "إغلاق", true));
         }
     }
     private void RowSaleIcon_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button button && button.DataContext is GeneratedDemoCard card)
+        if (sender is not Button button || button.DataContext is not GeneratedDemoCard card)
+            return;
+        try
         {
             _workflowStore.RecordOnlineSalePreparation(new[] { card });
             RefreshFilteredCards();
-            MessageBox.Show(Window.GetWindow(this),
-                $"🛒 تم تسجيل الكرت ({card.CardNumber}) كمنتج جاهز للبيع الإلكتروني.",
-                "البيع الإلكتروني", MessageBoxButton.OK, MessageBoxImage.Information);
+            WorkflowFeedbackWindow.ShowNotice(
+                Window.GetWindow(this), "تم تجهيز الكرت للبيع الإلكتروني محليًا",
+                "تم تسجيل حالة التجهيز في Nexora فقط. لم يُنشر الكرت في متجر خارجي.",
+                WorkflowFeedbackKind.Info,
+                [new("الكرت", card.CardNumber), new("الحالة", "تجهيز محلي")],
+                new WorkflowFeedbackAction("close", "حسنًا", true));
+        }
+        catch (Exception ex)
+        {
+            WorkflowFeedbackWindow.ShowNotice(Window.GetWindow(this), "تعذر تجهيز البيع الإلكتروني", ex.Message, WorkflowFeedbackKind.Error, null, new WorkflowFeedbackAction("close", "إغلاق", true));
         }
     }
+
 }

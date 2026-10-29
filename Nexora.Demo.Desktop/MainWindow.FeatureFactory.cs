@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -46,9 +46,16 @@ public partial class MainWindow
             "cards" when tab == "المعلقات" => $"cards|{cardSystemKey}|pending",
             "cards" when tab == "استيراد الكروت" => $"cards|{cardSystemKey}|import",
             "packages" when tab == "كتالوج الباقات" => $"packages|{cardSystemKey}",
+            "sales" when tab == "لوحة المبيعات" => "sales|operations-dashboard",
+            "sales" when tab == "تسجيل البيع" => "sales|operation-entry",
+            "sales" when tab == "حركة الكروت" => "sales|card-movements",
+            "sales" when tab == "حسابات نقاط البيع" => "sales|accounts",
+            "sales" when tab == "سجل العمليات" => "sales|operations-ledger",
+            "sales" when tab == "تقارير المبيعات" => "sales|sales-report",
             "sales" when tab == "ملخص المبيعات" => "sales|summary",
             "sales" when tab == "معاملات البيع" => "sales|transactions",
-            "sales" when tab == "نقاط البيع" => "sales|points",
+            "sales" when tab == "نقاط البيع" => "sales|point-management",
+            "sales" when tab == "أداء نقاط البيع" => "sales|points",
             "printing" when tab == "تصميم القالب" => "printing|template-designer",
             "printing" => "printing|workspace",
             "networks" when tab == "مدير المستخدمين" => "networks|user-manager",
@@ -88,7 +95,7 @@ public partial class MainWindow
                 SectionPlaceholderCard.Visibility = Visibility.Visible;
                 SectionPlaceholderTextBlock.Text = "تعذر تحميل هذه الشاشة. بقي النظام مفتوحًا، وسُجلت تفاصيل المشكلة للتشخيص.";
                 MessageBox.Show(
-                    $"تعذر فتح شاشة «{tab}». لم يتم إغلاق النظام.\nتفاصيل الخطأ محفوظة في:\n{logPath}",
+                    $"تعذر فتح شاشة «{tab}». لم يتم إغلاق النظام.\nالسبب: {ex.GetBaseException().Message}\nالتفاصيل الكاملة محفوظة في:\n{logPath}",
                     "تاب كارد", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
@@ -199,15 +206,48 @@ public partial class MainWindow
             return new PackageManagementView(provider);
         }
 
+        if (section == "sales" && tab == "لوحة المبيعات")
+        {
+            var view = new SalesOperationsDashboardView(_salesOperationsService, _salesPointDirectoryService);
+            view.NavigationRequested += FeatureView_NavigationRequested;
+            return view;
+        }
+
+        if (section == "sales" && tab == "تسجيل البيع")
+        {
+            var view = new SalesOperationEntryView(_salesOperationsService, _salesPointDirectoryService, _demoCardIssuanceService);
+            view.NavigationRequested += FeatureView_NavigationRequested;
+            return view;
+        }
+
+        if (section == "sales" && tab == "حركة الكروت")
+            return new SalesCardMovementView(_demoCardIssuanceService, _salesPointDirectoryService, _salesOperationsService);
+
+        if (section == "sales" && tab == "حسابات نقاط البيع")
+            return new SalesAccountsView(_salesPointDirectoryService, _salesOperationsService);
+
+        if (section == "sales" && tab == "تقارير المبيعات")
+            return new SalesReportView(_demoSalesService);
+
+        // Keep legacy demo views available for the global demo dashboard's existing drill-down;
+        // they are intentionally no longer exposed as sales-section tabs.
         if (section == "sales" && tab == "ملخص المبيعات")
             return new SalesReportView(_demoSalesService);
 
         if (section == "sales" && tab == "معاملات البيع")
-        {
             return new SalesTransactionsView(_demoSalesService);
-        }
+
+        if (section == "sales" && tab == "سجل العمليات")
+            return new SalesOperationsLedgerView(_salesOperationsService);
 
         if (section == "sales" && tab == "نقاط البيع")
+        {
+            var view = new SalesPointManagementView(_salesPointDirectoryService, _demoSalesService, _salesOperationsService);
+            view.NavigationRequested += FeatureView_NavigationRequested;
+            return view;
+        }
+
+        if (section == "sales" && tab == "أداء نقاط البيع")
         {
             var view = new SalesPointsView(_demoSalesService);
             view.NavigationRequested += FeatureView_NavigationRequested;
@@ -329,6 +369,10 @@ public partial class MainWindow
         {
             pointTransactionsView.FocusPointOfSale(e.ContextValue ?? string.Empty);
         }
+        else if (e.ContextKind == "point" && SectionFeatureContentHost.Content is SalesOperationsLedgerView pointLedgerView)
+        {
+            pointLedgerView.FocusPointOfSale(e.ContextValue ?? string.Empty);
+        }
 
         if (!string.IsNullOrWhiteSpace(e.SystemKey) && SectionFeatureContentHost.Content is IssuanceWorkspaceView targetIssuance)
             targetIssuance.SelectTargetSystem(e.SystemKey);
@@ -345,7 +389,17 @@ public partial class MainWindow
         },
         "cards" => "إصدار الكروت ومتابعة الدفعات والمخزون في مساحة واحدة.",
         "packages" => "تعريف باقات الاتصال التجارية وربطها بإعدادات المصدر.",
-        "sales" => "معاملات البيع وتوزيع المبيعات وفق السجلات المتاحة.",
+        "sales" => tab switch
+        {
+            "لوحة المبيعات" => "لوحة تشغيلية لدفتر المبيعات المحلي: إجمالي البيع، ذمم البقالات، عمولات القنوات، التجميع الإلكتروني ومصاريف تجهيز الكروت.",
+            "تسجيل البيع" => "تسجيل بيع صاحب الشبكة أو قناة كروت الشبكات أو المحافظ الإلكترونية مع معاينة صافي المستحق والعمولة ومصاريف التجهيز.",
+            "حركة الكروت" => "مراجعة حركات إصدار الدفعات والتسليم والبيع من السجلات المتاحة، مع فتح نموذج التوريد الحالي عند الحاجة.",
+            "حسابات نقاط البيع" => "متابعة أرصدة البقالات والفواتير والتسويات الجزئية والكاملة ومنع تحصيل أكثر من الرصيد.",
+            "سجل العمليات" => "سجل تشغيل موحد لعمليات البيع والتوريد والتسويات والمصروفات مع البحث والتصفية والتصدير وتفاصيل السجل المحدد.",
+            "تقارير المبيعات" => "تحليل المبيعات المسجلة حسب الفترة والقناة ونقطة البيع والباقات، باستخدام بيانات التقرير الحالية.",
+            "نقاط البيع" => "إدارة دليل نقاط البيع والعمولات وسياسة الآجل وبيانات التواصل والحالة.",
+            _ => "إدارة المبيعات ونقاط البيع ضمن السجلات المحلية المتاحة."
+        },
         "printing" => tab == "تصميم القالب" ? "تصميم قوالب الكروت وإدارة ظهور الحقول وحفظ إعدادات القالب محليًا." : "إدارة قائمة الكروت ومراجعة المعاينة وإرسال مهمة الطباعة.",
         "networks" => "إعداد مصادر المصادقة وربط وظائفها بوحدات Nexora.",
         "reports" => "التقارير التجارية والإدارية والتشغيلية مجمّعة حسب مصدرها.",

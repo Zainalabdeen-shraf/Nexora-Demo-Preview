@@ -145,10 +145,24 @@ public partial class UserManagerCardsView
         group.SelectionChanged += (_, _) => _columnSettingsView.Refresh();
         applyWidth.Click += (_, _) =>
         {
-            if (list.SelectedItem is not ColumnSettingItem setting) { MessageBox.Show(dialog, "اختر عمودًا أولًا.", "عرض العمود", MessageBoxButton.OK, MessageBoxImage.Information); return; }
+            if (list.SelectedItem is not ColumnSettingItem setting)
+            {
+                WorkflowFeedbackWindow.ShowNotice(dialog, "لم يتم اختيار عمود", "اختر عمودًا من القائمة قبل تعديل عرضه.", WorkflowFeedbackKind.Warning, null,
+                    new WorkflowFeedbackAction("close", "متابعة", true));
+                return;
+            }
             if (!double.TryParse(widthBox.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out var width) && !double.TryParse(widthBox.Text, NumberStyles.Number, CultureInfo.InvariantCulture, out width))
-            { MessageBox.Show(dialog, "أدخل عرضًا رقميًا صالحًا.", "عرض العمود", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
-            if (width is < 60 or > 600) { MessageBox.Show(dialog, "يجب أن يكون العرض بين 60 و600 بكسل.", "عرض العمود", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+            {
+                WorkflowFeedbackWindow.ShowNotice(dialog, "قيمة العرض غير صالحة", "أدخل عرضًا رقميًا للعمود مثل 120.", WorkflowFeedbackKind.Warning, null,
+                    new WorkflowFeedbackAction("close", "تصحيح القيمة", true));
+                return;
+            }
+            if (width is < 60 or > 600)
+            {
+                WorkflowFeedbackWindow.ShowNotice(dialog, "العرض خارج النطاق", "يجب أن يكون عرض العمود بين 60 و600 بكسل.", WorkflowFeedbackKind.Warning,
+                    [new("القيمة المدخلة", width.ToString("0.##", CultureInfo.CurrentCulture))], new WorkflowFeedbackAction("close", "تصحيح القيمة", true));
+                return;
+            }
             setting.Width = width; BuildGridColumns();
         };
         reset.Click += (_, _) => ResetColumnSettings();

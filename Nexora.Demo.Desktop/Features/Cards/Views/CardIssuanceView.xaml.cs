@@ -54,6 +54,12 @@ public partial class CardIssuanceView : UserControl
     private GeneratedDemoCard? _previewCard;
 
     private bool _isSubscribed;
+
+    private bool _workflowRunning;
+    private Nexora.Demo.Desktop.Features.Printing.Views.TemplateDesignerView? _selectedTemplateRenderer;
+    private string? _selectedTemplateRendererPath;
+    private DateTime _selectedTemplateRendererLastWriteUtc = DateTime.MinValue;
+    private string? _activeTemplatePath;
     private bool _isApplyingPreviousBatch;
 
     private string _printPaperSize = "A4";
@@ -73,13 +79,11 @@ public partial class CardIssuanceView : UserControl
         _issuanceService = issuanceService;
 
         _targetSystem = targetSystem;
-        CardNumberPatternLabelTextBlock.Text = targetSystem == DemoAccountSystem.UserManager
-            ? "مستخدم اليوزر منجر"
-            : "مستخدم الهوتسبوت";
+        CardNumberPatternLabelTextBlock.Text = "طول التسلسل ونمط اسم المستخدم";
         PreviewSourceTypeTextBlock.Text = targetSystem == DemoAccountSystem.UserManager
             ? "مدير المستخدمين"
             : "نقطة الاتصال";
-        CardNumberLengthTextBox.ToolTip = "يحدد طول ونمط المعرّف؛ اسم المستخدم ورقم الكرت متطابقان.";
+        CardNumberLengthTextBox.ToolTip = "يحدد طول الرقم التسلسلي؛ يُنشأ اسم المستخدم منفصلًا وبشكل فريد.";
 
         _recentBatchesView = new ListCollectionView(_issuanceService.Batches) { Filter = MatchRecentBatch };
 

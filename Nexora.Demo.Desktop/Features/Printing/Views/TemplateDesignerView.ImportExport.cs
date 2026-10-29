@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Microsoft.Win32;
 using System.IO;
 using System.Text.Json;
@@ -72,6 +72,7 @@ public partial class TemplateDesignerView
         try
         {
             ApplyPropertiesButton_Click(this, new RoutedEventArgs());
+            EnsureRasterTemplateBase();
             var dialog = new SaveFileDialog
             {
                 Title = "تصدير قالب TabCard",
@@ -82,8 +83,12 @@ public partial class TemplateDesignerView
                 OverwritePrompt = true
             };
             if (dialog.ShowDialog(Window.GetWindow(this)) != true) return;
-            File.WriteAllText(dialog.FileName, JsonSerializer.Serialize(CaptureState(), JsonOptions));
-            SetStatus("تم تصدير القالب. ملف JSON يتضمن خصائص العناصر وصورة الخلفية المستوردة إن وجدت.", isSuccess: true);
+            var exportedState = CaptureState();
+            exportedState.IsRasterTemplateMode = true;
+            exportedState.RasterTemplateImagePath = _rasterTemplateImagePath;
+            exportedState.RasterTemplateImageBase64 = GetRasterTemplateImageBase64();
+            File.WriteAllText(dialog.FileName, JsonSerializer.Serialize(exportedState, JsonOptions));
+            SetStatus("تم تصدير القالب كملف قابل للاستيراد، مع تضمين صورة التصميم ومواضع حقول البيانات.", isSuccess: true);
         }
         catch (Exception ex) { SetStatus("تعذر تصدير القالب: " + ex.Message, isSuccess: false); }
     }
@@ -101,15 +106,25 @@ public partial class TemplateDesignerView
         var destination = System.IO.Path.Combine(assetsDirectory, "template-background-" + Guid.NewGuid().ToString("N") + extension);
         File.Copy(sourcePath, destination, overwrite: false);
         _importedTemplateImagePath = destination;
+        _rasterTemplateImagePath = null;
+        _isRasterTemplateMode = false;
         LoadBackgroundImageFromPath(destination);
-        _visibleElements["شعار الشبكة"] = false;
+        // Imported art is only the background. Keep the printable data as independent,
+        // editable overlays instead of hiding them or baking them into the image.
         _visibleElements["الشريط العلوي"] = false;
         _visibleElements["الفاصل"] = false;
+        _visibleElements["رمز الدخول"] = false;
+        _visibleElements["اسم المستخدم"] = true;
+        _visibleElements["كلمة المرور"] = true;
+        foreach (var key in new[] { "الصلاحية", "الوقت", "السعر", "التحميل", "الباقة", "أرقام التواصل", "شعار الشبكة" })
+            _visibleElements[key] = true;
+        foreach (var key in new[] { "الرقم التسلسلي", "تاريخ الطباعة", "رقم الدفعة", "نقطة البيع", "معلومات إضافية", "كود المكافأة", "رمز QR", "الباركود" })
+            _visibleElements[key] = false;
         SyncMainElementChecks();
         TemplateNameTextBox.Text = System.IO.Path.GetFileNameWithoutExtension(sourcePath);
         ApplyImportedBackgroundAppearance();
         UpdatePreview();
-        SetStatus("تم استيراد صورة القالب كخلفية. يمكن تحريك وتغيير حجم وتدوير كل عنصر بيانات فوقها.", isSuccess: true);
+        SetStatus("تم اختيار الصورة كخلفية فقط؛ حقول المستخدم وكلمة المرور والصلاحية والوقت والتحميل والتواصل بقيت مستقلة وقابلة للتحرير.", isSuccess: true);
     }
     private void LoadBackgroundImageFromPath(string path)
     {
@@ -125,7 +140,8 @@ public partial class TemplateDesignerView
     }
     private void ApplyImportedBackgroundAppearance()
     {
-        var hasImage = !string.IsNullOrWhiteSpace(_importedTemplateImagePath) && File.Exists(_importedTemplateImagePath);
+        var imagePath = _isRasterTemplateMode ? _rasterTemplateImagePath : _importedTemplateImagePath;
+        var hasImage = !string.IsNullOrWhiteSpace(imagePath) && File.Exists(imagePath);
         TemplateBackgroundImage.Visibility = hasImage ? Visibility.Visible : Visibility.Collapsed;
         if (!hasImage) TemplateBackgroundImage.Source = null;
     }
@@ -156,14 +172,268 @@ public partial class TemplateDesignerView
         try
         {
             ApplyPropertiesButton_Click(this, new RoutedEventArgs());
+            EnsureRasterTemplateBase();
             var state = CaptureState();
+            state.IsRasterTemplateMode = true;
+            state.RasterTemplateImagePath = _rasterTemplateImagePath;
+            state.RasterTemplateImageBase64 = GetRasterTemplateImageBase64();
+            state.Format = TemplateFormatId;
+            state.LayoutRevision = 5;
+
+            Directory.CreateDirectory(TemplateLibraryDirectory);
             Directory.CreateDirectory(System.IO.Path.GetDirectoryName(StoragePath)!);
+            var libraryJsonPath = System.IO.Path.Combine(TemplateLibraryDirectory, MakeSafeTemplateFileName(state.TemplateName) + ".json");
+            File.WriteAllText(libraryJsonPath, JsonSerializer.Serialize(state, JsonOptions));
             File.WriteAllText(StoragePath, JsonSerializer.Serialize(state, JsonOptions));
-            SetStatus($"تم حفظ القالب «{state.TemplateName}» محليًا.", isSuccess: true);
+            _isRasterTemplateMode = true;
+            ApplyRasterTemplateModeVisibility();
+            LoadTemplateLibrary(state.TemplateName);
+            UpdatePreview();
+            SetStatus($"تم حفظ «{state.TemplateName}» كقالب صورة مستقل مع حقول البيانات القابلة للتعبئة. يمكنك اختياره مجددًا من قوالبي المحفوظة.", isSuccess: true);
         }
         catch (Exception ex)
         {
             SetStatus("تعذر حفظ القالب: " + ex.Message, isSuccess: false);
+        }
+    }
+
+    
+    public string SaveTemplateToLibraryForIssuance()
+    {
+        ApplyPropertiesButton_Click(this, new RoutedEventArgs());
+        EnsureRasterTemplateBase();
+
+        var state = CaptureState();
+        state.IsRasterTemplateMode = true;
+        state.RasterTemplateImagePath = _rasterTemplateImagePath;
+        state.RasterTemplateImageBase64 = GetRasterTemplateImageBase64();
+        state.Format = TemplateFormatId;
+        state.LayoutRevision = 5;
+
+        Directory.CreateDirectory(TemplateLibraryDirectory);
+        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(StoragePath)!);
+
+        var libraryPath = System.IO.Path.Combine(
+            TemplateLibraryDirectory,
+            MakeSafeTemplateFileName(state.TemplateName) + ".json");
+
+        var json = JsonSerializer.Serialize(state, JsonOptions);
+        File.WriteAllText(libraryPath, json);
+        File.WriteAllText(StoragePath, json);
+
+        _isRasterTemplateMode = true;
+        ApplyRasterTemplateModeVisibility();
+        LoadTemplateLibrary(state.TemplateName);
+        UpdatePreview();
+
+        SelectedTemplatePath = libraryPath;
+        SetStatus($"تم حفظ القالب «{state.TemplateName}» وتجهيزه لإصدار الكروت.", isSuccess: true);
+
+        return libraryPath;
+    }
+
+    public bool LoadTemplateFile(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            return false;
+
+        try
+        {
+            var state = JsonSerializer.Deserialize<TemplateDesignState>(
+                File.ReadAllText(path), JsonOptions);
+
+            if (state is null)
+                return false;
+
+            ApplyTemplateState(state);
+            SelectedTemplatePath = System.IO.Path.GetFullPath(path);
+
+            SetStatus($"تم تحميل القالب «{state.TemplateName}».", isSuccess: true);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            SetStatus("تعذر تحميل القالب: " + ex.Message, isSuccess: false);
+            return false;
+        }
+    }
+
+
+    private void EnsureRasterTemplateBase()
+    {
+        if (_isRasterTemplateMode && !string.IsNullOrWhiteSpace(_rasterTemplateImagePath) && File.Exists(_rasterTemplateImagePath))
+        {
+            ApplyRasterTemplateModeVisibility();
+            return;
+        }
+
+        var bytes = RenderTemplateBasePng();
+        Directory.CreateDirectory(TemplateAssetsDirectory);
+        var safeName = MakeSafeTemplateFileName(TemplateNameTextBox.Text);
+        var imagePath = System.IO.Path.Combine(TemplateAssetsDirectory, safeName + "-base.png");
+        File.WriteAllBytes(imagePath, bytes);
+        _rasterTemplateImagePath = imagePath;
+        _importedTemplateImagePath = null;
+        _isRasterTemplateMode = true;
+        LoadBackgroundImageFromPath(imagePath);
+        ApplyRasterTemplateModeVisibility();
+    }
+
+    private byte[] RenderTemplateBasePng()
+    {
+        var visibility = new Dictionary<FrameworkElement, Visibility>();
+        foreach (var tag in GetAllEditableElementTags())
+        {
+            if (GetElementByTag(tag) is FrameworkElement element)
+            {
+                visibility[element] = element.Visibility;
+                element.Visibility = Visibility.Collapsed;
+            }
+        }
+        if (PreviewUsernameCaptionTextBlock is not null)
+        {
+            visibility[PreviewUsernameCaptionTextBlock] = PreviewUsernameCaptionTextBlock.Visibility;
+            PreviewUsernameCaptionTextBlock.Visibility = Visibility.Collapsed;
+        }
+        if (SelectionFrameBorder is not null)
+        {
+            visibility[SelectionFrameBorder] = SelectionFrameBorder.Visibility;
+            SelectionFrameBorder.Visibility = Visibility.Collapsed;
+        }
+
+        RemoveResizeHandles();
+        var oldTransform = CardDesignCanvas.RenderTransform;
+        var oldOrigin = CardDesignCanvas.RenderTransformOrigin;
+        try
+        {
+            CardDesignCanvas.RenderTransform = Transform.Identity;
+            CardDesignCanvas.RenderTransformOrigin = new Point(0, 0);
+            var width = Math.Max(1d, CardDesignCanvas.Width);
+            var height = Math.Max(1d, CardDesignCanvas.Height);
+            CardDesignCanvas.Measure(new Size(width, height));
+            CardDesignCanvas.Arrange(new Rect(0, 0, width, height));
+            CardDesignCanvas.UpdateLayout();
+            const double renderScale = 4d;
+            var bitmap = new RenderTargetBitmap(
+                Math.Max(1, (int)Math.Ceiling(width * renderScale)),
+                Math.Max(1, (int)Math.Ceiling(height * renderScale)),
+                96d * renderScale, 96d * renderScale, PixelFormats.Pbgra32);
+            bitmap.Render(CardDesignCanvas);
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(bitmap));
+            using var stream = new MemoryStream();
+            encoder.Save(stream);
+            return stream.ToArray();
+        }
+        finally
+        {
+            CardDesignCanvas.RenderTransform = oldTransform;
+            CardDesignCanvas.RenderTransformOrigin = oldOrigin;
+            foreach (var pair in visibility) pair.Key.Visibility = pair.Value;
+            UpdateSelectionFrame();
+        }
+    }
+
+    private string? GetRasterTemplateImageBase64()
+    {
+        if (string.IsNullOrWhiteSpace(_rasterTemplateImagePath) || !File.Exists(_rasterTemplateImagePath)) return null;
+        var info = new FileInfo(_rasterTemplateImagePath);
+        return info.Length <= MaxImportedImageBytes * 2 ? Convert.ToBase64String(File.ReadAllBytes(_rasterTemplateImagePath)) : null;
+    }
+
+    private string? RestoreRasterTemplateFromState(TemplateDesignState state)
+    {
+        if (!string.IsNullOrWhiteSpace(state.RasterTemplateImagePath) && File.Exists(state.RasterTemplateImagePath))
+            return state.RasterTemplateImagePath;
+        if (string.IsNullOrWhiteSpace(state.RasterTemplateImageBase64)) return null;
+        var bytes = Convert.FromBase64String(state.RasterTemplateImageBase64);
+        if (bytes.LongLength > MaxImportedImageBytes * 2) throw new InvalidDataException("صورة القالب المحفوظ أكبر من الحد المسموح.");
+        Directory.CreateDirectory(TemplateAssetsDirectory);
+        var path = System.IO.Path.Combine(TemplateAssetsDirectory, "template-base-" + Guid.NewGuid().ToString("N") + ".png");
+        File.WriteAllBytes(path, bytes);
+        return path;
+    }
+
+    private void ApplyRasterTemplateModeVisibility()
+    {
+        if (!_isRasterTemplateMode) return;
+        TemplateBackgroundImage.Visibility = Visibility.Visible;
+        foreach (var tag in GetAllEditableElementTags())
+        {
+            if (IsDynamicElementTag(tag)) continue;
+            var element = GetElementByTag(tag);
+            if (element is not null) element.Visibility = Visibility.Collapsed;
+        }
+        // The background art is flattened; only these independent data fields stay editable.
+        PreviewLoginCodeTextBlock.Visibility = Visibility.Collapsed;
+        PreviewUsernameTextBlock.Visibility = IsTemplateElementVisible("اسم المستخدم") ? Visibility.Visible : Visibility.Collapsed;
+        PreviewUsernameCaptionTextBlock.Visibility = PreviewUsernameTextBlock.Visibility;
+        PreviewPasswordTextBlock.Visibility = IsTemplateElementVisible("كلمة المرور") ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private static string MakeSafeTemplateFileName(string? name)
+    {
+        var value = string.IsNullOrWhiteSpace(name) ? DefaultTemplateName : name.Trim();
+        var invalid = System.IO.Path.GetInvalidFileNameChars();
+        var safe = new string(value.Select(ch => invalid.Contains(ch) || char.IsControl(ch) ? '_' : ch).ToArray()).Trim().Trim('.');
+        if (string.IsNullOrWhiteSpace(safe)) safe = DefaultTemplateName;
+        return safe.Length > 70 ? safe[..70] : safe;
+    }
+
+    private void LoadTemplateLibrary(string? selectName = null)
+    {
+        if (SavedTemplateComboBox is null) return;
+        _isLoadingTemplateLibrary = true;
+        try
+        {
+            var entries = new List<SavedTemplateEntry>();
+            if (Directory.Exists(TemplateLibraryDirectory))
+            {
+                foreach (var path in Directory.GetFiles(TemplateLibraryDirectory, "*.json").OrderBy(path => path, StringComparer.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        var state = JsonSerializer.Deserialize<TemplateDesignState>(File.ReadAllText(path));
+                        if (state is null || string.IsNullOrWhiteSpace(state.TemplateName)) continue;
+                        entries.Add(new SavedTemplateEntry { Name = state.TemplateName, Path = path });
+                    }
+                    catch { /* Ignore one damaged library entry while keeping the rest available. */ }
+                }
+            }
+            if (File.Exists(StoragePath))
+            {
+                try
+                {
+                    var state = JsonSerializer.Deserialize<TemplateDesignState>(File.ReadAllText(StoragePath));
+                    if (state is not null && !string.IsNullOrWhiteSpace(state.TemplateName) &&
+                        !entries.Any(item => string.Equals(item.Name, state.TemplateName, StringComparison.OrdinalIgnoreCase)))
+                        entries.Add(new SavedTemplateEntry { Name = state.TemplateName + " (الحالي)", Path = StoragePath });
+                }
+                catch { }
+            }
+            SavedTemplateComboBox.ItemsSource = entries.OrderBy(item => item.Name, StringComparer.CurrentCulture).ToList();
+            var selected = entries.FirstOrDefault(item => string.Equals(item.Name, selectName, StringComparison.OrdinalIgnoreCase))
+                ?? entries.FirstOrDefault(item => string.Equals(item.Name.Replace(" (الحالي)", string.Empty, StringComparison.OrdinalIgnoreCase), TemplateNameTextBox.Text, StringComparison.OrdinalIgnoreCase));
+            SavedTemplateComboBox.SelectedItem = selected;
+        }
+        finally { _isLoadingTemplateLibrary = false; }
+    }
+
+    private void SavedTemplateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_isReady || _isLoadingTemplateLibrary || SavedTemplateComboBox.SelectedItem is not SavedTemplateEntry entry) return;
+        try
+        {
+            var state = JsonSerializer.Deserialize<TemplateDesignState>(File.ReadAllText(entry.Path));
+            if (state is null) throw new InvalidDataException("ملف القالب فارغ أو غير صالح.");
+            ApplyTemplateState(state);
+            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(StoragePath)!);
+            File.WriteAllText(StoragePath, JsonSerializer.Serialize(CaptureState(), JsonOptions));
+            SetStatus($"تم تحميل القالب «{state.TemplateName}» وربطه بإعداداته المحفوظة.", isSuccess: true);
+        }
+        catch (Exception ex)
+        {
+            SetStatus("تعذر تحميل القالب: " + ex.Message, isSuccess: false);
         }
     }
     private void NewTemplateButton_Click(object sender, RoutedEventArgs e)
@@ -182,9 +452,22 @@ public partial class TemplateDesignerView
 
         try
         {
-            if (File.Exists(StoragePath)) File.Delete(StoragePath);
+            var selectedEntry = SavedTemplateComboBox.SelectedItem as SavedTemplateEntry;
+            var selectedPath = selectedEntry?.Path;
+            var currentName = TemplateNameTextBox.Text?.Trim();
+            if (!string.IsNullOrWhiteSpace(selectedPath) &&
+                System.IO.Path.GetFullPath(selectedPath).StartsWith(
+                    System.IO.Path.GetFullPath(TemplateLibraryDirectory).TrimEnd('\\', '/') + System.IO.Path.DirectorySeparatorChar,
+                    StringComparison.OrdinalIgnoreCase) && File.Exists(selectedPath))
+                File.Delete(selectedPath);
+
+            if (File.Exists(StoragePath) &&
+                (selectedEntry is null ||
+                 string.Equals(selectedEntry.Name, currentName, StringComparison.OrdinalIgnoreCase)))
+                File.Delete(StoragePath);
             ResetToDefaults();
-            SetStatus("تم حذف القالب المحفوظ وإعادة الإعدادات الافتراضية.", isSuccess: true);
+            LoadTemplateLibrary();
+            SetStatus("تم حذف القالب المحفوظ المحدد وإعادة الشاشة إلى التصميم الافتراضي.", isSuccess: true);
         }
         catch (Exception ex)
         {
@@ -196,15 +479,22 @@ public partial class TemplateDesignerView
         Format = TemplateFormatId,
         TemplateName = string.IsNullOrWhiteSpace(TemplateNameTextBox.Text) ? DefaultTemplateName : TemplateNameTextBox.Text.Trim(),
         TemplateStyle = GetSelectedTag(TemplateStyleComboBox) ?? "classic",
-        ColorTheme = GetSelectedTag(ColorThemeComboBox) ?? "red",
+        ColorTheme = GetSelectedTag(ColorThemeComboBox) ?? "blue",
         FontFamily = GetSelectedTag(FontFamilyComboBox) ?? "Segoe UI",
         FontSize = ParseDouble(ElementFontSizeTextBox.Text, 11, 8, 28),
-        CardWidthMm = ParseDouble(CardWidthTextBox.Text, 66, 10, 200),
-        CardHeightMm = ParseDouble(CardHeightTextBox.Text, 15.5, 10, 200),
+        CardWidthMm = ParseDouble(CardWidthTextBox.Text, 46, 10, 200),
+        CardHeightMm = ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200),
+        PrintColumns = ParseInt(PrintColumnsTextBox.Text, 3, 1, 8),
+        PrintRows = ParseInt(PrintRowsTextBox.Text, 17, 1, 100),
+        LayoutRevision = 5,
         CardRotationDegrees = ParseDouble(CardRotationTextBox.Text, 0, -180, 180),
-        ImportedBackgroundImagePath = _importedTemplateImagePath,
-        ImportedBackgroundImageBase64 = GetImportedImageBase64(),
+        ImportedBackgroundImagePath = _isRasterTemplateMode ? null : _importedTemplateImagePath,
+        ImportedBackgroundImageBase64 = _isRasterTemplateMode ? null : GetImportedImageBase64(),
         ImportedBackgroundImageExtension = string.IsNullOrWhiteSpace(_importedTemplateImagePath) ? ".png" : System.IO.Path.GetExtension(_importedTemplateImagePath),
+        IsRasterTemplateMode = _isRasterTemplateMode,
+        RasterTemplateImagePath = _rasterTemplateImagePath,
+        RasterTemplateImageBase64 = _isRasterTemplateMode ? GetRasterTemplateImageBase64() : null,
+        LinkedPackageKey = GetActivePackage()?.Key ?? string.Empty,
         HotspotPackageIndex = HotspotPackageComboBox.SelectedIndex,
         UserManagerPackageIndex = UserManagerPackageComboBox.SelectedIndex,
         HotspotPackageKey = (HotspotPackageComboBox.SelectedItem as DemoCardPackage)?.Key ?? string.Empty,
@@ -235,14 +525,13 @@ public partial class TemplateDesignerView
     }
     private void ApplyTemplateState(TemplateDesignState state)
     {
-        // Migrate only the old built-in 60x35 mm Default_Design to the new voucher geometry.
-        // Custom named templates keep their dimensions; the existing JSON is not rewritten
-        // until the user deliberately saves the updated default template.
-        var isOldBuiltInDefault = string.Equals(state.TemplateName, DefaultTemplateName, StringComparison.OrdinalIgnoreCase)
-            && Math.Abs(state.CardWidthMm - 60d) < 0.1d
-            && Math.Abs(state.CardHeightMm - 35d) < 0.1d;
+        // The built-in Default_Design intentionally receives the current studio layout once.
+        // Custom named templates keep their geometry. Existing JSON is not rewritten until
+        // the user chooses Save, so this migration does not silently overwrite the source file.
+        var isUnmigratedBuiltInDefault = string.Equals(state.TemplateName, DefaultTemplateName, StringComparison.OrdinalIgnoreCase)
+            && state.LayoutRevision < 4;
         var requiresDipCoordinateMigration = !string.Equals(state.Format, TemplateFormatId, StringComparison.Ordinal);
-        if (isOldBuiltInDefault)
+        if (isUnmigratedBuiltInDefault)
         {
             var newProperties = CreateDefaultElementProperties();
             if (state.ElementProperties is not null)
@@ -251,21 +540,31 @@ public partial class TemplateDesignerView
                 {
                     if (!state.ElementProperties.TryGetValue(pair.Key, out var oldProperty) || oldProperty is null)
                         continue;
-                    // Preserve user-authored text/font family/bold preference while replacing
-                    // the old card geometry and small legacy placements with the readable voucher layout.
-                    if (oldProperty.Text is not null) pair.Value.Text = oldProperty.Text;
+                    // Keep authored labels and preferred font families, but replace outdated
+                    // positions/sizes/font sizes with the clean studio layout.
+                    if (oldProperty.Text is not null && pair.Key != "username" && pair.Key != "login") pair.Value.Text = oldProperty.Text;
                     if (!string.IsNullOrWhiteSpace(oldProperty.FontFamily)) pair.Value.FontFamily = oldProperty.FontFamily;
                     if (pair.Key is "login" or "price" or "validity") pair.Value.IsBold = oldProperty.IsBold || pair.Value.IsBold;
                 }
             }
             state.ElementProperties = newProperties;
-            if (state.VisibleElements is not null)
-                state.VisibleElements["رمز QR"] = false;
-            state.CardWidthMm = 66d;
-            state.CardHeightMm = 15.5d;
-            state.SelectedElementX *= LegacyToDipScale;
-            state.SelectedElementY *= LegacyToDipScale;
+            state.CardWidthMm = 46d;
+            state.CardHeightMm = 15.8d;
+            state.ColorTheme = "blue";
+            state.TemplateStyle = "classic";
+            state.PrintColumns = 3;
+            state.PrintRows = 17;
+            // Migrate the built-in card to the independent-layer design. Do not turn
+            // the sample banner and fields into one baked image: clients can edit every field.
+            state.VisibleElements = CreateDefaultVisibility();
+            state.IsRasterTemplateMode = false;
+            state.RasterTemplateImagePath = null;
+            state.RasterTemplateImageBase64 = null;
+            state.ImportedBackgroundImagePath = File.Exists(DefaultStarterTemplateImagePath) ? DefaultStarterTemplateImagePath : null;
+            state.ImportedBackgroundImageBase64 = null;
+            state.ImportedBackgroundImageExtension = ".png";
             state.Format = TemplateFormatId;
+            state.LayoutRevision = 5;
         }
         else if (requiresDipCoordinateMigration)
         {
@@ -300,6 +599,9 @@ public partial class TemplateDesignerView
         CardWidthTextBox.Text = state.CardWidthMm.ToString("0.#", CultureInfo.InvariantCulture);
         CardHeightTextBox.Text = state.CardHeightMm.ToString("0.#", CultureInfo.InvariantCulture);
         CardRotationTextBox.Text = state.CardRotationDegrees.ToString("0.#", CultureInfo.InvariantCulture);
+        PrintColumnsTextBox.Text = ParseInt(state.PrintColumns.ToString(CultureInfo.InvariantCulture), 3, 1, 8).ToString(CultureInfo.InvariantCulture);
+        PrintRowsTextBox.Text = ParseInt(state.PrintRows.ToString(CultureInfo.InvariantCulture), 17, 1, 100).ToString(CultureInfo.InvariantCulture);
+        _studioPreviewPageNumber = 1;
         var savedHotSpotPackage = HotspotPackageComboBox.Items.OfType<DemoCardPackage>()
             .FirstOrDefault(item => string.Equals(item.Key, state.HotspotPackageKey, StringComparison.OrdinalIgnoreCase));
         if (savedHotSpotPackage is not null)
@@ -314,6 +616,27 @@ public partial class TemplateDesignerView
         else if (state.UserManagerPackageIndex >= 0 && state.UserManagerPackageIndex < UserManagerPackageComboBox.Items.Count)
             UserManagerPackageComboBox.SelectedIndex = state.UserManagerPackageIndex;
         _activePackageSource = state.ActivePackageSource == "user-manager" ? "user-manager" : "hotspot";
+        if (!string.IsNullOrWhiteSpace(state.LinkedPackageKey))
+        {
+            var linkedHotspot = HotspotPackageComboBox.Items.OfType<DemoCardPackage>()
+                .FirstOrDefault(item => string.Equals(item.Key, state.LinkedPackageKey, StringComparison.OrdinalIgnoreCase));
+            var linkedUserManager = UserManagerPackageComboBox.Items.OfType<DemoCardPackage>()
+                .FirstOrDefault(item => string.Equals(item.Key, state.LinkedPackageKey, StringComparison.OrdinalIgnoreCase));
+            if (_activePackageSource == "user-manager" && linkedUserManager is not null)
+                UserManagerPackageComboBox.SelectedItem = linkedUserManager;
+            else if (_activePackageSource != "user-manager" && linkedHotspot is not null)
+                HotspotPackageComboBox.SelectedItem = linkedHotspot;
+            else if (linkedHotspot is not null)
+            {
+                HotspotPackageComboBox.SelectedItem = linkedHotspot;
+                _activePackageSource = "hotspot";
+            }
+            else if (linkedUserManager is not null)
+            {
+                UserManagerPackageComboBox.SelectedItem = linkedUserManager;
+                _activePackageSource = "user-manager";
+            }
+        }
         _loginPageUrl = string.IsNullOrWhiteSpace(state.LoginPageUrl) ? DefaultLoginUrl : state.LoginPageUrl;
         _barcodeText = state.BarcodeText ?? "50723015";
 
@@ -329,16 +652,49 @@ public partial class TemplateDesignerView
             foreach (var item in CreateDefaultVisibility()) _visibleElements[item.Key] = item.Value;
         }
 
-        _importedTemplateImagePath = RestoreBackgroundFromState(state);
-        if (!string.IsNullOrWhiteSpace(_importedTemplateImagePath) && File.Exists(_importedTemplateImagePath))
-            LoadBackgroundImageFromPath(_importedTemplateImagePath);
+        // Product rule: username and card number are the same login identifier.
+        if (IsTemplateElementVisible("رمز الدخول")) _visibleElements["اسم المستخدم"] = true;
+        _visibleElements["رمز الدخول"] = false;
+        // Backward-compatible migration: login and username refer to the same account
+        // identifier in this system, so do not render two copies on the default template.
+        if (state.LayoutRevision < 5 && string.Equals(state.TemplateName, DefaultTemplateName, StringComparison.OrdinalIgnoreCase))
+        {
+            // Older saves baked a sample card into the image and exposed both login
+            // and username as duplicate fields. Upgrade only the built-in default:
+            // preserve user element positions but replace the baked image with the
+            // bundled artwork as a clean, reusable background.
+            _visibleElements["رمز الدخول"] = false;
+            _visibleElements["اسم المستخدم"] = true;
+            if (File.Exists(DefaultStarterTemplateImagePath))
+            {
+                state.IsRasterTemplateMode = false;
+                state.RasterTemplateImagePath = null;
+                state.RasterTemplateImageBase64 = null;
+                state.ImportedBackgroundImagePath = DefaultStarterTemplateImagePath;
+                state.ImportedBackgroundImageBase64 = null;
+                state.ImportedBackgroundImageExtension = ".png";
+            }
+            state.LayoutRevision = 5;
+        }
+
+        _isRasterTemplateMode = state.IsRasterTemplateMode;
+        _rasterTemplateImagePath = _isRasterTemplateMode ? RestoreRasterTemplateFromState(state) : null;
+        _importedTemplateImagePath = _isRasterTemplateMode ? null : RestoreBackgroundFromState(state);
+        var backgroundPath = _isRasterTemplateMode ? _rasterTemplateImagePath : _importedTemplateImagePath;
+        if (!string.IsNullOrWhiteSpace(backgroundPath) && File.Exists(backgroundPath))
+            LoadBackgroundImageFromPath(backgroundPath);
         else
             TemplateBackgroundImage.Source = null;
         ApplyImportedBackgroundAppearance();
 
+        RestoreCustomElements(state.ElementProperties);
         ApplyElementProperties(CreateDefaultElementProperties());
         if (state.ElementProperties is { Count: > 0 }) ApplyElementProperties(state.ElementProperties);
-        SelectComboTag(SelectedElementComboBox, state.SelectedElementTag ?? "login");
+        var restoredSelectedTag = string.IsNullOrWhiteSpace(state.SelectedElementTag) || string.Equals(state.SelectedElementTag, "login", StringComparison.Ordinal)
+            ? "username"
+            : state.SelectedElementTag;
+        SelectComboTag(SelectedElementComboBox, restoredSelectedTag);
+        _studioSelectedFieldTag = restoredSelectedTag;
         if (state.ElementProperties is not { Count: > 0 })
         {
             if (GetSelectedElement() is FrameworkElement selected)
@@ -351,8 +707,8 @@ public partial class TemplateDesignerView
         }
         UpdateSamplePackageFields();
         SyncMainElementChecks();
-        var targetCanvasWidth = DesignBaseWidth * ParseDouble(CardWidthTextBox.Text, 66, 10, 200) / BaseWidthMm;
-        var targetCanvasHeight = DesignBaseHeight * ParseDouble(CardHeightTextBox.Text, 15.5, 10, 200) / BaseHeightMm;
+        var targetCanvasWidth = DesignBaseWidth * ParseDouble(CardWidthTextBox.Text, 46, 10, 200) / BaseWidthMm;
+        var targetCanvasHeight = DesignBaseHeight * ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200) / BaseHeightMm;
         // V2 state stores coordinates in the actual canvas. Legacy V1 state stores base-canvas
         // coordinates, so let ApplyCardDimensionTransform map those positions once on migration.
         if (!isLegacyCoordinateState)
@@ -362,27 +718,39 @@ public partial class TemplateDesignerView
         }
         ApplyCardDimensionTransform();
         UpdatePreview();
+        SyncFieldToggleButtons();
         SyncSelectedElementEditor();
     }
     private void ResetToDefaults()
     {
+        RestoreCustomElements(null);
         _visibleElements.Clear();
         foreach (var pair in CreateDefaultVisibility()) _visibleElements[pair.Key] = pair.Value;
-        _importedTemplateImagePath = null;
+        _importedTemplateImagePath = File.Exists(DefaultStarterTemplateImagePath) ? DefaultStarterTemplateImagePath : null;
+        _rasterTemplateImagePath = null;
+        _isRasterTemplateMode = false;
         TemplateBackgroundImage.Source = null;
         TemplateBackgroundImage.Visibility = Visibility.Collapsed;
+        if (_importedTemplateImagePath is not null) LoadBackgroundImageFromPath(_importedTemplateImagePath);
         TemplateNameTextBox.Text = DefaultTemplateName;
         SelectComboTag(TemplateStyleComboBox, "classic");
-        SelectComboTag(ColorThemeComboBox, "red");
+        SelectComboTag(ColorThemeComboBox, "blue");
         SelectComboTag(FontFamilyComboBox, "Segoe UI");
         ElementFontSizeTextBox.Text = "11";
-        CardWidthTextBox.Text = "66";
-        CardHeightTextBox.Text = "15.5";
+        CardWidthTextBox.Text = "46";
+        CardHeightTextBox.Text = "15.8";
         CardRotationTextBox.Text = "0";
-        _lastCanvasWidth = DesignBaseWidth * 66d / BaseWidthMm;
-        _lastCanvasHeight = DesignBaseHeight * 15.5d / BaseHeightMm;
+        PrintColumnsTextBox.Text = "3";
+        PrintRowsTextBox.Text = "17";
+        PrintTotalCardsTextBox.Text = "153";
+        _studioPreviewPageNumber = 1;
+        // Begin from the 60 × 35 mm design coordinate system so the first transform
+        // applies the same proportional remap used when the customer changes card size.
+        _lastCanvasWidth = DesignBaseWidth;
+        _lastCanvasHeight = DesignBaseHeight;
         ApplyElementProperties(CreateDefaultElementProperties());
         ApplyCardDimensionTransform();
+        ApplyDefaultStarterLayout();
         _zoom = 1d;
         ZoomSlider.Value = 1d;
         HotspotPackageComboBox.SelectedIndex = 0;
@@ -390,13 +758,50 @@ public partial class TemplateDesignerView
         _activePackageSource = "hotspot";
         _loginPageUrl = DefaultLoginUrl;
         _barcodeText = "50723015";
-        ApplyElementProperties(CreateDefaultElementProperties());
-        SelectComboTag(SelectedElementComboBox, "login");
+        SelectComboTag(SelectedElementComboBox, "username");
+        _studioSelectedFieldTag = "username";
         UpdateSamplePackageFields();
         SyncSelectedElementEditor();
         SyncMainElementChecks();
         ApplyImportedBackgroundAppearance();
         ApplyCardDimensionTransform();
         UpdatePreview();
+        SyncFieldToggleButtons();
+        SyncSelectedElementEditor();
     }
+
+    private void ApplyDefaultStarterLayout()
+    {
+        // Arrange the default fields in the open area of the blue-wave background.
+        void Place(string tag, double x, double y, double width, double height, double fontSize, string? text = null)
+        {
+            if (GetElementByTag(tag) is not FrameworkElement element) return;
+            Canvas.SetLeft(element, x);
+            Canvas.SetTop(element, y);
+            element.Width = width;
+            element.Height = height;
+            if (element is TextBlock tb)
+            {
+                tb.FontSize = fontSize;
+                if (text is not null) tb.Text = text;
+            }
+        }
+        Place("username", 56, 12, 87, 12, 8.5, "50723015");
+        Place("password", 56, 24, 87, 9, 7.0, "كلمة المرور: 1432");
+        Place("validity", 56, 34, 41, 7, 5.9, "الصلاحية: 7 أيام");
+        Place("time", 98, 34, 43, 7, 5.9, "الوقت: 1 ساعة");
+        Place("download", 56, 42, 43, 7, 5.4, "التحميل: —");
+        Place("package", 100, 42, 41, 7, 5.4, "الباقة: —");
+        Place("contact", 56, 50, 43, 7, 5.0, "777 777 777");
+        Place("price", 100, 50, 41, 7, 5.0, "السعر: —");
+        // Keep the brand inside the dark-blue left ribbon of the bundled artwork.
+        // The username and package facts occupy the bright, printable center/right area.
+        Place("logoBadge", 8, 6, 18, 18, 6, null);
+        Place("logoMark", 10, 10, 14, 10, 7, "TC");
+        Place("brand", 2, 28, 40, 8, 5.7, "TAB CARD");
+        Place("networkName", 3, 36, 39, 13, 5.2, "اسم الشبكة");
+        KeepUsernameCaptionAligned();
+        UpdatePreview();
+    }
+
 }

@@ -53,10 +53,10 @@ public partial class MainWindow
         else
             return;
 
-        NavigateTo("sales");
-        ActivateSectionTab("ملخص المبيعات");
-        if (SectionFeatureContentHost.Content is SalesReportView report)
-            report.ShowDay(day);
+        NavigateTo("reports");
+        ActivateSectionTab("مركز التقارير");
+        if (SectionFeatureContentHost.Content is ReportsCenterView reportsView)
+            reportsView.FocusSalesDay(day);
     }
     private void DashboardRefreshButton_Click(object sender, RoutedEventArgs e) =>
         UpdateDashboardMetrics();
