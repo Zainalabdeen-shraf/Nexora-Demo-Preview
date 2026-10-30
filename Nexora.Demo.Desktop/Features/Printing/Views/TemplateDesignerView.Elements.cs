@@ -221,7 +221,7 @@ public partial class TemplateDesignerView
         }
         if (SelectedFieldNameTextBlock is not null)
         {
-            SelectedFieldNameTextBlock.Text = GetFieldDisplayName(_studioSelectedFieldTag ?? GetSelectedTag(SelectedElementComboBox));
+            SelectedFieldNameTextBlock.Text = GetFieldDisplayName(_studioSelectedFieldTag ?? (SelectedElementComboBox is { } selectedCombo ? GetSelectedTag(selectedCombo) : null));
             SelectedFieldNameTextBlock.Visibility = Visibility.Visible;
         }
 
