@@ -214,7 +214,13 @@ public partial class TemplateDesignerView
     private void BuildStudioPrintSheet(StudioPrintLayout layout)
     {
         PrintSheetPreviewHost.Children.Clear();
+        PrintSheetPreviewHost.Children.Add(BuildStudioPrintSheetPage(layout));
+    }
 
+    // Build a self-contained A4 visual so PDF rendering does not depend on the
+    // legacy off-screen preview host, which is intentionally collapsed in XAML.
+    private Viewbox BuildStudioPrintSheetPage(StudioPrintLayout layout)
+    {
         var pageCanvas = new Canvas
         {
             Width = StudioPageWidthMm,
@@ -234,8 +240,12 @@ public partial class TemplateDesignerView
             Child = pageCanvas,
             Effect = new DropShadowEffect { BlurRadius = 8, ShadowDepth = 1, Opacity = 0.10 }
         };
-        var hostWidth = PrintSheetPreviewHost.ActualWidth > 50 ? PrintSheetPreviewHost.ActualWidth - 12 : StudioPageWidthMm;
-        var hostHeight = PrintSheetPreviewHost.ActualHeight > 50 ? PrintSheetPreviewHost.ActualHeight - 12 : StudioPageHeightMm;
+        var hostWidth = PrintSheetPreviewHost.ActualWidth > 50
+            ? PrintSheetPreviewHost.ActualWidth - 12
+            : StudioPageWidthMm;
+        var hostHeight = PrintSheetPreviewHost.ActualHeight > 50
+            ? PrintSheetPreviewHost.ActualHeight - 12
+            : StudioPageHeightMm;
         var pageViewbox = new Viewbox
         {
             Width = Math.Max(1, hostWidth),
@@ -246,10 +256,12 @@ public partial class TemplateDesignerView
             VerticalAlignment = VerticalAlignment.Center,
             Child = pageSurface
         };
-        PrintSheetPreviewHost.Children.Add(pageViewbox);
 
-        var totalGridWidth = layout.Columns * layout.CardWidthMm + Math.Max(0, layout.Columns - 1) * StudioCardGapMm;
-        var horizontalStart = Math.Max(StudioPageMarginMm, (StudioPageWidthMm - totalGridWidth) / 2d);
+        var totalGridWidth = layout.Columns * layout.CardWidthMm +
+            Math.Max(0, layout.Columns - 1) * StudioCardGapMm;
+        var horizontalStart = Math.Max(
+            StudioPageMarginMm,
+            (StudioPageWidthMm - totalGridWidth) / 2d);
         var package = GetActivePackage();
         var hours = package?.TimeLimit ?? "—";
         var validity = package?.Validity ?? "—";
@@ -283,12 +295,17 @@ public partial class TemplateDesignerView
             };
             var row = i / layout.Columns;
             var columnFromRight = i % layout.Columns;
-            var x = horizontalStart + (layout.Columns - 1 - columnFromRight) * (layout.CardWidthMm + StudioCardGapMm);
-            var y = StudioPageMarginMm + row * (layout.CardHeightMm + StudioCardGapMm);
+            var x = horizontalStart +
+                (layout.Columns - 1 - columnFromRight) *
+                (layout.CardWidthMm + StudioCardGapMm);
+            var y = StudioPageMarginMm +
+                row * (layout.CardHeightMm + StudioCardGapMm);
             Canvas.SetLeft(cardViewbox, x);
             Canvas.SetTop(cardViewbox, y);
             pageCanvas.Children.Add(cardViewbox);
         }
+
+        return pageViewbox;
     }
 
     private void BuildStudioSingleCardPreview(StudioPrintLayout layout)
