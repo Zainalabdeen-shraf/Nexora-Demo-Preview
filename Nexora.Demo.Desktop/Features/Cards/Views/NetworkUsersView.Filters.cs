@@ -113,27 +113,8 @@ public partial class NetworkUsersView
 
         var selectedCardNumber = (GeneratedCardsGrid.SelectedItem as NetworkUserDisplayRow)?.CardNumber;
         _rows.Clear();
-
-        // The current demo model has no persisted SerialNumber field. Derive the displayed
-        // sequence from creation order within each batch; production should persist this value
-        // at issuance time when the batch model is upgraded.
-        var serialNumbers = new Dictionary<(string BatchId, string CardNumber), int>();
-        foreach (var batchCards in _issuanceService.Cards.GroupBy(card => card.BatchId, StringComparer.OrdinalIgnoreCase))
-        {
-            var orderedCards = batchCards
-                .OrderBy(card => card.CreatedAt)
-                .ThenBy(card => card.CardNumber, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-            for (var index = 0; index < orderedCards.Count; index++)
-                serialNumbers[(orderedCards[index].BatchId, orderedCards[index].CardNumber)] = index + 1;
-        }
-
         foreach (var card in _issuanceService.Cards)
-        {
-            if (!serialNumbers.TryGetValue((card.BatchId, card.CardNumber), out var serialNumber))
-                serialNumber = 1;
-            _rows.Add(CreateDisplayRow(card, serialNumber));
-        }
+            _rows.Add(CreateDisplayRow(card, string.IsNullOrWhiteSpace(card.SerialNumber) ? "—" : card.SerialNumber));
 
         _rowsView.Refresh();
         UpdateEmptyState();
@@ -174,71 +155,40 @@ public partial class NetworkUsersView
         }
         UpdateSelectedDetails();
     }
-    private NetworkUserDisplayRow CreateDisplayRow(GeneratedDemoCard card, int serialNumber)
+    private NetworkUserDisplayRow CreateDisplayRow(GeneratedDemoCard card, string serialNumber)
     {
-        DemoSessions.TryGetValue(card.CardNumber, out var sample);
-        var state = GetDemoState(card);
-        var accountStatus = state.AccountStatus ?? sample?.AccountStatus ?? (card.DemoStatus switch
-        {
-            "قيد الاستخدام" => "مفعل",
-            "متاحة" => "غير متصل",
-            "موقوفة" => "موقوف",
-            "منتهية" => "منتهي",
-            _ => card.DemoStatus
-        });
-
-        sample ??= new DemoSessionData(
-            accountStatus,
-            accountStatus == "مفعل" ? "بيانات غير متاحة" : "غير متصل",
-            "—", "غير متاح", "غير متاح", "غير متاحة", "—", "—", "—", "—", "غير متاح", "غير متاح", 0, 0);
-
-        var displayCard = state.PackageName is not null || state.UnitPrice.HasValue
-            ? card with
-            {
-                PackageName = state.PackageName ?? card.PackageName,
-                UnitPrice = state.UnitPrice ?? card.UnitPrice
-            }
-            : card;
-        var connectionStatus = state.ConnectionStatus ?? sample.ConnectionStatus;
-
+        // The current RouterOS connector is read-only. Never present sample IP/MAC/session
+        // values or infer an online state from a locally generated card record.
+        var localStatus = string.IsNullOrWhiteSpace(card.LocalStatus)
+            ? "محفوظ محليًا"
+            : $"محفوظ محليًا — {card.LocalStatus}";
+        const string unavailable = "غير متاح — يتطلب قراءة فعلية من الراوتر";
         return new NetworkUserDisplayRow(
-            displayCard,
+            card,
             serialNumber,
-            accountStatus,
-            connectionStatus,
-            state.IpAddress ?? sample.IpAddress,
-            state.LastSeen ?? sample.LastSeen,
-            state.MacAddress ?? sample.MacAddress,
-            state.SessionDuration ?? sample.SessionDuration,
-            state.Download ?? sample.Download,
-            state.Upload ?? sample.Upload,
-            state.TotalDownload ?? sample.TotalDownload,
-            state.TotalUpload ?? sample.TotalUpload,
+            localStatus,
+            unavailable,
+            "—",
+            "غير متاح",
+            "غير متاح",
+            "غير متاح",
+            "—",
+            "—",
+            "—",
+            "—",
             NormalizeDateLabel(card.CreatedAtLabel),
-            state.EndDate ?? sample.EndDate,
-            state.RemainingTime ?? sample.RemainingTime,
-            state.PackageProgress ?? sample.PackageProgress,
-            state.UsageProgress ?? sample.UsageProgress,
-            state.ConnectionStatus is not null || !string.Equals(connectionStatus, "غير متاح", StringComparison.Ordinal),
-            state.DemoPassword ?? card.Password,
-            state.PackageStartDate ?? NormalizeDateLabel(card.CreatedAtLabel),
-            state.AddedDataGb);
-    }
-    private DemoCardState GetDemoState(GeneratedDemoCard card)
-    {
-        var key = $"{card.BatchId}\u001F{card.CardNumber}";
-        if (!_demoStates.TryGetValue(key, out var state))
-        {
-            state = new DemoCardState();
-            _demoStates[key] = state;
-        }
-        return state;
+            "غير متاح",
+            "غير متاح",
+            0,
+            0,
+            false,
+            card.Password,
+            NormalizeDateLabel(card.CreatedAtLabel),
+            0m);
     }
     private bool MatchesRow(object item)
     {
         if (item is not NetworkUserDisplayRow row)
-            return false;
-        if (GetDemoState(row.Card).IsDeleted)
             return false;
 
         var systemKey = GetCurrentSystemKey();
@@ -265,7 +215,7 @@ public partial class NetworkUsersView
         if (string.IsNullOrWhiteSpace(query))
             return true;
 
-        return Contains(row.BatchId, query) || Contains(row.SerialNumber.ToString(CultureInfo.InvariantCulture), query) ||
+        return Contains(row.BatchId, query) || Contains(row.SerialNumber, query) ||
                Contains(row.CardNumber, query) || Contains(row.Username, query) ||
                Contains(row.PackageName, query) || Contains(row.Card.RouterProfile, query) ||
                Contains(row.Card.PointOfSale, query) || Contains(row.IpAddress, query) || Contains(row.AccountStatus, query);

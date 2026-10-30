@@ -13,8 +13,8 @@ using Nexora.Demo.Desktop.Features.Cards.Services;
 namespace Nexora.Demo.Desktop.Features.Cards.Views;
 
 /// <summary>
-/// Dedicated network-user screen. It reuses the existing issuance model for local demo records;
-/// session values listed in DemoSessions are clearly demo presentation data, not RouterOS telemetry.
+/// Dedicated network-user screen. It projects persisted local card records without inventing router telemetry;
+/// RouterOS session fields remain unavailable until a live read provider supplies them.
 /// </summary>
 public partial class NetworkUsersView : UserControl
 {
@@ -181,7 +181,7 @@ public sealed class NetworkUserDisplayRow
     public GeneratedDemoCard Card { get; }
     public string BatchId { get; }
     public string CardNumber { get; }
-    public int SerialNumber { get; }
+    public string SerialNumber { get; }
     public string BatchMarkerToolTip => $"فتح كروت الدفعة: {BatchId}";
     public string Username { get; }
     public string PasswordValue { get; }
@@ -210,7 +210,7 @@ public sealed class NetworkUserDisplayRow
 
     public NetworkUserDisplayRow(
         GeneratedDemoCard card,
-        int serialNumber,
+        string serialNumber,
         string accountStatus,
         string connectionStatus,
         string ipAddress,
@@ -236,7 +236,7 @@ public sealed class NetworkUserDisplayRow
         CardNumber = card.CardNumber;
         SerialNumber = serialNumber;
         // In this product's network-card workflow, the RouterOS username is the card number.
-        Username = CardNumber;
+        Username = card.Username;
         PasswordValue = passwordValue ?? string.Empty;
         PackageName = card.PackageName;
         CreatedAtLabel = createdAtLabel;

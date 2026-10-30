@@ -88,7 +88,7 @@ public partial class SalesOperationEntryView : UserControl
                 batch.BatchId,
                 batch.Quantity,
                 batch.TargetSystem,
-                _operationsService.GetAvailableBatchQuantity(batch.BatchId, batch.Quantity)))
+                _operationsService.GetAvailableBatchQuantity(batch.BatchId, batch.Quantity, batch.TargetSystem)))
             .Where(item => item.AvailableQuantity > 0 || _cartLines.Any(line => string.Equals(line.BatchId, item.BatchId, StringComparison.OrdinalIgnoreCase)))
             .OrderBy(item => item.Name, StringComparer.CurrentCultureIgnoreCase)
             .ThenByDescending(item => item.BatchId, StringComparer.OrdinalIgnoreCase)
@@ -355,7 +355,7 @@ public partial class SalesOperationEntryView : UserControl
             return;
         }
 
-        var available = _operationsService.GetAvailableBatchQuantity(package.BatchId, package.BatchQuantity);
+        var available = _operationsService.GetAvailableBatchQuantity(package.BatchId, package.BatchQuantity, package.TargetSystem);
         var alreadyQueued = _cartLines.Where(line => string.Equals(line.BatchId, package.BatchId, StringComparison.OrdinalIgnoreCase)).Sum(line => line.Quantity);
         var remaining = Math.Max(0, available - alreadyQueued);
         if (quantity > remaining)
@@ -503,7 +503,7 @@ public partial class SalesOperationEntryView : UserControl
                 priceInput.Focus();
                 return;
             }
-            var available = _operationsService.GetAvailableBatchQuantity(line.BatchId, line.SourceBatchQuantity);
+            var available = _operationsService.GetAvailableBatchQuantity(line.BatchId, line.SourceBatchQuantity, line.TargetSystem);
             var otherQueued = _cartLines.Where(item => !ReferenceEquals(item, line)
                 && string.Equals(item.BatchId, line.BatchId, StringComparison.OrdinalIgnoreCase)).Sum(item => item.Quantity);
             if (newQuantity > Math.Max(0, available - otherQueued))
@@ -575,7 +575,7 @@ public partial class SalesOperationEntryView : UserControl
 
         if (PackageComboBox.SelectedItem is PackageChoice selected)
         {
-            var available = _operationsService.GetAvailableBatchQuantity(selected.BatchId, selected.BatchQuantity);
+            var available = _operationsService.GetAvailableBatchQuantity(selected.BatchId, selected.BatchQuantity, selected.TargetSystem);
             var queued = _cartLines.Where(item => string.Equals(item.BatchId, selected.BatchId, StringComparison.OrdinalIgnoreCase)).Sum(item => item.Quantity);
             BatchAvailabilityTextBlock.Text = $"الدفعة {selected.BatchId} · {selected.TargetSystem} · المتاح بعد هذه القائمة {Math.Max(0, available - queued):N0} كرت.";
         }
@@ -612,7 +612,7 @@ public partial class SalesOperationEntryView : UserControl
         if (!TryReadDecimal(UnitPriceTextBox.Text, out var price) || price <= 0m || price > 100_000_000m) return false;
         if (!TryReadDecimal(DiscountAmountTextBox.Text, out var discount) || discount < 0m || discount > quantity * price) return false;
         if (!TryReadDecimal(PrintingCostTextBox.Text, out var printingCost) || printingCost < 0m || printingCost > price) return false;
-        var available = _operationsService.GetAvailableBatchQuantity(package.BatchId, package.BatchQuantity);
+        var available = _operationsService.GetAvailableBatchQuantity(package.BatchId, package.BatchQuantity, package.TargetSystem);
         var queued = _cartLines.Where(item => string.Equals(item.BatchId, package.BatchId, StringComparison.OrdinalIgnoreCase)).Sum(item => item.Quantity);
         return quantity <= Math.Max(0, available - queued);
     }
@@ -686,7 +686,7 @@ public partial class SalesOperationEntryView : UserControl
         foreach (var group in _cartLines.GroupBy(item => item.BatchId, StringComparer.OrdinalIgnoreCase))
         {
             var line = group.First();
-            var available = _operationsService.GetAvailableBatchQuantity(line.BatchId, line.SourceBatchQuantity);
+            var available = _operationsService.GetAvailableBatchQuantity(line.BatchId, line.SourceBatchQuantity, line.TargetSystem);
             var requested = group.Sum(item => item.Quantity);
             if (requested > available)
                 return $"الكمية في الدفعة {line.BatchId} لم تعد متاحة بالكامل؛ المطلوب {requested:N0} والمتاح الآن {available:N0} كرت.";
@@ -737,24 +737,49 @@ public partial class SalesOperationEntryView : UserControl
             return;
         }
 
-        var drafts = _cartLines.Select(line => new SalesOperationDraft(
-            channel,
-            channelLabel,
-            point.Id,
-            point.Name,
-            line.ProductName,
-            line.Quantity,
-            line.UnitPrice,
-            mode,
-            0m,
-            payment,
-            channel == "direct" ? line.PrintingCostPerCard : 0m,
-            ExternalReferenceTextBox.Text?.Trim() ?? string.Empty,
-            combinedNotes,
-            line.BatchId,
-            line.SourceBatchQuantity,
-            line.DiscountAmount)).ToArray();
+        var allocatedWithinCart = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+        var drafts = _cartLines.Select(line =>
+        {
+            if (!allocatedWithinCart.TryGetValue(line.BatchId, out var assignedInCart))
+            {
+                assignedInCart = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                allocatedWithinCart[line.BatchId] = assignedInCart;
+            }
 
+            var alreadyAllocated = _operationsService.GetAllocatedCardNumbers(line.BatchId);
+            var cardNumbers = _cardService.Cards
+                .Where(card => string.Equals(card.BatchId, line.BatchId, StringComparison.OrdinalIgnoreCase) && !card.IsArchived)
+                .OrderBy(card => card.CreatedAt)
+                .ThenBy(card => card.SerialNumber, StringComparer.Ordinal)
+                .Where(card => !alreadyAllocated.Contains(card.CardNumber) && !assignedInCart.Contains(card.CardNumber))
+                .Take(line.Quantity)
+                .Select(card => card.CardNumber)
+                .ToArray();
+            if (cardNumbers.Length != line.Quantity)
+                throw new InvalidOperationException($"لا توجد هويات كافية غير مخصصة في الدفعة {line.BatchId} لربط الكمية المطلوبة.");
+            foreach (var cardNumber in cardNumbers)
+                assignedInCart.Add(cardNumber);
+
+            return new SalesOperationDraft(
+                channel,
+                channelLabel,
+                point.Id,
+                point.Name,
+                line.ProductName,
+                line.Quantity,
+                line.UnitPrice,
+                mode,
+                0m,
+                payment,
+                channel == "direct" ? line.PrintingCostPerCard : 0m,
+                ExternalReferenceTextBox.Text?.Trim() ?? string.Empty,
+                combinedNotes,
+                line.BatchId,
+                line.SourceBatchQuantity,
+                line.DiscountAmount,
+                line.TargetSystem,
+                cardNumbers);
+        }).ToArray();
         try
         {
             var saved = _operationsService.RecordOperations(drafts);

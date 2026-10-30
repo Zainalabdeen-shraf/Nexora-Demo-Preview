@@ -54,8 +54,37 @@ public sealed class DemoCardIssuanceService
 
                 foreach (var batch in state.Batches.OrderByDescending(item => item.CreatedAt))
                     Batches.Add(batch);
+                var nextSerial = BigInteger.One;
+                var usedSerials = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var serialsChanged = false;
                 foreach (var card in state.Cards.OrderBy(item => item.CreatedAt))
-                    Cards.Add(card);
+                {
+                    var serial = card.SerialNumber?.Trim() ?? string.Empty;
+                    var validSerial = BigInteger.TryParse(serial, NumberStyles.None, CultureInfo.InvariantCulture, out var parsedSerial)
+                        && parsedSerial > BigInteger.Zero;
+                    if (validSerial)
+                        serial = parsedSerial.ToString(CultureInfo.InvariantCulture);
+
+                    if (!validSerial || !usedSerials.Add(serial))
+                    {
+                        do
+                        {
+                            serial = nextSerial.ToString(CultureInfo.InvariantCulture);
+                            nextSerial += BigInteger.One;
+                        } while (!usedSerials.Add(serial));
+                        serialsChanged = true;
+                    }
+                    else if (parsedSerial >= nextSerial)
+                    {
+                        nextSerial = parsedSerial + BigInteger.One;
+                    }
+
+                    Cards.Add(string.Equals(serial, card.SerialNumber, StringComparison.Ordinal)
+                        ? card
+                        : card with { SerialNumber = serial });
+                }
+                if (serialsChanged)
+                    SaveSnapshot(Cards.ToList(), Batches.ToList());
                 _batchSequence = Batches.Count;
                 return;
             }
@@ -69,7 +98,7 @@ public sealed class DemoCardIssuanceService
 
         try
         {
-            SeedScenario();
+            // Start with an empty operational store; do not create sample cards.
             SaveSnapshot(Cards.ToList(), Batches.ToList());
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException or InvalidOperationException)
@@ -130,6 +159,7 @@ public sealed class DemoCardIssuanceService
         }
         var existingCards = Cards.Where(card => string.Equals(card.TargetSystem, targetName, StringComparison.Ordinal)).ToList();
         var newCards = new List<GeneratedDemoCard>(request.Quantity);
+        var nextSerial = GetNextSerialNumber();
         var tokenLength = request.CardNumberLength - request.CardNumberPrefix.Length - request.CardNumberSuffix.Length;
         var requestedStart = ParseSequenceStart(request.SequenceStartValue);
         var nextSequence = request.NumberGenerationMode == CardNumberGenerationMode.Sequential
@@ -165,7 +195,11 @@ public sealed class DemoCardIssuanceService
                 request.Package.Price, request.RouterProfile, request.Package.TimeLimit,
                 request.Package.DataLimit, request.Package.RateLimit, now.AddMilliseconds(index),
                 "بانتظار المزامنة", request.PointOfSale, request.Comment,
-                request.ManagerAccount, request.SharedUsers, request.Package.Validity, "متاحة"));
+                request.ManagerAccount, request.SharedUsers, request.Package.Validity, "متاحة")
+            {
+                SerialNumber = nextSerial.ToString(CultureInfo.InvariantCulture)
+            });
+            nextSerial += BigInteger.One;
         }
 
         // Persist the complete candidate state before publishing it to the shared in-memory collections.
@@ -306,6 +340,8 @@ public sealed class DemoCardIssuanceService
         managerAccount,
         sharedUsers);
 
+    var nextSerial = GetNextSerialNumber();
+
     var newCards = numbers.Select((number, index) =>
         new GeneratedDemoCard(
             batchId,
@@ -326,7 +362,10 @@ public sealed class DemoCardIssuanceService
             managerAccount,
             sharedUsers,
             package.Validity,
-            "متاحة"))
+            "متاحة")
+        {
+            SerialNumber = (nextSerial + index).ToString(CultureInfo.InvariantCulture)
+        })
         .ToList();
 
     // Save the complete state before publishing imported cards.
@@ -455,8 +494,7 @@ public sealed class DemoCardIssuanceService
             ? card with
             {
                 ArchivedAt = archived ? now : null,
-                ArchiveReason = archived ? reason : string.Empty,
-                LocalStatus = archived ? "مؤرشف" : "بانتظار المزامنة"
+                ArchiveReason = archived ? reason : string.Empty
             }
             : card).ToList();
 
@@ -465,50 +503,6 @@ public sealed class DemoCardIssuanceService
         foreach (var card in nextCards.OrderBy(card => card.CreatedAt))
             Cards.Add(card);
         ScenarioChanged?.Invoke(this, EventArgs.Empty);
-    }
-
-    private void SeedScenario()
-    {
-        var statuses = new[] { "متاحة", "قيد الاستخدام", "منتهية", "موقوفة" };
-        var targets = new[] { DemoAccountSystem.HotSpot, DemoAccountSystem.UserManager };
-        var sequence = 1;
-        var groupNumber = 1;
-
-        foreach (var target in targets)
-        {
-            var packages = DemoCardPackageCatalog.Load(target);
-            if (packages.Count == 0)
-                throw new InvalidDataException($"لا توجد باقات مرتبطة بـ{(target == DemoAccountSystem.HotSpot ? "الهوتسبوت" : "مدير المستخدمين")} في الكتالوج.");
-
-            foreach (var package in packages.Take(4))
-            {
-                var targetName = target == DemoAccountSystem.HotSpot ? "مستخدمو الهوتسبوت" : "مدير المستخدمين";
-                var profile = target == DemoAccountSystem.HotSpot ? package.HotSpotProfile : package.UserManagerProfile;
-                var managerAccount = target == DemoAccountSystem.UserManager ? "admin" : "غير منطبق";
-                var createdAt = DateTimeOffset.Now.AddDays(-Math.Max(1, 8 - groupNumber));
-                var batchId = $"DEMO-{(target == DemoAccountSystem.HotSpot ? "HS" : "UM")}-{groupNumber:00}";
-                Batches.Add(new GeneratedCardBatch(batchId, targetName, package.DisplayName, 2,
-                    package.Price, createdAt, "بانتظار المزامنة", profile,
-                    groupNumber % 3 == 0 ? "وكيل الشبكة" : groupNumber % 2 == 0 ? "نقطة بيع الحي" : "المركز الرئيسي",
-                    managerAccount, 1));
-
-                for (var row = 0; row < 2; row++)
-                {
-                    var pointOfSale = groupNumber % 3 == 0 ? "وكيل الشبكة" : groupNumber % 2 == 0 ? "نقطة بيع الحي" : "المركز الرئيسي";
-                    var status = statuses[(sequence - 1) % statuses.Length];
-                    var number = $"26001{sequence:000}";
-                    var username = $"61{sequence:0000}";
-                    var password = username;
-                    Cards.Add(new GeneratedDemoCard(batchId, number, username, password, targetName,
-                        package.DisplayName, package.Price, profile, package.TimeLimit, package.DataLimit,
-                        package.RateLimit, createdAt.AddMinutes(row), "بانتظار المزامنة",
-                        pointOfSale, "حساب تم إنشاؤه ضمن دفعة الإصدار", managerAccount, 1,
-                        package.Validity, status));
-                    sequence++;
-                }
-                groupNumber++;
-            }
-        }
     }
 
     private static void SaveSnapshot(IReadOnlyCollection<GeneratedDemoCard> cards, IReadOnlyCollection<GeneratedCardBatch> batches)
@@ -522,6 +516,18 @@ public sealed class DemoCardIssuanceService
     }
 
     public sealed record DemoCardIssuanceStore(List<GeneratedDemoCard> Cards, List<GeneratedCardBatch> Batches);
+
+    private BigInteger GetNextSerialNumber()
+    {
+        var maximum = BigInteger.Zero;
+        foreach (var card in Cards)
+        {
+            if (BigInteger.TryParse(card.SerialNumber, NumberStyles.None, CultureInfo.InvariantCulture, out var value)
+                && value > maximum)
+                maximum = value;
+        }
+        return maximum + BigInteger.One;
+    }
 
     private static void Validate(CardIssuanceRequest request)
     {

@@ -20,8 +20,8 @@ public partial class TemplateDesignerView
     private static Dictionary<string, bool> CreateDefaultVisibility() => new(StringComparer.Ordinal)
     {
         ["رمز الدخول"] = false,
-        ["اسم المستخدم"] = true,
-        ["كلمة المرور"] = true,
+        ["اسم المستخدم"] = false,
+        ["كلمة المرور"] = false,
         ["الصلاحية"] = false,
         ["الوقت"] = false,
         ["السعر"] = false,

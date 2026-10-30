@@ -272,7 +272,7 @@ public partial class CardIssuanceView
 
             return false;
 
-        var targetName = _targetSystem == DemoAccountSystem.HotSpot ? "مستخدمو نقطة الاتصال" : "مدير المستخدمين";
+        var targetName = _targetSystem == DemoAccountSystem.HotSpot ? "مستخدمو الهوتسبوت" : "مدير المستخدمين";
 
         return string.Equals(batch.TargetSystem, targetName, StringComparison.Ordinal);
 

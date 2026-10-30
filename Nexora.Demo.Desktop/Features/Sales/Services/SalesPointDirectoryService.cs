@@ -281,8 +281,6 @@ public sealed class SalesPointDirectoryService
             .Select(name => name.Trim())
             .Distinct(StringComparer.CurrentCultureIgnoreCase)
             .ToArray();
-        if (distinct.Length == 0)
-            distinct = ["المركز الرئيسي", "نقطة بيع الحي", "وكيل الشبكة"];
 
         var points = distinct.Where(name => !string.Equals(name, "كروت الشبكات", StringComparison.Ordinal))
             .Select((name, index) => new SalesPointRecord(

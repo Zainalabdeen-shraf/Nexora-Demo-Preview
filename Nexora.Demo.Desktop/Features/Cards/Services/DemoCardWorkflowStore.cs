@@ -86,8 +86,8 @@ public sealed class DemoCardWorkflowStore
                 foreach (var card in group)
                 {
                     var workflowCard = FindOrCreateCard(state, card, now);
-                    workflowCard.RouterUploadSimulated = true;
-                    workflowCard.LastAction = "طلب مزامنة";
+                    workflowCard.RouterUploadSimulated = false;
+                    workflowCard.LastAction = "طلب مزامنة محلي مسجل — لم يُرسل إلى الراوتر";
                     workflowCard.UpdatedAt = now;
                 }
                 batch.RouterUploadedCount = state.Cards.Count(card => card.BatchId == group.Key.BatchId && card.RouterUploadSimulated);

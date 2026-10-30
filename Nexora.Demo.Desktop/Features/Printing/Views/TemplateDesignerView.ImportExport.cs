@@ -486,7 +486,7 @@ public partial class TemplateDesignerView
         CardHeightMm = ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200),
         PrintColumns = ParseInt(PrintColumnsTextBox.Text, 3, 1, 8),
         PrintRows = ParseInt(PrintRowsTextBox.Text, 17, 1, 100),
-        LayoutRevision = 5,
+        LayoutRevision = 6,
         CardRotationDegrees = ParseDouble(CardRotationTextBox.Text, 0, -180, 180),
         ImportedBackgroundImagePath = _isRasterTemplateMode ? null : _importedTemplateImagePath,
         ImportedBackgroundImageBase64 = _isRasterTemplateMode ? null : GetImportedImageBase64(),
@@ -566,6 +566,21 @@ public partial class TemplateDesignerView
             state.Format = TemplateFormatId;
             state.LayoutRevision = 5;
         }
+        // Revision 6 changes only the built-in starter: a new design opens as a
+        // blank white card. Existing user-authored templates are not touched.
+        if (string.Equals(state.TemplateName, DefaultTemplateName, StringComparison.OrdinalIgnoreCase)
+            && state.LayoutRevision < 6)
+        {
+            state.VisibleElements = CreateDefaultVisibility();
+            state.IsRasterTemplateMode = false;
+            state.RasterTemplateImagePath = null;
+            state.RasterTemplateImageBase64 = null;
+            state.ImportedBackgroundImagePath = null;
+            state.ImportedBackgroundImageBase64 = null;
+            state.ImportedBackgroundImageExtension = ".png";
+            state.LayoutRevision = 6;
+        }
+
         else if (requiresDipCoordinateMigration)
         {
             // V1 stored base-canvas positions; V2 stored positions after sizing the canvas.
@@ -726,12 +741,16 @@ public partial class TemplateDesignerView
         RestoreCustomElements(null);
         _visibleElements.Clear();
         foreach (var pair in CreateDefaultVisibility()) _visibleElements[pair.Key] = pair.Value;
-        _importedTemplateImagePath = File.Exists(DefaultStarterTemplateImagePath) ? DefaultStarterTemplateImagePath : null;
+        // New templates start as a clean white card. Artwork is opt-in through
+        // the existing background-import command, never silently preloaded.
+        _importedTemplateImagePath = null;
         _rasterTemplateImagePath = null;
         _isRasterTemplateMode = false;
         TemplateBackgroundImage.Source = null;
         TemplateBackgroundImage.Visibility = Visibility.Collapsed;
-        if (_importedTemplateImagePath is not null) LoadBackgroundImageFromPath(_importedTemplateImagePath);
+        CardSurfaceBorder.Background = Brushes.White;
+        CardSurfaceBorder.BorderBrush = new SolidColorBrush(Color.FromRgb(0xD7, 0xE1, 0xED));
+        CardSurfaceBorder.BorderThickness = new Thickness(1);
         TemplateNameTextBox.Text = DefaultTemplateName;
         SelectComboTag(TemplateStyleComboBox, "classic");
         SelectComboTag(ColorThemeComboBox, "blue");
@@ -750,7 +769,6 @@ public partial class TemplateDesignerView
         _lastCanvasHeight = DesignBaseHeight;
         ApplyElementProperties(CreateDefaultElementProperties());
         ApplyCardDimensionTransform();
-        ApplyDefaultStarterLayout();
         _zoom = 1d;
         ZoomSlider.Value = 1d;
         HotspotPackageComboBox.SelectedIndex = 0;
@@ -758,8 +776,8 @@ public partial class TemplateDesignerView
         _activePackageSource = "hotspot";
         _loginPageUrl = DefaultLoginUrl;
         _barcodeText = "50723015";
-        SelectComboTag(SelectedElementComboBox, "username");
-        _studioSelectedFieldTag = "username";
+        SelectedElementComboBox.SelectedIndex = -1;
+        _studioSelectedFieldTag = null;
         UpdateSamplePackageFields();
         SyncSelectedElementEditor();
         SyncMainElementChecks();

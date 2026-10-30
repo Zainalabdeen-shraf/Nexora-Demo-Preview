@@ -29,6 +29,7 @@ public sealed record SalesOperationRecord(
     string SourceBatchId = "",
     decimal DiscountAmount = 0m)
 {
+    public string[] CardNumbers { get; init; } = [];
     public string DiscountAmountLabel => $"{DiscountAmount:N2} ريال";
     public string OccurredAtLabel => OccurredAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm", CultureInfo.InvariantCulture);
     public string QuantityLabel => Quantity.ToString("N0", CultureInfo.CurrentCulture);
@@ -62,6 +63,7 @@ public sealed record SalesStockTransferRecord(
     string SettlementPolicy,
     string Notes)
 {
+    public string[] CardNumbers { get; init; } = [];
     public decimal Balance => Math.Max(0m, NetAmount - PaidAtTransfer);
     public string StatusLabel => Balance > 0m ? "رصيد مفتوح" : "مسدد";
     public string OccurredAtLabel => OccurredAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm", CultureInfo.InvariantCulture);
@@ -118,7 +120,7 @@ public sealed record SalesOperationDraft(
     string Notes,
     string SourceBatchId = "",
     int SourceBatchQuantity = 0,
-    decimal DiscountAmount = 0m);
+    decimal DiscountAmount = 0m, string TargetSystem = "", string[]? CardNumbers = null);
 
 public sealed record SalesStockTransferDraft(
     string BatchId,
@@ -133,7 +135,8 @@ public sealed record SalesStockTransferDraft(
     decimal UnitPrice,
     decimal PaidAtTransfer,
     decimal PrintingCostPerCard,
-    string Notes);
+    string Notes,
+    string[]? CardNumbers = null);
 
 public sealed record SalesSettlementDraft(
     string PointId,

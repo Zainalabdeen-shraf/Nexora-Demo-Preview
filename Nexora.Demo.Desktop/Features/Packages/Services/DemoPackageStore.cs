@@ -27,9 +27,9 @@ public static class DemoPackageStore
 
         if (!File.Exists(StorePath))
         {
-            var seeded = CreateSeedCatalog();
-            Save(seeded);
-            return seeded;
+            var emptyCatalog = new DemoPackageCatalog();
+            Save(emptyCatalog);
+            return emptyCatalog;
         }
 
         try

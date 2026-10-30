@@ -207,7 +207,7 @@ public partial class NetworkUsersView
             return;
         EmptyCardsPanel.Visibility = GeneratedCardsGrid.Items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         EmptyCardsDescriptionTextBlock.Text = _issuanceService.Cards.Count == 0
-            ? "لا توجد حسابات في بيانات العرض الحالية."
+            ? "لا توجد حسابات محفوظة في سجل Nexora حتى الآن."
             : "لا توجد حسابات تطابق المرشحات الحالية؛ غيّر الحالة أو امسح البحث.";
     }
 }

@@ -2,6 +2,7 @@
 using System.Text;
 using System.Text.Json;
 using Nexora.Demo.Desktop.Features.Sales.Models;
+using Nexora.Demo.Desktop.Features.Cards.Services;
 
 namespace Nexora.Demo.Desktop.Features.Sales.Services;
 
@@ -19,6 +20,7 @@ public sealed class SalesOperationsService
         PropertyNameCaseInsensitive = true
     };
 
+    private static readonly BatchManagementMetadataStore BatchMetadata = new();
     private readonly object _gate = new();
     private readonly string _storePath;
     private List<SalesOperationRecord> _operations = [];
@@ -105,10 +107,17 @@ public sealed class SalesOperationsService
                 .Sum(item => item.Quantity);
     }
 
-    public int GetAvailableBatchQuantity(string batchId, int sourceBatchQuantity)
+    public int GetAvailableBatchQuantity(string batchId, int sourceBatchQuantity, string targetSystem = "")
     {
         lock (_gate)
         {
+            if (!string.IsNullOrWhiteSpace(targetSystem))
+            {
+                var metadata = BatchMetadata.Get(batchId, targetSystem);
+                if (metadata.IsDisabled || metadata.IsArchived)
+                    return 0;
+            }
+
             var transferred = _transfers.Where(item => string.Equals(item.BatchId, batchId, StringComparison.OrdinalIgnoreCase))
                 .Sum(item => item.Quantity);
             var sold = _operations.Where(item => string.Equals(item.SourceBatchId, batchId, StringComparison.OrdinalIgnoreCase))
@@ -117,6 +126,19 @@ public sealed class SalesOperationsService
         }
     }
 
+    public HashSet<string> GetAllocatedCardNumbers(string batchId)
+    {
+        lock (_gate)
+        {
+            var numbers = _operations
+                .Where(item => string.Equals(item.SourceBatchId, batchId, StringComparison.OrdinalIgnoreCase))
+                .SelectMany(item => item.CardNumbers ?? Array.Empty<string>())
+                .Concat(_transfers
+                    .Where(item => string.Equals(item.BatchId, batchId, StringComparison.OrdinalIgnoreCase))
+                    .SelectMany(item => item.CardNumbers ?? Array.Empty<string>()));
+            return new HashSet<string>(numbers, StringComparer.OrdinalIgnoreCase);
+        }
+    }
     public SalesOperationRecord RecordOperation(SalesOperationDraft draft)
     {
         ArgumentNullException.ThrowIfNull(draft);
@@ -141,6 +163,7 @@ public sealed class SalesOperationsService
             var nextExpenses = new List<SalesExpenseRecord>(_expenses);
             var requestedByBatch = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             var sourceQuantityByBatch = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var reservedCardsByBatch = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var draft in drafts)
             {
@@ -191,13 +214,35 @@ public sealed class SalesOperationsService
                     throw new ArgumentOutOfRangeException(nameof(drafts), "تكلفة طباعة الكرت يجب أن تكون صفرًا أو قيمة موجبة لا تتجاوز سعر الكرت.");
                 if (draft.SourceBatchQuantity < 1)
                     throw new ArgumentOutOfRangeException(nameof(drafts), "الدفعة المصدر لا تحتوي كمية صالحة للبيع.");
+                var targetSystem = Required(draft.TargetSystem, "نظام الدفعة", 2, 100);
+                var batchMetadata = BatchMetadata.Get(batchId, targetSystem);
+                if (batchMetadata.IsDisabled || batchMetadata.IsArchived)
+                    throw new InvalidOperationException($"الدفعة {batchId} معطلة أو مؤرشفة ولا يمكن بيعها.");
+
+                var assignedCardNumbers = draft.CardNumbers?.Select(value => value?.Trim() ?? string.Empty).ToArray()
+                    ?? Array.Empty<string>();
+                if (assignedCardNumbers.Length != quantity || assignedCardNumbers.Any(string.IsNullOrWhiteSpace))
+                    throw new InvalidOperationException($"يجب ربط كل كرت في عملية البيع برقم كرت فعلي من الدفعة {batchId}.");
+                if (!reservedCardsByBatch.TryGetValue(batchId, out var reservedCards))
+                {
+                    reservedCards = new HashSet<string>(
+                        _operations.Where(item => string.Equals(item.SourceBatchId, batchId, StringComparison.OrdinalIgnoreCase))
+                            .SelectMany(item => item.CardNumbers ?? Array.Empty<string>())
+                            .Concat(_transfers.Where(item => string.Equals(item.BatchId, batchId, StringComparison.OrdinalIgnoreCase))
+                                .SelectMany(item => item.CardNumbers ?? Array.Empty<string>())),
+                        StringComparer.OrdinalIgnoreCase);
+                    reservedCardsByBatch[batchId] = reservedCards;
+                }
+                foreach (var cardNumber in assignedCardNumbers)
+                    if (!reservedCards.Add(cardNumber))
+                        throw new InvalidOperationException($"الكرت {cardNumber} سبق بيعه أو توريده ولا يمكن تسجيله مرتين.");
 
                 if (sourceQuantityByBatch.TryGetValue(batchId, out var priorSourceQuantity)
                     && priorSourceQuantity != draft.SourceBatchQuantity)
                     throw new InvalidOperationException($"بيانات كمية المصدر للدفعة {batchId} غير متطابقة بين أصناف السلة.");
                 sourceQuantityByBatch[batchId] = draft.SourceBatchQuantity;
                 var alreadyRequested = requestedByBatch.TryGetValue(batchId, out var priorRequested) ? priorRequested : 0;
-                var available = Math.Max(0, GetAvailableBatchQuantity(batchId, draft.SourceBatchQuantity) - alreadyRequested);
+                var available = Math.Max(0, GetAvailableBatchQuantity(batchId, draft.SourceBatchQuantity, targetSystem) - alreadyRequested);
                 if (quantity > available)
                     throw new InvalidOperationException($"المتاح من الدفعة {batchId} هو {available:N0} كرت فقط بعد احتساب المبيعات والتوريدات السابقة وأصناف السلة.");
                 requestedByBatch[batchId] = checked(alreadyRequested + quantity);
@@ -245,7 +290,10 @@ public sealed class SalesOperationsService
                     gross, commissionPercent, commission, networkAmount, received,
                     Math.Max(0m, networkAmount - received), paymentMethod, status,
                     requiresPrinting, printingExpense,
-                    Optional(draft.ExternalReference, 100), Optional(draft.Notes, 500), batchId, discount);
+                    Optional(draft.ExternalReference, 100), Optional(draft.Notes, 500), batchId, discount)
+                {
+                    CardNumbers = assignedCardNumbers
+                };
 
                 savedRecords.Add(saved);
                 nextOperations.Add(saved);
@@ -272,11 +320,28 @@ public sealed class SalesOperationsService
         {
             EnsureWritable();
             var batchId = Required(draft.BatchId, "رقم الدفعة", 2, 100);
+            var transferTargetSystem = Required(draft.TargetSystem, "نظام الدفعة", 2, 100);
+            var batchMetadata = BatchMetadata.Get(batchId, transferTargetSystem);
+            if (batchMetadata.IsDisabled || batchMetadata.IsArchived)
+                throw new InvalidOperationException($"الدفعة {batchId} معطلة أو مؤرشفة ولا يمكن توريدها.");
             var pointId = Required(draft.PointId, "نقطة البيع", 1, 80);
             var pointName = Required(draft.PointName, "اسم نقطة البيع", 2, 100);
             var packageName = Required(draft.PackageName, "اسم الباقة", 2, 100);
             if (draft.BatchQuantity < 1 || draft.Quantity < 1 || draft.Quantity > draft.BatchQuantity)
                 throw new ArgumentOutOfRangeException(nameof(draft), "كمية التسليم غير صالحة.");
+            var assignedCardNumbers = draft.CardNumbers?.Select(value => value?.Trim() ?? string.Empty).ToArray()
+                ?? Array.Empty<string>();
+            if (assignedCardNumbers.Length != draft.Quantity || assignedCardNumbers.Any(string.IsNullOrWhiteSpace))
+                throw new InvalidOperationException("يجب ربط كل كرت مورّد برقم كرت فعلي من الدفعة.");
+            var reservedCardNumbers = new HashSet<string>(
+                _operations.Where(item => string.Equals(item.SourceBatchId, batchId, StringComparison.OrdinalIgnoreCase))
+                    .SelectMany(item => item.CardNumbers ?? Array.Empty<string>())
+                    .Concat(_transfers.Where(item => string.Equals(item.BatchId, batchId, StringComparison.OrdinalIgnoreCase))
+                        .SelectMany(item => item.CardNumbers ?? Array.Empty<string>())),
+                StringComparer.OrdinalIgnoreCase);
+            foreach (var cardNumber in assignedCardNumbers)
+                if (!reservedCardNumbers.Add(cardNumber))
+                    throw new InvalidOperationException($"الكرت {cardNumber} سبق بيعه أو توريده ولا يمكن تسليمه مرة أخرى.");
             if (draft.CommissionPercent < 0m || draft.CommissionPercent > 100m)
                 throw new ArgumentOutOfRangeException(nameof(draft), "نسبة العمولة يجب أن تكون بين 0 و100٪.");
             if (draft.UnitPrice <= 0m || draft.UnitPrice > 100_000_000m)
@@ -309,7 +374,10 @@ public sealed class SalesOperationsService
                 batchId, Required(draft.TargetSystem, "نظام الدفعة", 2, 100), packageName,
                 pointId, pointName, draft.Quantity, draft.UnitPrice, gross,
                 draft.CommissionPercent, commission, net, paid, printingExpense, policy,
-                Optional(draft.Notes, 500));
+                Optional(draft.Notes, 500))
+            {
+                CardNumbers = assignedCardNumbers
+            };
 
             var nextTransfers = new List<SalesStockTransferRecord>(_transfers) { saved };
             var nextExpenses = _expenses;

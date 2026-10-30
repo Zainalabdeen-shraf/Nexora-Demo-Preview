@@ -88,8 +88,11 @@ public partial class TemplateDesignerView
         var cardCount = AddTextField(settingsPanel, "إجمالي الكروت", PrintTotalCardsTextBox.Text);
         var columns = AddTextField(settingsPanel, "عدد الأعمدة", PrintColumnsTextBox.Text);
         var rows = AddTextField(settingsPanel, "حد الصفوف/صفحة", PrintRowsTextBox.Text);
-        var numberPrefix = AddTextField(settingsPanel, "بداية الرقم", "50723001");
-        var usernamePrefix = AddTextField(settingsPanel, "بادئة اسم المستخدم", "");
+        var currentUsername = NormalizeUsernameText(PreviewUsernameTextBlock.Text);
+        var initialNumber = long.TryParse(currentUsername, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedUsername)
+            ? parsedUsername.ToString(CultureInfo.InvariantCulture)
+            : "1";
+        var numberPrefix = AddTextField(settingsPanel, "بداية اسم المستخدم", initialNumber);
         var passwordPrefix = AddTextField(settingsPanel, "بادئة كلمة المرور", "");
         var packageName = AddTextField(settingsPanel, "اسم الباقة", selectedPackage is not null ? GetPackageName(selectedPackage) : "—");
         var networkName = AddTextField(settingsPanel, "اسم الشبكة", PreviewNetworkTextBlock.Text);
@@ -216,7 +219,7 @@ public partial class TemplateDesignerView
             pageCards.Children.Clear();
             var firstIndex = (pageNumber - 1) * perPage;
             var cardsOnPage = Math.Min(perPage, Math.Max(0, total - firstIndex));
-            var first = ParseLong(numberPrefix.Text, 50723001);
+            var first = ParseLong(numberPrefix.Text, 1);
             var priceText = string.IsNullOrWhiteSpace(price.Text) ? "—" : price.Text.Trim();
             var uploadText = string.IsNullOrWhiteSpace(upload.Text) ? "—" : upload.Text.Trim();
             previewSummary.Text = $"A4 عمودي · الصفحة {pageNumber} من {totalPages} · {colCount} أعمدة × {rowCapacity} صفوف · السعة {perPage} كرت/صفحة · {cardsOnPage} كرت في هذه الصفحة · إجمالي {total:N0} كرت · المقاس {cardWidthMm:0.#} × {cardHeightMm:0.#} مم";
@@ -226,9 +229,9 @@ public partial class TemplateDesignerView
             {
                 var globalIndex = firstIndex + i;
                 var cardNumber = (first + globalIndex).ToString(CultureInfo.InvariantCulture);
-                var sampleUsername = string.IsNullOrWhiteSpace(usernamePrefix.Text)
-                    ? cardNumber
-                    : usernamePrefix.Text.Trim() + (globalIndex + 1).ToString(CultureInfo.InvariantCulture);
+                // The card number is the username. Do not create or print a second
+                // independent credential value unless a future product rule requires it.
+                var sampleUsername = cardNumber;
                 var samplePassword = string.IsNullOrWhiteSpace(passwordPrefix.Text)
                     ? "143" + (globalIndex % 10).ToString(CultureInfo.InvariantCulture)
                     : passwordPrefix.Text.Trim() + (globalIndex + 1).ToString(CultureInfo.InvariantCulture);

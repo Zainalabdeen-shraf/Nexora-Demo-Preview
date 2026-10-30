@@ -29,8 +29,7 @@ public static class DemoCardPackageCatalog
 
             var displayName = $"{package.Name} — {package.SalePriceYer.ToString("N0", CultureInfo.CurrentCulture)} ريال";
             var rate = $"{package.DownloadMbps:0.##}M/{package.UploadMbps:0.##}M";
-            var userManagerProfile = string.IsNullOrWhiteSpace(binding.UserManagerProfile)
-                ? binding.UserManagerLimitation : binding.UserManagerProfile;
+            var userManagerProfile = binding.UserManagerProfile?.Trim() ?? string.Empty;
             var hotSpotProfile = string.IsNullOrWhiteSpace(binding.HotSpotProfile)
                 ? "default" : binding.HotSpotProfile;
 

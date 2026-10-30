@@ -124,13 +124,11 @@ public partial class TemplateDesignerView
                 if (check.Read(signature, 0, signature.Length) != signature.Length || Encoding.ASCII.GetString(signature) != "%PDF-")
                     throw new InvalidDataException("الملف الناتج لا يحتوي على ترويسة PDF صحيحة.");
             }
-            SetStatus($"تم تصدير معاينة PDF بنجاح: {pageImages.Count} صفحة — {outputPdf}", isSuccess: true);
-            MessageBox.Show($"تم تصدير معاينة PDF بنجاح.\nعدد الصفحات: {pageImages.Count}\n\n{outputPdf}", "اكتمل التصدير", MessageBoxButton.OK, MessageBoxImage.Information);
+            SetStatus($"تم تصدير ملف PDF بنجاح · {pageImages.Count} صفحة · {Path.GetFileName(outputPdf)}", isSuccess: true);
         }
         catch (Exception ex)
         {
-            SetStatus("تعذر تصدير معاينة PDF: " + ex.Message, isSuccess: false);
-            MessageBox.Show("تعذر تصدير معاينة PDF:\n" + ex.Message, "تعذر التصدير", MessageBoxButton.OK, MessageBoxImage.Warning);
+            SetStatus("تعذر تصدير PDF: " + ex.Message, isSuccess: false);
         }
         finally
         {

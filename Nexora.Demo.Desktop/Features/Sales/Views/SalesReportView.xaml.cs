@@ -15,15 +15,28 @@ namespace Nexora.Demo.Desktop.Features.Sales.Views;
 /// </summary>
 public partial class SalesReportView : UserControl
 {
-    private readonly DemoSalesService _salesService;
+    private readonly Func<IReadOnlyList<DemoSaleTransaction>> _getAll;
+    private SalesOperationsService? _operationsService;
     private DateOnly? _selectedDay;
     private DemoSaleTransaction[] _visibleRows = [];
     private bool _isInitializing = true;
 
     public SalesReportView(DemoSalesService salesService)
+        : this((salesService ?? throw new ArgumentNullException(nameof(salesService))).GetAll)
+    {
+    }
+
+    public SalesReportView(SalesOperationsService operationsService)
+        : this(CreateOperationalSalesProvider(operationsService))
+    {
+        _operationsService = operationsService;
+        _operationsService.Changed += OperationsService_Changed;
+    }
+
+    private SalesReportView(Func<IReadOnlyList<DemoSaleTransaction>> getAll)
     {
         InitializeComponent();
-        _salesService = salesService ?? throw new ArgumentNullException(nameof(salesService));
+        _getAll = getAll ?? throw new ArgumentNullException(nameof(getAll));
 
         _isInitializing = true;
         PopulateFilterOptions();
@@ -36,13 +49,53 @@ public partial class SalesReportView : UserControl
         UpdateReport();
     }
 
+    private static Func<IReadOnlyList<DemoSaleTransaction>> CreateOperationalSalesProvider(SalesOperationsService operationsService)
+    {
+        ArgumentNullException.ThrowIfNull(operationsService);
+        return () => operationsService.GetOperations().Select(item =>
+        {
+            var occurredAt = item.OccurredAt.LocalDateTime;
+            return new DemoSaleTransaction(
+                item.Reference,
+                occurredAt,
+                DateOnly.FromDateTime(occurredAt),
+                item.PackageName,
+                item.Quantity,
+                item.UnitPrice,
+                Math.Max(0m, item.GrossAmount - item.DiscountAmount),
+                item.PaymentMethod,
+                item.PointName,
+                item.ChannelLabel,
+                item.CollectionStatus);
+        }).ToArray();
+    }
+
+    private void OperationsService_Changed(object? sender, EventArgs e)
+    {
+        void Refresh()
+        {
+            _isInitializing = true;
+            PopulateFilterOptions();
+            SalesDateFilterComboBox.SelectedIndex = 0;
+            PackageFilterComboBox.SelectedIndex = 0;
+            PointFilterComboBox.SelectedIndex = 0;
+            PaymentFilterComboBox.SelectedIndex = 0;
+            _isInitializing = false;
+            UpdateReport();
+        }
+
+        if (Dispatcher.CheckAccess())
+            Refresh();
+        else
+            _ = Dispatcher.InvokeAsync(Refresh);
+    }
     public void ShowDay(DateOnly day)
     {
         _isInitializing = true;
         SalesDateFilterComboBox.SelectedIndex = 0;
         _selectedDay = day;
         _isInitializing = false;
-        SalesScenarioTextBlock.Text = $"تم تحديد يوم {GetArabicDayName(day.DayOfWeek)} {day:dd/MM/yyyy} من الرسم؛ الأرقام من بيانات الديمو المحلية.";
+        SalesScenarioTextBlock.Text = $"تم تحديد يوم {GetArabicDayName(day.DayOfWeek)} {day:dd/MM/yyyy} من الرسم؛ الأرقام من سجل المبيعات المحلي.";
         UpdateReport();
     }
 
@@ -61,16 +114,19 @@ public partial class SalesReportView : UserControl
 
     private void PopulateFilterOptions()
     {
+        PackageFilterComboBox.Items.Clear();
+        PointFilterComboBox.Items.Clear();
+        PaymentFilterComboBox.Items.Clear();
         AddFilterOption(PackageFilterComboBox, "كل الباقات", "all");
-        foreach (var value in _salesService.GetAll().Select(row => row.PackageName).Distinct().OrderBy(value => value, StringComparer.CurrentCulture))
+        foreach (var value in _getAll().Select(row => row.PackageName).Distinct().OrderBy(value => value, StringComparer.CurrentCulture))
             AddFilterOption(PackageFilterComboBox, value, value);
 
         AddFilterOption(PointFilterComboBox, "كل نقاط البيع", "all");
-        foreach (var value in _salesService.GetAll().Select(row => row.PointOfSale).Distinct().OrderBy(value => value, StringComparer.CurrentCulture))
+        foreach (var value in _getAll().Select(row => row.PointOfSale).Distinct().OrderBy(value => value, StringComparer.CurrentCulture))
             AddFilterOption(PointFilterComboBox, value, value);
 
         AddFilterOption(PaymentFilterComboBox, "كل وسائل الدفع", "all");
-        foreach (var value in _salesService.GetAll().Select(row => row.PaymentMethod).Distinct().OrderBy(value => value, StringComparer.CurrentCulture))
+        foreach (var value in _getAll().Select(row => row.PaymentMethod).Distinct().OrderBy(value => value, StringComparer.CurrentCulture))
             AddFilterOption(PaymentFilterComboBox, value, value);
     }
 
@@ -84,7 +140,7 @@ public partial class SalesReportView : UserControl
         if (_isInitializing || SalesTransactionsGrid is null)
             return;
 
-        var sourceRows = _salesService.GetAll();
+        var sourceRows = _getAll();
         var rows = ApplyFilters(sourceRows, includeSearch: true, includePackage: true, includePoint: true, includePayment: true, includeSelectedDay: true)
             .OrderByDescending(row => row.OccurredAt)
             .ToArray();
@@ -109,7 +165,7 @@ public partial class SalesReportView : UserControl
 
         SalesScenarioTextBlock.Text = _selectedDay.HasValue
             ? $"عرض يوم {GetArabicDayName(_selectedDay.Value.DayOfWeek)} {_selectedDay:dd/MM/yyyy}. جميع الأرقام محسوبة من سجل الديمو المحلي."
-            : "لوحة تشغيلية لسجل الديمو المحلي؛ إجمالي البيع المسجل لا يعني أن المبلغ تم تحصيله فعليًا.";
+            : "لوحة تشغيلية لسجل المبيعات المحلي؛ إجمالي البيع المسجل لا يعني أن المبلغ تم تحصيله فعليًا.";
 
         SalesFilterSummaryTextBlock.Text = _selectedDay.HasValue
             ? $"يعرض الجدول {rows.Length:N0} عملية في {GetArabicDayName(_selectedDay.Value.DayOfWeek)} {_selectedDay:dd/MM/yyyy} من أصل {sourceRows.Count:N0} سجل."
@@ -132,12 +188,12 @@ public partial class SalesReportView : UserControl
         }
         else if (dateFilter == "last-day")
         {
-            var lastDay = _salesService.GetAll().Max(row => row.SaleDate);
+            var lastDay = _getAll().Select(row => row.SaleDate).DefaultIfEmpty(DateOnly.FromDateTime(DateTime.Today)).Max();
             query = query.Where(row => row.SaleDate == lastDay);
         }
         else if (dateFilter == "week")
         {
-            var lastDay = _salesService.GetAll().Max(row => row.SaleDate);
+            var lastDay = _getAll().Select(row => row.SaleDate).DefaultIfEmpty(DateOnly.FromDateTime(DateTime.Today)).Max();
             query = query.Where(row => row.SaleDate >= lastDay.AddDays(-6) && row.SaleDate <= lastDay);
         }
 

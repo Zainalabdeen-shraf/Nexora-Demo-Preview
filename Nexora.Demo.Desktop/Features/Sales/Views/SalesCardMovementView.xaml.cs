@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Controls.Primitives;
 using Nexora.Demo.Desktop.Features.Cards.Models;
 using Nexora.Demo.Desktop.Features.Cards.Services;
+using Nexora.Demo.Desktop.Features.Sales.Models;
 using Nexora.Demo.Desktop.Features.Sales.Services;
 
 namespace Nexora.Demo.Desktop.Features.Sales.Views;
@@ -19,6 +20,7 @@ public partial class SalesCardMovementView : UserControl
     private readonly DemoCardIssuanceService _cardService;
     private readonly SalesPointDirectoryService _pointsService;
     private readonly SalesOperationsService _operationsService;
+    private static readonly BatchManagementMetadataStore BatchMetadata = new();
     private CardMovementRow[] _allRows = [];
     private CardMovementRow[] _filteredRows = [];
     private bool _loading = true;
@@ -186,8 +188,8 @@ public partial class SalesCardMovementView : UserControl
     private void PopulatePointFilter()
     {
         var current = PointFilterComboBox.SelectedValue as string ?? "all";
-        var pointNames = _cardService.Cards
-            .Select(card => DisplayPoint(card.PointOfSale))
+        var pointNames = _allRows
+            .Select(row => row.PointName)
             .Concat(_pointsService.GetAll().Where(point => !point.IsSystemPoint).Select(point => point.Name))
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .Distinct(StringComparer.CurrentCultureIgnoreCase)
@@ -209,38 +211,92 @@ public partial class SalesCardMovementView : UserControl
         }
 
         _loading = true;
-        PopulatePointFilter();
-        _allRows = _cardService.Cards
-            .Select(CreateRow)
+        var soldByCard = new Dictionary<string, SalesOperationRecord>(StringComparer.OrdinalIgnoreCase);
+        foreach (var operation in _operationsService.GetOperations())
+        {
+            foreach (var cardNumber in operation.CardNumbers ?? Array.Empty<string>())
+                soldByCard[CardMovementKey(operation.SourceBatchId, cardNumber)] = operation;
+        }
+        var transferredByCard = new Dictionary<string, SalesStockTransferRecord>(StringComparer.OrdinalIgnoreCase);
+        foreach (var transfer in _operationsService.GetTransfers())
+        {
+            foreach (var cardNumber in transfer.CardNumbers ?? Array.Empty<string>())
+                transferredByCard[CardMovementKey(transfer.BatchId, cardNumber)] = transfer;
+        }
+
+        _allRows = _cardService.Cards.Select(card =>
+        {
+            var key = CardMovementKey(card.BatchId, card.CardNumber);
+            soldByCard.TryGetValue(key, out var sale);
+            transferredByCard.TryGetValue(key, out var transfer);
+            return CreateRow(card, sale, transfer);
+        })
             .OrderByDescending(row => row.CreatedAt)
             .ThenBy(row => row.BatchId, StringComparer.CurrentCultureIgnoreCase)
             .ThenBy(row => row.CardNumber, StringComparer.CurrentCultureIgnoreCase)
             .ToArray();
+        PopulatePointFilter();
         _loading = false;
         _pageIndex = 0;
         ApplyFilters();
     }
 
-    private static CardMovementRow CreateRow(GeneratedDemoCard card)
+    private static string CardMovementKey(string batchId, string cardNumber) =>
+        (batchId ?? string.Empty) + "\u001F" + (cardNumber ?? string.Empty);
+    private static CardMovementRow CreateRow(
+        GeneratedDemoCard card,
+        SalesOperationRecord? sale,
+        SalesStockTransferRecord? transfer)
     {
-        var state = ResolveCardStatus(card);
+        var batchMetadata = BatchMetadata.Get(card.BatchId, card.TargetSystem);
+        CardStatus state;
+        string pointName;
+        string statusDescription;
+
+        if (sale is not null)
+        {
+            state = new CardStatus("sold", "مباع");
+            pointName = sale.PointName;
+            statusDescription = $"بيع مسجل · {sale.Reference}";
+        }
+        else if (transfer is not null)
+        {
+            state = new CardStatus("delivered", "مسلّم للبيع");
+            pointName = transfer.PointName;
+            statusDescription = $"توريد مسجل · {transfer.Reference}";
+        }
+        else if (card.IsArchived || batchMetadata.IsArchived || batchMetadata.IsDisabled || ContainsAny(card.DemoStatus ?? string.Empty, "موقوف", "منتهي", "منتهية", "ملغي", "مستبعد"))
+        {
+            state = new CardStatus("inactive", batchMetadata.IsDisabled ? "دفعة معطلة" : "موقوف / منتهي");
+            pointName = "المخزون المركزي";
+            statusDescription = card.IsArchived ? "مؤرشف محليًا"
+                : batchMetadata.IsArchived ? "الدفعة مؤرشفة"
+                : batchMetadata.IsDisabled ? "الدفعة معطلة"
+                : $"حالة الكرت: {card.DemoStatus}";
+        }
+        else
+        {
+            state = new CardStatus("stock", "مخزون مركزي");
+            pointName = "المخزون المركزي";
+            statusDescription = "لم تُسجّل عملية بيع أو توريد لهذا الكرت.";
+        }
+
         return new CardMovementRow(
             card.BatchId ?? string.Empty,
             card.CardNumber ?? string.Empty,
-            DisplayPoint(card.PointOfSale),
+            DisplayPoint(pointName),
             card.PackageName ?? string.Empty,
             card.UnitPrice,
             card.CreatedAt,
             state.Key,
             state.Label,
-            string.IsNullOrWhiteSpace(card.DemoStatus) ? "حالة الحساب غير محددة في سجل الكرت" : $"حالة الحساب المسجلة: {card.DemoStatus}",
+            statusDescription,
             card.TargetSystem ?? string.Empty)
         {
-            SourceStatus = card.DemoStatus ?? string.Empty,
+            SourceStatus = statusDescription,
             Username = card.Username ?? string.Empty
         };
     }
-
     private static CardStatus ResolveCardStatus(GeneratedDemoCard card)
     {
         var raw = (card.DemoStatus ?? string.Empty).Trim();

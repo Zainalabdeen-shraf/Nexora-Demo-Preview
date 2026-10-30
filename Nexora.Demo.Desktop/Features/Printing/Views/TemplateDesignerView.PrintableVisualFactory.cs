@@ -91,7 +91,10 @@ public partial class TemplateDesignerView
 
         var previewWidth = Math.Max(sourceWidth, contentRight);
         var previewHeight = Math.Max(1, previewWidth * physicalHeight / physicalWidth);
-        var verticalScale = Math.Min(1d, previewHeight / contentBottom);
+        // Fit the occupied design content to the full physical card height.
+        // Capping this at 1 left most default elements compressed into the top
+        // third of the card and made the print preview appear almost empty.
+        var verticalScale = Math.Clamp(previewHeight / Math.Max(1d, contentBottom), 0.1d, 6d);
         var previewCanvas = new Canvas
         {
             Width = previewWidth,

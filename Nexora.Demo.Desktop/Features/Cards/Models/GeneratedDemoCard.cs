@@ -31,6 +31,7 @@ public sealed record GeneratedDemoCard(
     public string UnitPriceLabel => $"{UnitPrice:N0} ريال";
     public string TargetSystemLabel => TargetSystem;
     public string SharedUsersLabel => SharedUsers <= 0 ? "غير محدود" : SharedUsers.ToString(CultureInfo.CurrentCulture);
+    public string SerialNumber { get; init; } = string.Empty;
     public bool IsArchived => ArchivedAt.HasValue;
     public string ArchivedAtLabel => ArchivedAt?.ToLocalTime().ToString("yyyy/MM/dd HH:mm", CultureInfo.InvariantCulture) ?? "—";
 }

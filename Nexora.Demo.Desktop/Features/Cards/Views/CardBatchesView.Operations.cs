@@ -76,11 +76,11 @@ public partial class CardBatchesView
 
         var confirm = WorkflowFeedbackWindow.ShowNotice(
             Window.GetWindow(this),
-            "تأكيد محاكاة المزامنة",
-            $"سيُسجّل Nexora نتيجة محاكاة محلية لـ {row.Quantity:N0} حسابًا في الدفعة «{row.DisplayName}». هذا ليس اتصالًا بالراوتر ولن تُرسل أي بيانات خارجية.",
+            "تسجيل طلب متابعة المزامنة",
+            $"سيسجل Nexora طلب متابعة محليًا لـ {row.Quantity:N0} حسابًا في الدفعة «{row.DisplayName}». لن تُرسل بيانات إلى الراوتر ولن تتغير حالة الحسابات.",
             WorkflowFeedbackKind.Warning,
             [new("الدفعة", row.DisplayName), new("عدد الحسابات", row.Quantity.ToString("N0")), new("النطاق", "تجريبي محلي فقط")],
-            new WorkflowFeedbackAction("confirm", "متابعة المحاكاة", true),
+            new WorkflowFeedbackAction("confirm", "تسجيل الطلب المحلي", true),
             new WorkflowFeedbackAction("cancel", "إلغاء"));
         if (confirm != "confirm") return;
 

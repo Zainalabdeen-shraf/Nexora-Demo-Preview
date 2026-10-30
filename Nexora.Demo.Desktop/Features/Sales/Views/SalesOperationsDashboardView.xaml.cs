@@ -50,7 +50,7 @@ public partial class SalesOperationsDashboardView : UserControl
         var salesGross = operations.Sum(item => item.GrossAmount);
         var transferGross = transfers.Sum(item => item.GrossAmount);
         var totalPrinting = operations.Sum(item => item.PrintingExpense) + transfers.Sum(item => item.PrintingExpense);
-        var totalCardsPrepared = operations.Where(item => item.RequiresPrinting).Sum(item => item.Quantity) + transfers.Sum(item => item.Quantity);
+        var totalCardsPrepared = operations.Where(item => item.RequiresPrinting).Sum(item => item.Quantity);
         var outstandingPoints = accounts.Where(row => row.Balance > 0m).ToArray();
 
         GrossSalesTextBlock.Text = $"{salesGross + transferGross:N0} ريال";
@@ -60,7 +60,7 @@ public partial class SalesOperationsDashboardView : UserControl
         CentralCollectionTextBlock.Text = $"{_operationsService.CentralCollectionExpected:N0} ريال";
         CentralCollectionDetailTextBlock.Text = operations.Any(item => item.ChannelKey is "wallet" or "network-cards") ? "إجمالي التجميع المتوقع" : "لا توجد عمليات محصلة حالياً";
         PrintingCostsTextBlock.Text = $"{totalPrinting:N0} ريال";
-        PrintingCardsTextBlock.Text = $"{totalCardsPrepared:N0} كرت مطبوع أو مختوم";
+        PrintingCardsTextBlock.Text = $"{totalCardsPrepared:N0} كرت ضمن عمليات تتطلب الطباعة";
         var localArabic = CultureInfo.GetCultureInfo("ar-YE");
         var dateLine = $"اليوم {DateTime.Today.ToString("dddd yyyy/MM/dd", localArabic)} · {todaySales.Length:N0} عملية بيع مسجلة · كافة المؤشرات محدثة لحظياً من عمليات البيع ونقاط البيع.";
         OtherExpensesTextBlock.Text = $"{otherExpenses:N0} ريال";

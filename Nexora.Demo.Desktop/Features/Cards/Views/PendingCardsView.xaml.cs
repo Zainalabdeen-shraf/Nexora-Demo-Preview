@@ -521,6 +521,9 @@ public partial class PendingCardsView : UserControl
     private static bool RequiresReview(GeneratedDemoCard card, DemoCardWorkflowStatus? workflow)
     {
         if (string.Equals(card.DemoStatus, "موقوفة", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(card.DemoStatus, "موقوف", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(card.DemoStatus, "منتهية", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(card.DemoStatus, "منتهي", StringComparison.OrdinalIgnoreCase)
             || string.Equals(card.DemoStatus, "غير صالحة", StringComparison.OrdinalIgnoreCase)
             || string.Equals(card.DemoStatus, "مرفوضة", StringComparison.OrdinalIgnoreCase))
             return true;

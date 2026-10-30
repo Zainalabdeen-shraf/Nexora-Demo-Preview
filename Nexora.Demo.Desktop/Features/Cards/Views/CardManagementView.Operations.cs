@@ -191,6 +191,7 @@ public partial class CardManagementView
         var rows = new List<(string Label, string Value)>
         {
             ("اسم المستخدم", string.IsNullOrWhiteSpace(card.Username) ? "—" : card.Username),
+            ("الرقم التسلسلي", string.IsNullOrWhiteSpace(card.SerialNumber) ? "—" : card.SerialNumber),
             ("حالة الكرت", card.IsArchived ? "مؤرشفة" : card.DemoStatus),
             ("حالة الطباعة", PrintStatusLabelFor(workflow)),
             ("المصدر", IsImported(card) ? "مستورد" : "إصدار"),

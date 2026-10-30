@@ -18,7 +18,7 @@ public sealed class DemoSalesService
             .GroupBy(transaction => transaction.SaleDate)
             .OrderBy(group => group.Key)
             .ToArray();
-        var maximum = grouped.Max(group => group.Sum(transaction => transaction.Total));
+        var maximum = grouped.Select(group => group.Sum(transaction => transaction.Total)).DefaultIfEmpty(0m).Max();
 
         return grouped.Select(group =>
         {
@@ -30,7 +30,7 @@ public sealed class DemoSalesService
                 group.Key.ToString("dd/MM"),
                 amount,
                 cards,
-                Math.Max(16d, (double)(amount / maximum) * 132d));
+                maximum <= 0m ? 0d : Math.Max(16d, (double)(amount / maximum) * 132d));
         }).ToArray();
     }
 
@@ -39,18 +39,8 @@ public sealed class DemoSalesService
 
     private static IReadOnlyList<DemoSaleTransaction> BuildScenario()
     {
-        var rows = new List<DemoSaleTransaction>();
-        AddDay(rows, new DateOnly(2026, 10, 3), [88, 8, 16], [500m, 300m, 100m]);   // 48,000
-        AddDay(rows, new DateOnly(2026, 10, 4), [105, 9, 18], [500m, 300m, 100m]); // 57,000
-        AddDay(rows, new DateOnly(2026, 10, 5), [80, 7, 14], [500m, 300m, 100m]);  // 43,500
-        AddDay(rows, new DateOnly(2026, 10, 6), [130, 12, 24], [500m, 300m, 100m]); // 71,000
-        AddDay(rows, new DateOnly(2026, 10, 7), [118, 10, 20], [500m, 300m, 100m]); // 64,000
-        AddDay(rows, new DateOnly(2026, 10, 8), [165, 14, 28], [500m, 300m, 100m]); // 89,500
-        AddDay(rows, new DateOnly(2026, 10, 9), [232, 20, 40], [500m, 300m, 100m]); // 126,000
-
-        return rows.AsReadOnly();
+        return Array.Empty<DemoSaleTransaction>();
     }
-
     private static void AddDay(
         ICollection<DemoSaleTransaction> target,
         DateOnly day,

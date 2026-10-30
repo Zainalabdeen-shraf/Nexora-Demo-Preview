@@ -227,7 +227,7 @@ public partial class MainWindow
             return new SalesAccountsView(_salesPointDirectoryService, _salesOperationsService);
 
         if (section == "sales" && tab == "تقارير المبيعات")
-            return new SalesReportView(_demoSalesService);
+            return new SalesReportView(_salesOperationsService);
 
         // Keep legacy demo views available for the global demo dashboard's existing drill-down;
         // they are intentionally no longer exposed as sales-section tabs.

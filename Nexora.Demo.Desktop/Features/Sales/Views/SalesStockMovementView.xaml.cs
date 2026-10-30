@@ -52,7 +52,7 @@ public partial class SalesStockMovementView : UserControl
         _loading = true;
         var batches = _cardService.Batches
             .Where(batch => batch.Quantity > 0)
-            .Select(batch => new BatchChoice(batch, _operationsService.GetAvailableBatchQuantity(batch.BatchId, batch.Quantity)))
+            .Select(batch => new BatchChoice(batch, _operationsService.GetAvailableBatchQuantity(batch.BatchId, batch.Quantity, batch.TargetSystem)))
             .Where(choice => choice.AvailableQuantity > 0)
             .OrderByDescending(choice => choice.Batch.CreatedAt)
             .ToArray();
@@ -69,7 +69,7 @@ public partial class SalesStockMovementView : UserControl
             ?? points.FirstOrDefault();
         _allTransfers = _operationsService.GetTransfers().ToArray();
         ApplyTransferFilters();
-        StockNoticeTextBlock.Text = _operationsService.StorageWarning ?? "التوزيع هنا يُسجّل حركة الكمية والفاتورة المالية على مستوى رقم الدفعة. لا ينقل بيانات كل كرت داخل وحدة الكروت ولا يبدأ الطباعة تلقائيًا؛ يجب أن تكون الدفعة جاهزة فعليًا قبل تسليمها للمنفذ.";
+        StockNoticeTextBlock.Text = _operationsService.StorageWarning ?? "التوريد يربط كل كمية بأرقام الكروت الفعلية من الدفعة ويحفظ حركة المخزون والفاتورة المالية معًا. لا تبدأ الطباعة تلقائيًا.";
         SaveTransferButton.IsEnabled = _operationsService.CanWrite;
         _loading = false;
         UpdatePreview();
@@ -166,10 +166,23 @@ public partial class SalesStockMovementView : UserControl
             return;
         try
         {
+            var alreadyAllocated = _operationsService.GetAllocatedCardNumbers(choice.Batch.BatchId);
+            var cardNumbers = _cardService.Cards
+                .Where(card => string.Equals(card.BatchId, choice.Batch.BatchId, StringComparison.OrdinalIgnoreCase) && !card.IsArchived)
+                .OrderBy(card => card.CreatedAt)
+                .ThenBy(card => card.SerialNumber, StringComparer.Ordinal)
+                .Where(card => !alreadyAllocated.Contains(card.CardNumber))
+                .Take(quantity)
+                .Select(card => card.CardNumber)
+                .ToArray();
+            if (cardNumbers.Length != quantity)
+                throw new InvalidOperationException("لا توجد هويات كافية غير مخصصة في الدفعة لربط فاتورة التوريد.");
+
             var saved = _operationsService.RecordStockTransfer(new SalesStockTransferDraft(
                 choice.Batch.BatchId, choice.Batch.TargetSystem, choice.Batch.PackageName, choice.Batch.Quantity,
                 point.Id, point.Name, point.AllowCredit, point.CommissionPercent,
-                quantity, choice.Batch.UnitPrice, paid, printCost, NotesTextBox.Text?.Trim() ?? string.Empty));
+                quantity, choice.Batch.UnitPrice, paid, printCost, NotesTextBox.Text?.Trim() ?? string.Empty,
+                cardNumbers));
             MessageBox.Show(Window.GetWindow(this),
                 $"تم تسجيل فاتورة التوريد {saved.Reference}.\n\nقيمة الدفعة: {saved.GrossAmount:N0} ريال\nعمولة النقطة: {saved.CommissionAmount:N0} ريال\nصافي مستحق الشبكة: {saved.NetAmount:N0} ريال\nالمدفوع الآن: {saved.PaidAtTransfer:N0} ريال\nالرصيد المفتوح: {saved.Balance:N0} ريال\nتكلفة التجهيز: {saved.PrintingExpense:N0} ريال",
                 "تم تسجيل التوريد", MessageBoxButton.OK, MessageBoxImage.Information, MessageBoxResult.OK, MessageBoxOptions.RtlReading);
