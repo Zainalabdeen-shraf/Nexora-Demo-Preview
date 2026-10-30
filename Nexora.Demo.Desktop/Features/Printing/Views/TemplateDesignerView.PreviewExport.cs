@@ -12,7 +12,7 @@ using System.Windows.Media.Imaging;
 
 namespace Nexora.Demo.Desktop.Features.Printing.Views;
 
-// Responsibility: export the exact in-app A4 preview pages to a shareable PDF.
+// Responsibility: A4 print output and exact in-app preview PDF export.
 public partial class TemplateDesignerView
 {
     private void PrintStudioPreviewButton_Click(object sender, RoutedEventArgs e)
