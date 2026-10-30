@@ -169,10 +169,8 @@ public partial class TemplateDesignerView
             for (var page = 1; page <= totalPages; page++)
             {
                 _studioPreviewPageNumber = page;
-                RefreshStudioPreviews(forceBuildSheet: true);
-                PrintSheetPreviewHost.UpdateLayout();
-                var pageViewbox = PrintSheetPreviewHost.Children.OfType<Viewbox>().FirstOrDefault()
-                    ?? throw new InvalidOperationException("تعذر الوصول إلى صفحة المعاينة داخل مساحة العمل.");
+                var pageLayout = CalculateStudioPrintLayout();
+                var pageViewbox = BuildStudioPrintSheetPage(pageLayout);
 
                 // Scale the same A4 composition to true 210 × 297 mm at 300 DPI.
                 const double dpi = 300d;
