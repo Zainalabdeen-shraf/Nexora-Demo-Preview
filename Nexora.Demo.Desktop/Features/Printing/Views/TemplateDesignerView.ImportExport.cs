@@ -443,31 +443,91 @@ public partial class TemplateDesignerView
     }
     private void DeleteTemplateButton_Click(object sender, RoutedEventArgs e)
     {
-        var answer = MessageBox.Show(
-            "سيتم حذف نسخة القالب المحفوظة محليًا وإرجاع الشاشة إلى الإعدادات الافتراضية. لا تتأثر الكروت أو بيانات المشروع الأخرى. هل تريد المتابعة؟",
-            "حذف القالب المحفوظ",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning);
-        if (answer != MessageBoxResult.Yes) return;
+        // Never infer a deletion target from editable ComboBox text. Only a real,
+        // explicitly selected library entry is eligible for deletion.
+        if (SavedTemplateComboBox.SelectedItem is not SavedTemplateEntry selectedEntry ||
+            string.IsNullOrWhiteSpace(selectedEntry.Path))
+        {
+            SetStatus("اختر قالبًا محفوظًا من قائمة القوالب أولًا؛ لن يُحذف القالب الحالي بمجرد كتابة اسمه.", isSuccess: false);
+            MessageBox.Show(
+                "لم يتم تحديد قالب محفوظ للحذف. اختر قالبًا من قائمة القوالب ثم حاول مجددًا.",
+                "لم يتم تحديد قالب",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return;
+        }
 
         try
         {
-            var selectedEntry = SavedTemplateComboBox.SelectedItem as SavedTemplateEntry;
-            var selectedPath = selectedEntry?.Path;
-            var currentName = TemplateNameTextBox.Text?.Trim();
-            if (!string.IsNullOrWhiteSpace(selectedPath) &&
-                System.IO.Path.GetFullPath(selectedPath).StartsWith(
-                    System.IO.Path.GetFullPath(TemplateLibraryDirectory).TrimEnd('\\', '/') + System.IO.Path.DirectorySeparatorChar,
-                    StringComparison.OrdinalIgnoreCase) && File.Exists(selectedPath))
-                File.Delete(selectedPath);
+            var libraryRoot = System.IO.Path.GetFullPath(TemplateLibraryDirectory);
+            var libraryPrefix = libraryRoot.TrimEnd(
+                System.IO.Path.DirectorySeparatorChar,
+                System.IO.Path.AltDirectorySeparatorChar) + System.IO.Path.DirectorySeparatorChar;
+            var selectedPath = System.IO.Path.GetFullPath(selectedEntry.Path);
 
-            if (File.Exists(StoragePath) &&
-                (selectedEntry is null ||
-                 string.Equals(selectedEntry.Name, currentName, StringComparison.OrdinalIgnoreCase)))
-                File.Delete(StoragePath);
-            ResetToDefaults();
-            LoadTemplateLibrary();
-            SetStatus("تم حذف القالب المحفوظ المحدد وإعادة الشاشة إلى التصميم الافتراضي.", isSuccess: true);
+            // Block deleting StoragePath or any file outside the dedicated template library.
+            if (!selectedPath.StartsWith(libraryPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                SetStatus("الحذف متاح للقوالب الموجودة في مكتبة القوالب فقط.", isSuccess: false);
+                MessageBox.Show(
+                    "هذا الملف ليس قالبًا داخل مكتبة القوالب، لذلك لم يتم حذفه.",
+                    "عملية حذف غير مسموحة",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!File.Exists(selectedPath))
+            {
+                LoadTemplateLibrary(TemplateNameTextBox.Text?.Trim());
+                SetStatus("ملف القالب المحدد غير موجود؛ تم تحديث قائمة القوالب.", isSuccess: false);
+                return;
+            }
+
+            var templateName = selectedEntry.Name.Trim();
+            var firstAnswer = MessageBox.Show(
+                $"أنت على وشك حذف القالب «{templateName}» فقط.\n\nلن يتم حذف الكروت أو الدفعات أو أي قالب آخر. هل تريد المتابعة؟",
+                "تأكيد حذف القالب",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+            if (firstAnswer != MessageBoxResult.Yes) return;
+
+            var finalAnswer = MessageBox.Show(
+                $"تأكيد نهائي: حذف «{templateName}» من مكتبة القوالب؟\n\nلا يمكن التراجع عن حذف هذا الملف.",
+                "تأكيد نهائي للحذف",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Stop);
+            if (finalAnswer != MessageBoxResult.Yes) return;
+
+            var currentName = TemplateNameTextBox.Text?.Trim();
+            var deletesActiveTemplate = string.Equals(
+                templateName,
+                currentName,
+                StringComparison.OrdinalIgnoreCase);
+
+            File.Delete(selectedPath);
+
+            if (deletesActiveTemplate)
+            {
+                // Keep the separate active-template snapshot valid and replace it
+                // with the built-in default rather than deleting StoragePath.
+                ResetToDefaults();
+                SelectedTemplatePath = null;
+                Directory.CreateDirectory(System.IO.Path.GetDirectoryName(StoragePath)!);
+                File.WriteAllText(StoragePath, JsonSerializer.Serialize(CaptureState(), JsonOptions));
+                LoadTemplateLibrary(DefaultTemplateName);
+            }
+            else
+            {
+                // Deleting a different library item must not reset the design in progress.
+                LoadTemplateLibrary(currentName);
+            }
+
+            SetStatus(
+                deletesActiveTemplate
+                    ? $"تم حذف القالب «{templateName}» فقط، وتم إبقاء القالب الافتراضي محفوظًا."
+                    : $"تم حذف القالب «{templateName}» فقط؛ بقي التصميم الحالي دون تغيير.",
+                isSuccess: true);
         }
         catch (Exception ex)
         {
