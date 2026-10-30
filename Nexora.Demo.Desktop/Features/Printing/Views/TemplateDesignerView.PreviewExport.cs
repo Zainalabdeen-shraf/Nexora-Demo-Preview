@@ -182,25 +182,33 @@ public partial class TemplateDesignerView
                 var originalHeight = pageViewbox.Height;
                 var pageSurface = pageViewbox.Child as Border;
                 var originalEffect = pageSurface?.Effect;
-                if (pageSurface is not null) pageSurface.Effect = null;
-                pageViewbox.Width = pageWidthDip;
-                pageViewbox.Height = pageHeightDip;
-                pageViewbox.Measure(new Size(pageWidthDip, pageHeightDip));
-                pageViewbox.Arrange(new Rect(0, 0, pageWidthDip, pageHeightDip));
-                pageViewbox.UpdateLayout();
-                var bitmap = new RenderTargetBitmap(
-                    (int)Math.Round(210d / 25.4d * dpi),
-                    (int)Math.Round(297d / 25.4d * dpi),
-                    dpi, dpi, PixelFormats.Pbgra32);
-                bitmap.Render(pageViewbox);
-                var imagePath = Path.Combine(tempRoot, $"page-{page:D4}.png");
-                var encoder = new PngBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(bitmap));
-                using (var output = File.Create(imagePath)) encoder.Save(output);
-                pageImages.Add(imagePath);
-                pageViewbox.Width = originalWidth;
-                pageViewbox.Height = originalHeight;
-                if (pageSurface is not null) pageSurface.Effect = originalEffect;
+                try
+                {
+                    if (pageSurface is not null) pageSurface.Effect = null;
+                    pageViewbox.Width = pageWidthDip;
+                    pageViewbox.Height = pageHeightDip;
+                    pageViewbox.Measure(new Size(pageWidthDip, pageHeightDip));
+                    pageViewbox.Arrange(new Rect(0, 0, pageWidthDip, pageHeightDip));
+                    pageViewbox.UpdateLayout();
+                    var bitmap = new RenderTargetBitmap(
+                        (int)Math.Round(210d / 25.4d * dpi),
+                        (int)Math.Round(297d / 25.4d * dpi),
+                        dpi, dpi, PixelFormats.Pbgra32);
+                    bitmap.Render(pageViewbox);
+                    var imagePath = Path.Combine(tempRoot, $"page-{page:D4}.png");
+                    var encoder = new PngBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                    using (var output = File.Create(imagePath)) encoder.Save(output);
+                    pageImages.Add(imagePath);
+                }
+                finally
+                {
+                    // Restore the designer's hidden preview host even when one page fails.
+                    pageViewbox.Width = originalWidth;
+                    pageViewbox.Height = originalHeight;
+                    if (pageSurface is not null) pageSurface.Effect = originalEffect;
+                    pageViewbox.InvalidateMeasure();
+                }
             }
 
             var htmlPath = Path.Combine(tempRoot, "preview.html");
