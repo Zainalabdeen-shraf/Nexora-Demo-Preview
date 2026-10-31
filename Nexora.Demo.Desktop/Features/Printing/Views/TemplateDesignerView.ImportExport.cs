@@ -796,8 +796,8 @@ public partial class TemplateDesignerView
         }
         UpdateSamplePackageFields();
         SyncMainElementChecks();
-        var targetCanvasWidth = DesignBaseWidth * ParseDouble(CardWidthTextBox.Text, 46, 10, 200) / BaseWidthMm;
-        var targetCanvasHeight = DesignBaseHeight * ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200) / BaseHeightMm;
+        var targetCanvasWidth = DesignBaseWidth * ParseDouble(CardWidthTextBox.Text, 92.1, 10, 200) / BaseWidthMm;
+        var targetCanvasHeight = DesignBaseHeight * ParseDouble(CardHeightTextBox.Text, 52, 10, 200) / BaseHeightMm;
         // V2 state stores coordinates in the actual canvas. Legacy V1 state stores base-canvas
         // coordinates, so let ApplyCardDimensionTransform map those positions once on migration.
         if (!isLegacyCoordinateState)
