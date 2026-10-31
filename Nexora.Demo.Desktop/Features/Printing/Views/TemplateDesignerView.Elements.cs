@@ -234,6 +234,17 @@ public partial class TemplateDesignerView
         ElementWidthTextBox.Text = GetElementWidth(element).ToString("0.#", CultureInfo.InvariantCulture);
         ElementHeightTextBox.Text = GetElementHeight(element).ToString("0.#", CultureInfo.InvariantCulture);
         ElementAngleTextBox.Text = GetElementRotation(element).ToString("0.#", CultureInfo.InvariantCulture);
+        _isSyncingElementOpacity = true;
+        try
+        {
+            ElementOpacitySlider.Value = Math.Clamp(element.Opacity * 100d, 0d, 100d);
+            ElementOpacityValueTextBlock.Text = $"{ElementOpacitySlider.Value:0}%";
+            ElementOpacitySlider.IsEnabled = true;
+        }
+        finally
+        {
+            _isSyncingElementOpacity = false;
+        }
 
         SetDesignerTextBoxText("ElementForegroundHexTextBox", GetElementForegroundHex(element));
         SetDesignerTextBoxText("ElementBackgroundHexTextBox", GetElementBackgroundHex(element));
@@ -256,9 +267,11 @@ public partial class TemplateDesignerView
             SelectedElementTextBox.Text = textBlock.Text;
             ElementFontSizeTextBox.Text = textBlock.FontSize.ToString("0.#", CultureInfo.InvariantCulture);
             BoldElementCheckBox.IsChecked = textBlock.FontWeight == FontWeights.Bold || textBlock.FontWeight == FontWeights.SemiBold;
+            ItalicElementCheckBox.IsChecked = textBlock.FontStyle == FontStyles.Italic;
             SelectedElementTextBox.IsEnabled = true;
             ElementFontSizeTextBox.IsEnabled = true;
             BoldElementCheckBox.IsEnabled = true;
+            ItalicElementCheckBox.IsEnabled = true;
             ElementTextAlignLeftButton.IsEnabled = true;
             ElementTextAlignCenterButton.IsEnabled = true;
             ElementTextAlignRightButton.IsEnabled = true;
@@ -273,6 +286,8 @@ public partial class TemplateDesignerView
             ElementFontSizeTextBox.IsEnabled = false;
             BoldElementCheckBox.IsChecked = false;
             BoldElementCheckBox.IsEnabled = false;
+            ItalicElementCheckBox.IsChecked = false;
+            ItalicElementCheckBox.IsEnabled = false;
             ElementTextAlignLeftButton.IsChecked = false;
             ElementTextAlignCenterButton.IsChecked = false;
             ElementTextAlignRightButton.IsChecked = false;
@@ -418,6 +433,7 @@ public partial class TemplateDesignerView
             var angle = ParseDouble(ElementAngleTextBox.Text, GetElementRotation(selected), -180, 180);
             selected.Width = width;
             selected.Height = height;
+            selected.Opacity = Math.Clamp(ElementOpacitySlider.Value / 100d, 0d, 1d);
             selected.RenderTransformOrigin = new Point(0.5, 0.5);
             selected.RenderTransform = new RotateTransform(angle);
             var clampedPosition = ClampElementPosition(selected, x, y);
@@ -434,6 +450,7 @@ public partial class TemplateDesignerView
                     textBlock.FlowDirection = FlowDirection.LeftToRight;
                 textBlock.FontFamily = family;
                 textBlock.FontWeight = BoldElementCheckBox.IsChecked == true ? FontWeights.Bold : FontWeights.Normal;
+                textBlock.FontStyle = ItalicElementCheckBox.IsChecked == true ? FontStyles.Italic : FontStyles.Normal;
                 textBlock.FontSize = ParseDouble(ElementFontSizeTextBox.Text, textBlock.FontSize, 4, 60);
                 if (TryParseBrush(GetDesignerTextBoxText("ElementForegroundHexTextBox", GetElementForegroundHex(textBlock)), out var foreground)) textBlock.Foreground = foreground;
                 if (TryParseBrush(GetDesignerTextBoxText("ElementBackgroundHexTextBox", GetElementBackgroundHex(textBlock)), out var background)) textBlock.Background = background;
@@ -1154,6 +1171,16 @@ public partial class TemplateDesignerView
         if (_isReady) ApplyPropertiesButton_Click(this, new RoutedEventArgs());
     }
 
+    private void ElementOpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (!_isReady || _isSyncingElementOpacity || GetSelectedElement() is not FrameworkElement element) return;
+        var opacity = Math.Clamp(e.NewValue / 100d, 0d, 1d);
+        element.Opacity = opacity;
+        if (ElementOpacityValueTextBlock is not null)
+            ElementOpacityValueTextBlock.Text = $"{Math.Round(opacity * 100d):0}%";
+        RefreshStudioPreviews();
+    }
+
     private void ElementForegroundColorButton_Click(object sender, RoutedEventArgs e)
     {
         ElementForegroundColorPopup.IsOpen = true;
@@ -1369,6 +1396,8 @@ public partial class TemplateDesignerView
                 IsVisible = element.Visibility == Visibility.Visible,
                 Text = (element as TextBlock)?.Text,
                 IsBold = element is TextBlock textBlock && (textBlock.FontWeight == FontWeights.Bold || textBlock.FontWeight == FontWeights.SemiBold),
+                IsItalic = element is TextBlock italicText && italicText.FontStyle == FontStyles.Italic,
+                Opacity = double.IsFinite(element.Opacity) ? Math.Clamp(element.Opacity, 0d, 1d) : 1d,
                 ForegroundHex = GetElementForegroundHex(element),
                 BackgroundHex = GetElementBackgroundHex(element),
                 FontSize = element is TextBlock tb ? tb.FontSize : 11,
@@ -1397,6 +1426,7 @@ public partial class TemplateDesignerView
             if (double.IsFinite(design.Height) && design.Height >= 1) element.Height = Math.Clamp(design.Height, 1, maxCanvasHeight);
             element.RenderTransformOrigin = new Point(0.5, 0.5);
             element.RenderTransform = new RotateTransform(Math.Clamp(design.RotationDegrees, -180, 180));
+            element.Opacity = double.IsFinite(design.Opacity) ? Math.Clamp(design.Opacity, 0d, 1d) : 1d;
             // Standard field visibility is stored in VisibleElements; custom layer
             // visibility lives with its element properties and defaults true in old saves.
             if (pair.Key.StartsWith("custom-", StringComparison.Ordinal))
@@ -1411,6 +1441,7 @@ public partial class TemplateDesignerView
                             : design.Text;
                 if (pair.Key is "username" or "password") textBlock.FlowDirection = FlowDirection.LeftToRight;
                 textBlock.FontWeight = design.IsBold ? FontWeights.Bold : FontWeights.Normal;
+                textBlock.FontStyle = design.IsItalic ? FontStyles.Italic : FontStyles.Normal;
                 if (design.FontSize is >= 4 and <= 60) textBlock.FontSize = design.FontSize;
                 if (!string.IsNullOrWhiteSpace(design.FontFamily)) textBlock.FontFamily = new FontFamily(design.FontFamily);
                 if (!string.IsNullOrWhiteSpace(design.TextAlignment) && Enum.TryParse<TextAlignment>(design.TextAlignment, true, out var textAlignment))
