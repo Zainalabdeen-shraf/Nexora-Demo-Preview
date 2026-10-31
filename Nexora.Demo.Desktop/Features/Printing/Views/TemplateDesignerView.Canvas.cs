@@ -431,7 +431,7 @@ public partial class TemplateDesignerView
         var boundsWidth = Math.Abs(canvasWidth * Math.Cos(radians)) + Math.Abs(canvasHeight * Math.Sin(radians));
         var boundsHeight = Math.Abs(canvasWidth * Math.Sin(radians)) + Math.Abs(canvasHeight * Math.Cos(radians));
         // Keep the preview viewport at the exact physical bounds. The old +4 canvas-unit
-        // safety padding made a 46 × 15.8 mm card shrink inside its measured print size.
+        // safety padding made the physical card shrink inside its measured print size.
         boundsWidth = Math.Max(1, boundsWidth);
         boundsHeight = Math.Max(1, boundsHeight);
 
