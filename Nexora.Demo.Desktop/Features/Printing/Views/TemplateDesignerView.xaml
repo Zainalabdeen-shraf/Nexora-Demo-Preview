@@ -315,7 +315,35 @@
                                         Margin="0,0,0,7"/>
                                 <Button Content="تطبيق الخصائص" Style="{StaticResource StudioPrimaryActionButton}" Height="40"
                                         Click="ApplyPropertiesButton_Click" ToolTip="تطبيق أبعاد وتنسيق العنصر المحدد"/>
-                            </StackPanel>
+                            <Expander Header="إعدادات القالب ومصدر البيانات" IsExpanded="False" FontSize="11.5" Foreground="{StaticResource TextBrush}" Margin="0,8,0,0">
+                                    <StackPanel Margin="3,8,3,3">
+                                        <TextBlock Text="نمط التصميم" Style="{StaticResource StudioHint}" Margin="0,0,0,3"/>
+                                        <ComboBox x:Name="TemplateStyleComboBox" Height="34" SelectedIndex="0"
+                                                  VerticalContentAlignment="Center" SelectionChanged="TemplateStyleComboBox_SelectionChanged">
+                                            <ComboBoxItem Content="أزرق WiFi" Tag="classic" IsSelected="True"/>
+                                            <ComboBoxItem Content="أبيض وأحمر" Tag="light"/>
+                                            <ComboBoxItem Content="أحمر داكن" Tag="dark"/>
+                                        </ComboBox>
+                                        <TextBlock Text="مجموعة الألوان" Style="{StaticResource StudioHint}" Margin="0,7,0,3"/>
+                                        <ComboBox x:Name="ColorThemeComboBox" Height="34" SelectedIndex="0"
+                                                  VerticalContentAlignment="Center" SelectionChanged="ColorThemeComboBox_SelectionChanged">
+                                            <ComboBoxItem Content="أزرق" Tag="blue"/>
+                                            <ComboBoxItem Content="أحمر TabCard" Tag="red"/>
+                                            <ComboBoxItem Content="أحمر داكن" Tag="dark"/>
+                                            <ComboBoxItem Content="أبيض وأحمر" Tag="white"/>
+                                        </ComboBox>
+                                        <Separator Background="#E6ECF3" Margin="0,8,0,8"/>
+                                        <TextBlock Text="مصدر باقات HotSpot" Style="{StaticResource StudioHint}" Margin="0,0,0,3"/>
+                                        <ComboBox x:Name="HotspotPackageComboBox" Height="33" Margin="0,0,0,5"
+                                          VerticalContentAlignment="Center" SelectionChanged="PackageComboBox_SelectionChanged"
+                                          ToolTip="الباقات الفعلية المرتبطة بمصدر HotSpot"/>
+                                        <TextBlock Text="مصدر باقات User Manager" Style="{StaticResource StudioHint}" Margin="0,7,0,3"/>
+                                        <ComboBox x:Name="UserManagerPackageComboBox" Height="33"
+                                          VerticalContentAlignment="Center" SelectionChanged="PackageComboBox_SelectionChanged"
+                                          ToolTip="الباقات الفعلية المرتبطة بمصدر User Manager"/>
+                                    </StackPanel>
+                                </Expander>
+                                </StackPanel>
                         </ScrollViewer>
                     </TabItem>
 
@@ -635,22 +663,7 @@
 
     <ToggleButton x:Name="FieldLoginToggleButton" Tag="login" Content="اسم المستخدم" Style="{StaticResource StudioFieldChip}" IsChecked="False" Visibility="Collapsed" Click="StudioFieldToggleButton_Click"/>
 
-    <Grid Visibility="Collapsed" Opacity="0" Width="0" Height="0" IsHitTestVisible="False"><StackPanel x:Name="DesignerLayersPanel"/><ComboBox x:Name="TemplateStyleComboBox" Height="34" SelectedIndex="0"
-                                                  VerticalContentAlignment="Center" SelectionChanged="TemplateStyleComboBox_SelectionChanged">
-                                            <ComboBoxItem Content="أزرق WiFi" Tag="classic" IsSelected="True"/>
-                                            <ComboBoxItem Content="أبيض وأحمر" Tag="light"/>
-                                            <ComboBoxItem Content="أحمر داكن" Tag="dark"/>
-                                        </ComboBox><ComboBox x:Name="ColorThemeComboBox" Height="34" SelectedIndex="0"
-                                                  VerticalContentAlignment="Center" SelectionChanged="ColorThemeComboBox_SelectionChanged">
-                                            <ComboBoxItem Content="أزرق" Tag="blue"/>
-                                            <ComboBoxItem Content="أحمر TabCard" Tag="red"/>
-                                            <ComboBoxItem Content="أحمر داكن" Tag="dark"/>
-                                            <ComboBoxItem Content="أبيض وأحمر" Tag="white"/>
-                                        </ComboBox><ComboBox x:Name="HotspotPackageComboBox" Height="33" Margin="0,0,0,5"
-                                          VerticalContentAlignment="Center" SelectionChanged="PackageComboBox_SelectionChanged"
-                                          ToolTip="الباقات الفعلية المرتبطة بمصدر HotSpot"/><ComboBox x:Name="UserManagerPackageComboBox" Height="33"
-                                          VerticalContentAlignment="Center" SelectionChanged="PackageComboBox_SelectionChanged"
-                                          ToolTip="الباقات الفعلية المرتبطة بمصدر User Manager"/>
+    <Grid Visibility="Collapsed" Opacity="0" Width="0" Height="0" IsHitTestVisible="False"><StackPanel x:Name="DesignerLayersPanel"/>
             <TabControl x:Name="StudioWorkspaceTabs" SelectedIndex="0" SelectionChanged="StudioWorkspaceTabs_SelectionChanged">
                 <TabItem Header="التصميم"/>
                 <TabItem Header="معاينة الصفحة"/>
