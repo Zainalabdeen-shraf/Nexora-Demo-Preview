@@ -27,15 +27,15 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
         <Style x:Key="StudioFieldChip" TargetType="ToggleButton">
-            <Setter Property="Height" Value="36"/>
+            <Setter Property="Height" Value="31"/>
             <Setter Property="MinWidth" Value="0"/>
-            <Setter Property="Padding" Value="8,0"/>
-            <Setter Property="Margin" Value="3,2"/>
+            <Setter Property="Padding" Value="5,0"/>
+            <Setter Property="Margin" Value="2,1"/>
             <Setter Property="Foreground" Value="#243B5A"/>
             <Setter Property="Background" Value="#EAF0FA"/>
             <Setter Property="BorderBrush" Value="#D6E2EF"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontSize" Value="10.5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -68,7 +68,7 @@
     <!-- Primary command bar -->
     <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#D9E2EE" BorderThickness="1"
             CornerRadius="13" Padding="7,5" Margin="0,0,0,8">
-        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" FlowDirection="RightToLeft"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" VerticalAlignment="Center">
+        <WrapPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Stretch" VerticalAlignment="Center">
             <Button Style="{StaticResource StudioActionButton}" MinWidth="105" Height="42"
                     Click="NewTemplateButton_Click" ToolTip="إنشاء قالب جديد">
                 <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
@@ -129,7 +129,7 @@
             </Button>
             <TextBox x:Name="TemplateNameTextBox" Text="Default_Design" Style="{StaticResource StudioInput}"
                      Width="0" Height="0" Visibility="Collapsed" Padding="0"/>
-        </StackPanel></ScrollViewer>
+        </WrapPanel>
     </Border>
 
     <!-- Work area: inspector on the left, canvas studio on the right -->
@@ -185,9 +185,7 @@
                                           Margin="0" SelectionChanged="SelectedElementComboBox_SelectionChanged"
                                           ToolTip="حالة التحديد البرمجية للعنصر"/>
 
-                                <TextBlock Text="الموضع والحجم" FontSize="12.5" FontWeight="Bold"
-                                           Foreground="#233653" Margin="1,0,0,8"/>
-                                <UniformGrid Columns="2" Rows="3" Margin="0,0,0,12">
+                                <Expander Header="موضع وحجم العنصر (متقدم)" IsExpanded="False" FontSize="11" Foreground="{StaticResource TextBrush}" Margin="0,0,0,9"><UniformGrid Columns="2" Rows="3" Margin="0,0,0,12">
                                     <StackPanel Margin="4">
                                         <TextBlock Text="الموضع X" Style="{StaticResource StudioHint}" Margin="0,0,0,4"/>
                                         <TextBox x:Name="ElementXTextBox" Text="20" Style="{StaticResource StudioInput}"
@@ -224,7 +222,7 @@
                                                  Height="38" FlowDirection="LeftToRight" LostFocus="ElementProperty_LostFocus"
                                                  PreviewKeyDown="ElementProperty_PreviewKeyDown"/>
                                     </StackPanel>
-                                </UniformGrid>
+                                </UniformGrid></Expander>
 
                                 <Separator Background="#E6ECF3" Margin="0,0,0,12"/>
                                 <TextBlock Text="النص والتنسيق" FontSize="12.5" FontWeight="Bold"
@@ -321,24 +319,7 @@
                         </ScrollViewer>
                     </TabItem>
 
-                    <TabItem Header="قائمة العناصر" Padding="10,7">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                            <StackPanel Margin="4,10,4,5">
-                                <TextBlock Text="الطبقات والعناصر" FontSize="12.5" FontWeight="Bold"
-                                           Foreground="#233653" Margin="0,0,0,6"/>
-                                <TextBlock Text="حدد طبقة لتعديلها، واستخدم رمز العين لإظهارها أو إخفائها."
-                                           Style="{StaticResource StudioHint}" Margin="0,0,0,10"/>
-                                <StackPanel x:Name="DesignerLayersPanel"/>
-                                <Grid Margin="0,10,0,10">
-                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                    <Button Grid.Column="0" Content="＋ إضافة عنصر" Height="38"
-                                            Style="{StaticResource SecondaryButton}" Click="AddBlankFieldButton_Click"/>
-                                    <Button Grid.Column="2" Content="إدارة العناصر" Height="38"
-                                            Style="{StaticResource SecondaryButton}" Click="OpenElementsButton_Click"/>
-                                </Grid>
-                            </StackPanel>
-                        </ScrollViewer>
-                    </TabItem>
+                    
                 </TabControl>
             </Grid>
         </Border>
@@ -351,9 +332,9 @@
                 <RowDefinition Height="198"/>
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#D7E3F0" BorderThickness="1" CornerRadius="13" Padding="5" Margin="0,0,0,7" FlowDirection="RightToLeft"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border Grid.Column="0" Background="#FCE8EB" BorderBrush="#F2C6CC" BorderThickness="1" CornerRadius="10" Padding="6,3" VerticalAlignment="Top" MinWidth="86" Margin="2,1,4,0"><TextBlock x:Name="ElementCountTextBlock" Text="2 عناصر ظاهرة" FontSize="10" Foreground="#A91525" FontWeight="Bold" VerticalAlignment="Center" Margin="7,0,7,0" TextAlignment="Center"/></Border><ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" FlowDirection="RightToLeft" Margin="0,0,4,0"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" VerticalAlignment="Center"><ToggleButton x:Name="FieldUsernameToggleButton" Tag="username" Style="{StaticResource StudioFieldChip}" IsChecked="True" Click="StudioFieldToggleButton_Click" ToolTip="إظهار أو إخفاء اسم المستخدم؛ الضغط مرة أخرى يخفيه دون حذف إعداداته" MinWidth="0" Height="31" Margin="3,0" Padding="5,0"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/><TextBlock Text="اسم المستخدم" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></ToggleButton>
+            <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#D7E3F0" BorderThickness="1" CornerRadius="13" Padding="5" Margin="0,0,0,7" FlowDirection="RightToLeft"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border Grid.Column="0" Background="#FCE8EB" BorderBrush="#F2C6CC" BorderThickness="1" CornerRadius="10" Padding="6,3" VerticalAlignment="Top" MinWidth="86" Margin="2,1,4,0"><TextBlock x:Name="ElementCountTextBlock" Text="2 عناصر ظاهرة" FontSize="10" Foreground="#A91525" FontWeight="Bold" VerticalAlignment="Center" Margin="7,0,7,0" TextAlignment="Center"/></Border><WrapPanel Grid.Column="1" Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0,0,4,0"><ToggleButton x:Name="FieldUsernameToggleButton" Tag="username" Style="{StaticResource StudioFieldChip}" IsChecked="True" Click="StudioFieldToggleButton_Click" ToolTip="إظهار أو إخفاء اسم المستخدم؛ الضغط مرة أخرى يخفيه دون حذف إعداداته" MinWidth="0" Height="31" Margin="3,0" Padding="5,0"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/><TextBlock Text="اسم المستخدم" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></ToggleButton>
                                 <ToggleButton x:Name="FieldPasswordToggleButton" Tag="password" Style="{StaticResource StudioFieldChip}" Click="StudioFieldToggleButton_Click" ToolTip="إظهار أو إخفاء كلمة المرور؛ الضغط مرة أخرى يخفيه دون حذف إعداداته" MinWidth="0" Height="31" Margin="3,0" Padding="5,0"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/><TextBlock Text="كلمة المرور" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></ToggleButton>
-                            <ToggleButton x:Name="FieldValidityToggleButton" Tag="validity" Style="{StaticResource StudioFieldChip}" Height="31" MinWidth="0" Padding="5,0" Margin="3,0" Click="StudioFieldToggleButton_Click" ToolTip="إظهار أو إخفاء الصلاحية؛ الضغط مرة أخرى يخفيه دون حذف إعداداته"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/><TextBlock Text="الصلاحية" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></ToggleButton><ToggleButton x:Name="FieldTimeToggleButton" Tag="time" Style="{StaticResource StudioFieldChip}" Height="31" MinWidth="0" Padding="5,0" Margin="3,0" Click="StudioFieldToggleButton_Click" ToolTip="إظهار أو إخفاء الوقت؛ الضغط مرة أخرى يخفيه دون حذف إعداداته"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/><TextBlock Text="الوقت" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></ToggleButton><ToggleButton x:Name="FieldPriceToggleButton" Tag="price" Style="{StaticResource StudioFieldChip}" Height="31" MinWidth="0" Padding="5,0" Margin="3,0" Click="StudioFieldToggleButton_Click" ToolTip="إظهار أو إخفاء السعر؛ الضغط مرة أخرى يخفيه دون حذف إعداداته"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/><TextBlock Text="السعر" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></ToggleButton><ToggleButton x:Name="FieldDownloadToggleButton" Tag="download" Style="{StaticResource StudioFieldChip}" Height="31" MinWidth="0" Padding="5,0" Margin="3,0" Click="StudioFieldToggleButton_Click" ToolTip="إظهار أو إخفاء التحميل؛ الضغط مرة أخرى يخفيه دون حذف إعداداته"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/><TextBlock Text="التحميل" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></ToggleButton><ToggleButton x:Name="FieldContactToggleButton" Tag="contact" Style="{StaticResource StudioFieldChip}" Height="31" MinWidth="0" Padding="5,0" Margin="3,0" Click="StudioFieldToggleButton_Click" ToolTip="إظهار أو إخفاء أرقام التواصل؛ الضغط مرة أخرى يخفيه دون حذف إعداداته"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/><TextBlock Text="أرقام التواصل" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></ToggleButton><ToggleButton x:Name="FieldPackageToggleButton" Tag="package" Style="{StaticResource StudioFieldChip}" Height="31" MinWidth="0" Padding="5,0" Margin="3,0" Click="StudioFieldToggleButton_Click" ToolTip="إظهار أو إخفاء الباقة؛ الضغط مرة أخرى يخفيه دون حذف إعداداته"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/><TextBlock Text="الباقة" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></ToggleButton><ToggleButton x:Name="FieldNetworkLogoToggleButton" Tag="networkName" Style="{StaticResource StudioFieldChip}" Height="31" MinWidth="0" Padding="5,0" Margin="3,0" Click="StudioFieldToggleButton_Click" ToolTip="إظهار أو إخفاء شعار الشبكة؛ الضغط مرة أخرى يخفيه دون حذف إعداداته"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/><TextBlock Text="شعار الشبكة" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></ToggleButton><Button Style="{StaticResource StudioActionButton}" Height="31" Padding="10,0" Margin="3,0" Click="AddBlankFieldButton_Click" MinWidth="70" Background="#E8EEF8" Foreground="#243B5A" BorderBrush="#D7E3F0" ToolTip="إضافة حقل نصي مخصص واحد لكل مرة"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0" Foreground="#A91525"/><TextBlock Text="نص" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button></StackPanel></ScrollViewer></Grid></Border>
+                            <ToggleButton x:Name="FieldValidityToggleButton" Tag="validity" Style="{StaticResource StudioFieldChip}" Height="31" MinWidth="0" Padding="5,0" Margin="3,0" Click="StudioFieldToggleButton_Click" ToolTip="إظهار أو إخفاء الصلاحية؛ الضغط مرة أخرى يخفيه دون حذف إعداداته"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/><TextBlock Text="الصلاحية" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></ToggleButton><ToggleButton x:Name="FieldTimeToggleButton" Tag="time" Style="{StaticResource StudioFieldChip}" Height="31" MinWidth="0" Padding="5,0" Margin="3,0" Click="StudioFieldToggleButton_Click" ToolTip="إظهار أو إخفاء الوقت؛ الضغط مرة أخرى يخفيه دون حذف إعداداته"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/><TextBlock Text="الوقت" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></ToggleButton><ToggleButton x:Name="FieldPriceToggleButton" Tag="price" Style="{StaticResource StudioFieldChip}" Height="31" MinWidth="0" Padding="5,0" Margin="3,0" Click="StudioFieldToggleButton_Click" ToolTip="إظهار أو إخفاء السعر؛ الضغط مرة أخرى يخفيه دون حذف إعداداته"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/><TextBlock Text="السعر" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></ToggleButton><ToggleButton x:Name="FieldDownloadToggleButton" Tag="download" Style="{StaticResource StudioFieldChip}" Height="31" MinWidth="0" Padding="5,0" Margin="3,0" Click="StudioFieldToggleButton_Click" ToolTip="إظهار أو إخفاء التحميل؛ الضغط مرة أخرى يخفيه دون حذف إعداداته"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/><TextBlock Text="التحميل" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></ToggleButton><ToggleButton x:Name="FieldContactToggleButton" Tag="contact" Style="{StaticResource StudioFieldChip}" Height="31" MinWidth="0" Padding="5,0" Margin="3,0" Click="StudioFieldToggleButton_Click" ToolTip="إظهار أو إخفاء أرقام التواصل؛ الضغط مرة أخرى يخفيه دون حذف إعداداته"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/><TextBlock Text="أرقام التواصل" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></ToggleButton><ToggleButton x:Name="FieldPackageToggleButton" Tag="package" Style="{StaticResource StudioFieldChip}" Height="31" MinWidth="0" Padding="5,0" Margin="3,0" Click="StudioFieldToggleButton_Click" ToolTip="إظهار أو إخفاء الباقة؛ الضغط مرة أخرى يخفيه دون حذف إعداداته"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/><TextBlock Text="الباقة" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></ToggleButton><ToggleButton x:Name="FieldNetworkLogoToggleButton" Tag="networkName" Style="{StaticResource StudioFieldChip}" Height="31" MinWidth="0" Padding="5,0" Margin="3,0" Click="StudioFieldToggleButton_Click" ToolTip="إظهار أو إخفاء شعار الشبكة؛ الضغط مرة أخرى يخفيه دون حذف إعداداته"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/><TextBlock Text="شعار الشبكة" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></ToggleButton><Button Style="{StaticResource StudioActionButton}" Height="31" Padding="10,0" Margin="3,0" Click="AddBlankFieldButton_Click" MinWidth="70" Background="#E8EEF8" Foreground="#243B5A" BorderBrush="#D7E3F0" ToolTip="إضافة حقل نصي مخصص واحد لكل مرة"><StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0" Foreground="#A91525"/><TextBlock Text="نص" FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button></WrapPanel></Grid></Border>
 
             <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#D9E2EE" BorderThickness="1"
                     CornerRadius="14" Padding="10" Margin="0,0,0,10">
@@ -506,111 +487,112 @@
                     </Grid.RowDefinitions>
                     <Grid Grid.Row="0">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.08*"/>
+                            <ColumnDefinition Width="1.05*"/>
                             <ColumnDefinition Width="1.02*"/>
-                            <ColumnDefinition Width="1.1*"/>
-                            <ColumnDefinition Width="1.15*"/>
                         </Grid.ColumnDefinitions>
 
                         <Border Grid.Column="0" Background="#FBFCFE" BorderBrush="#E6ECF3"
-                                BorderThickness="1" CornerRadius="9" Padding="10" Margin="3">
+                                BorderThickness="1" CornerRadius="9" Padding="8" Margin="3">
                             <StackPanel>
-                                <TextBlock Text="حجم البطاقة (مم)" FontSize="12.5" FontWeight="Bold"
-                                           Foreground="#233653" Margin="0,0,0,8"/>
-                                <Grid Margin="0,0,0,7">
-                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0">
-                                        <TextBlock Text="العرض" Style="{StaticResource StudioHint}" Margin="0,0,0,3"/>
-                                        <TextBox x:Name="CardWidthTextBox" Text="46" Style="{StaticResource StudioInput}"
-                                                 Height="36" FlowDirection="LeftToRight"/>
+                                <TextBlock Text="حجم البطاقة (مم)" FontSize="12" FontWeight="Bold"
+                                           Foreground="#233653" Margin="0,0,0,6"/>
+                                <UniformGrid Columns="3" Rows="1" Margin="0,0,0,5">
+                                    <StackPanel Margin="2">
+                                        <TextBlock Text="العرض" Style="{StaticResource StudioHint}" Margin="0,0,0,2"/>
+                                        <TextBox x:Name="CardWidthTextBox" Text="92.1" Style="{StaticResource StudioInput}"
+                                                 Height="33" FlowDirection="LeftToRight"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="2">
-                                        <TextBlock Text="الارتفاع" Style="{StaticResource StudioHint}" Margin="0,0,0,3"/>
-                                        <TextBox x:Name="CardHeightTextBox" Text="15.8" Style="{StaticResource StudioInput}"
-                                                 Height="36" FlowDirection="LeftToRight"/>
+                                    <StackPanel Margin="2">
+                                        <TextBlock Text="الارتفاع" Style="{StaticResource StudioHint}" Margin="0,0,0,2"/>
+                                        <TextBox x:Name="CardHeightTextBox" Text="52" Style="{StaticResource StudioInput}"
+                                                 Height="33" FlowDirection="LeftToRight"/>
                                     </StackPanel>
-                                </Grid>
-                                <TextBlock Text="اتجاه البطاقة" Style="{StaticResource StudioHint}" Margin="0,0,0,3"/>
-                                <Grid Margin="0,0,0,7">
-                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                    <TextBox x:Name="CardRotationTextBox" Grid.Column="0" Text="0" Style="{StaticResource StudioInput}"
-                                             Height="36" FlowDirection="LeftToRight"/>
-                                    <Button x:Name="ToggleCardOrientationButton" Grid.Column="2" Content="تبديل الاتجاه"
-                                            Height="36" Style="{StaticResource SecondaryButton}"
+                                    <StackPanel Margin="2">
+                                        <TextBlock Text="الدوران °" Style="{StaticResource StudioHint}" Margin="0,0,0,2"/>
+                                        <TextBox x:Name="CardRotationTextBox" Text="0" Style="{StaticResource StudioInput}"
+                                                 Height="33" FlowDirection="LeftToRight"/>
+                                    </StackPanel>
+                                </UniformGrid>
+                                <DockPanel LastChildFill="False">
+                                    <Button x:Name="ApplyCardDimensionsButton" Content="تطبيق المقاس"
+                                            Height="30" MinWidth="90" Style="{StaticResource StudioPrimaryActionButton}"
+                                            Click="ApplyCardDimensionsButton_Click"/>
+                                    <Button x:Name="ToggleCardOrientationButton" Content="تبديل الاتجاه"
+                                            Height="30" MinWidth="86" Margin="4,0,0,0"
+                                            Style="{StaticResource SecondaryButton}"
                                             Click="ToggleCardOrientationButton_Click" ToolTip="تبديل العرض والارتفاع"/>
-                                </Grid>
-                                <Button x:Name="ApplyCardDimensionsButton" Content="تطبيق المقاس"
-                                        Height="36" Style="{StaticResource StudioPrimaryActionButton}"
-                                        Click="ApplyCardDimensionsButton_Click"/>
+                                </DockPanel>
                             </StackPanel>
                         </Border>
 
                         <Border Grid.Column="1" Background="#FBFCFE" BorderBrush="#E6ECF3"
-                                BorderThickness="1" CornerRadius="9" Padding="10" Margin="3">
+                                BorderThickness="1" CornerRadius="9" Padding="8" Margin="3">
                             <StackPanel>
-                                <TextBlock Text="تخطيط الصفحة (A4)" FontSize="12.5" FontWeight="Bold"
-                                           Foreground="#233653" Margin="0,0,0,8"/>
-                                <Grid Margin="0,0,0,7">
-                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0">
-                                        <TextBlock Text="عدد الأعمدة" Style="{StaticResource StudioHint}" Margin="0,0,0,3"/>
-                                        <TextBox x:Name="PrintColumnsTextBox" Text="3" Style="{StaticResource StudioInput}"
-                                                 Height="36" FlowDirection="LeftToRight" TextChanged="PrintLayoutSetting_TextChanged"
+                                <TextBlock Text="تخطيط الصفحة (A4)" FontSize="12" FontWeight="Bold"
+                                           Foreground="#233653" Margin="0,0,0,6"/>
+                                <UniformGrid Columns="3" Rows="1" Margin="0,0,0,5">
+                                    <StackPanel Margin="2">
+                                        <TextBlock Text="الأعمدة" Style="{StaticResource StudioHint}" Margin="0,0,0,2"/>
+                                        <TextBox x:Name="PrintColumnsTextBox" Text="2" Style="{StaticResource StudioInput}"
+                                                 Height="33" FlowDirection="LeftToRight" TextChanged="PrintLayoutSetting_TextChanged"
                                                  LostFocus="PrintLayoutSetting_LostFocus"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="2">
-                                        <TextBlock Text="عدد الصفوف" Style="{StaticResource StudioHint}" Margin="0,0,0,3"/>
-                                        <TextBox x:Name="PrintRowsTextBox" Text="17" Style="{StaticResource StudioInput}"
-                                                 Height="36" FlowDirection="LeftToRight" TextChanged="PrintLayoutSetting_TextChanged"
+                                    <StackPanel Margin="2">
+                                        <TextBlock Text="الصفوف" Style="{StaticResource StudioHint}" Margin="0,0,0,2"/>
+                                        <TextBox x:Name="PrintRowsTextBox" Text="5" Style="{StaticResource StudioInput}"
+                                                 Height="33" FlowDirection="LeftToRight" TextChanged="PrintLayoutSetting_TextChanged"
                                                  LostFocus="PrintLayoutSetting_LostFocus"/>
                                     </StackPanel>
-                                </Grid>
-                                <TextBlock Text="إجمالي الكروت" Style="{StaticResource StudioHint}" Margin="0,0,0,3"/>
-                                <TextBox x:Name="PrintTotalCardsTextBox" Text="153" Style="{StaticResource StudioInput}"
-                                         Height="36" FlowDirection="LeftToRight" TextChanged="PrintLayoutSetting_TextChanged"
-                                         LostFocus="PrintLayoutSetting_LostFocus"/>
-                                <TextBlock x:Name="PrintLayoutSummaryTextBlock" Text="3 × 17 · 51 / صفحة"
-                                           FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}"
-                                           TextWrapping="Wrap" Margin="0,5,0,3"/>
-                                <Button Content="إعادة الإعداد إلى 3 × 17" Height="32"
-                                        Style="{StaticResource SecondaryButton}" Click="ResetPrintLayoutButton_Click"/>
+                                    <StackPanel Margin="2">
+                                        <TextBlock Text="إجمالي الكروت" Style="{StaticResource StudioHint}" Margin="0,0,0,2"/>
+                                        <TextBox x:Name="PrintTotalCardsTextBox" Text="153" Style="{StaticResource StudioInput}"
+                                                 Height="33" FlowDirection="LeftToRight" TextChanged="PrintLayoutSetting_TextChanged"
+                                                 LostFocus="PrintLayoutSetting_LostFocus"/>
+                                    </StackPanel>
+                                </UniformGrid>
+                                <TextBlock x:Name="PrintLayoutSummaryTextBlock" Text="2 عمود × 5 صفوف · 10 كروت/صفحة"
+                                           FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}"
+                                           TextWrapping="Wrap" Margin="3,2,3,0"/>
+                                <Button Content="إعادة ضبط التخطيط" Height="29" HorizontalAlignment="Left"
+                                        Style="{StaticResource SecondaryButton}" Click="ResetPrintLayoutButton_Click"
+                                        Padding="10,0" Margin="2,2,0,0"/>
                             </StackPanel>
                         </Border>
 
                         <Border Grid.Column="2" Background="#FBFCFE" BorderBrush="#E6ECF3"
-                                BorderThickness="1" CornerRadius="9" Padding="10" Margin="3">
+                                BorderThickness="1" CornerRadius="9" Padding="8" Margin="3">
                             <StackPanel>
-                                <TextBlock Text="المظهر ومصدر البيانات" FontSize="12.5" FontWeight="Bold"
-                                           Foreground="#233653" Margin="0,0,0,7"/>
-                                <Grid Margin="0,0,0,6">
-                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0">
-                                        <TextBlock Text="نمط القالب" Style="{StaticResource StudioHint}" Margin="0,0,0,3"/>
-                                        <ComboBox x:Name="TemplateStyleComboBox" Height="34" SelectedIndex="0"
-                                                  VerticalContentAlignment="Center" SelectionChanged="TemplateStyleComboBox_SelectionChanged">
-                                            <ComboBoxItem Content="أزرق WiFi" Tag="classic" IsSelected="True"/>
-                                            <ComboBoxItem Content="أبيض وأحمر" Tag="light"/>
-                                            <ComboBoxItem Content="أحمر داكن" Tag="dark"/>
-                                        </ComboBox>
+                                <TextBlock Text="الهوامش (مم)" FontSize="12" FontWeight="Bold"
+                                           Foreground="#233653" Margin="0,0,0,6"/>
+                                <UniformGrid Columns="4" Rows="1">
+                                    <StackPanel Margin="2">
+                                        <TextBlock Text="أعلى" Style="{StaticResource StudioHint}" Margin="0,0,0,2"/>
+                                        <TextBox x:Name="PrintMarginTopTextBox" Text="10" Style="{StaticResource StudioInput}"
+                                                 Height="33" FlowDirection="LeftToRight" TextChanged="PrintLayoutSetting_TextChanged"
+                                                 LostFocus="PrintLayoutSetting_LostFocus"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="2">
-                                        <TextBlock Text="لون القالب" Style="{StaticResource StudioHint}" Margin="0,0,0,3"/>
-                                        <ComboBox x:Name="ColorThemeComboBox" Height="34" SelectedIndex="0"
-                                                  VerticalContentAlignment="Center" SelectionChanged="ColorThemeComboBox_SelectionChanged">
-                                            <ComboBoxItem Content="أزرق" Tag="blue"/>
-                                            <ComboBoxItem Content="أحمر TabCard" Tag="red"/>
-                                            <ComboBoxItem Content="أحمر داكن" Tag="dark"/>
-                                            <ComboBoxItem Content="أبيض وأحمر" Tag="white"/>
-                                        </ComboBox>
+                                    <StackPanel Margin="2">
+                                        <TextBlock Text="أسفل" Style="{StaticResource StudioHint}" Margin="0,0,0,2"/>
+                                        <TextBox x:Name="PrintMarginBottomTextBox" Text="10" Style="{StaticResource StudioInput}"
+                                                 Height="33" FlowDirection="LeftToRight" TextChanged="PrintLayoutSetting_TextChanged"
+                                                 LostFocus="PrintLayoutSetting_LostFocus"/>
                                     </StackPanel>
-                                </Grid>
-                                <TextBlock Text="مصدر باقات HotSpot" Style="{StaticResource StudioHint}" Margin="0,0,0,3"/>
-                                <ComboBox x:Name="HotspotPackageComboBox" Height="33" Margin="0,0,0,5"
-                                          VerticalContentAlignment="Center" SelectionChanged="PackageComboBox_SelectionChanged"
-                                          ToolTip="الباقات الفعلية المرتبطة بمصدر HotSpot"/>
-                                <TextBlock Text="مصدر باقات User Manager" Style="{StaticResource StudioHint}" Margin="0,0,0,3"/>
-                                <ComboBox x:Name="UserManagerPackageComboBox" Height="33"
-                                          VerticalContentAlignment="Center" SelectionChanged="PackageComboBox_SelectionChanged"
-                                          ToolTip="الباقات الفعلية المرتبطة بمصدر User Manager"/>
+                                    <StackPanel Margin="2">
+                                        <TextBlock Text="يمين" Style="{StaticResource StudioHint}" Margin="0,0,0,2"/>
+                                        <TextBox x:Name="PrintMarginRightTextBox" Text="10" Style="{StaticResource StudioInput}"
+                                                 Height="33" FlowDirection="LeftToRight" TextChanged="PrintLayoutSetting_TextChanged"
+                                                 LostFocus="PrintLayoutSetting_LostFocus"/>
+                                    </StackPanel>
+                                    <StackPanel Margin="2">
+                                        <TextBlock Text="يسار" Style="{StaticResource StudioHint}" Margin="0,0,0,2"/>
+                                        <TextBox x:Name="PrintMarginLeftTextBox" Text="10" Style="{StaticResource StudioInput}"
+                                                 Height="33" FlowDirection="LeftToRight" TextChanged="PrintLayoutSetting_TextChanged"
+                                                 LostFocus="PrintLayoutSetting_LostFocus"/>
+                                    </StackPanel>
+                                </UniformGrid>
+                                <TextBlock Text="تُطبّق الهوامش على المعاينة والطباعة وPDF."
+                                           Style="{StaticResource StudioHint}" Margin="3,8,3,0"/>
                             </StackPanel>
                         </Border>
                     </Grid>
@@ -653,7 +635,22 @@
 
     <ToggleButton x:Name="FieldLoginToggleButton" Tag="login" Content="اسم المستخدم" Style="{StaticResource StudioFieldChip}" IsChecked="False" Visibility="Collapsed" Click="StudioFieldToggleButton_Click"/>
 
-    <Grid Visibility="Collapsed" Opacity="0" Width="0" Height="0" IsHitTestVisible="False">
+    <Grid Visibility="Collapsed" Opacity="0" Width="0" Height="0" IsHitTestVisible="False"><StackPanel x:Name="DesignerLayersPanel"/><ComboBox x:Name="TemplateStyleComboBox" Height="34" SelectedIndex="0"
+                                                  VerticalContentAlignment="Center" SelectionChanged="TemplateStyleComboBox_SelectionChanged">
+                                            <ComboBoxItem Content="أزرق WiFi" Tag="classic" IsSelected="True"/>
+                                            <ComboBoxItem Content="أبيض وأحمر" Tag="light"/>
+                                            <ComboBoxItem Content="أحمر داكن" Tag="dark"/>
+                                        </ComboBox><ComboBox x:Name="ColorThemeComboBox" Height="34" SelectedIndex="0"
+                                                  VerticalContentAlignment="Center" SelectionChanged="ColorThemeComboBox_SelectionChanged">
+                                            <ComboBoxItem Content="أزرق" Tag="blue"/>
+                                            <ComboBoxItem Content="أحمر TabCard" Tag="red"/>
+                                            <ComboBoxItem Content="أحمر داكن" Tag="dark"/>
+                                            <ComboBoxItem Content="أبيض وأحمر" Tag="white"/>
+                                        </ComboBox><ComboBox x:Name="HotspotPackageComboBox" Height="33" Margin="0,0,0,5"
+                                          VerticalContentAlignment="Center" SelectionChanged="PackageComboBox_SelectionChanged"
+                                          ToolTip="الباقات الفعلية المرتبطة بمصدر HotSpot"/><ComboBox x:Name="UserManagerPackageComboBox" Height="33"
+                                          VerticalContentAlignment="Center" SelectionChanged="PackageComboBox_SelectionChanged"
+                                          ToolTip="الباقات الفعلية المرتبطة بمصدر User Manager"/>
             <TabControl x:Name="StudioWorkspaceTabs" SelectedIndex="0" SelectionChanged="StudioWorkspaceTabs_SelectionChanged">
                 <TabItem Header="التصميم"/>
                 <TabItem Header="معاينة الصفحة"/>
