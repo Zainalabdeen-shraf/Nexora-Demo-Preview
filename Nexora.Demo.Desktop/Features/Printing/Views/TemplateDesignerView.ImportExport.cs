@@ -178,7 +178,7 @@ public partial class TemplateDesignerView
             state.RasterTemplateImagePath = _rasterTemplateImagePath;
             state.RasterTemplateImageBase64 = GetRasterTemplateImageBase64();
             state.Format = TemplateFormatId;
-            state.LayoutRevision = 5;
+            state.LayoutRevision = 6;
 
             Directory.CreateDirectory(TemplateLibraryDirectory);
             Directory.CreateDirectory(System.IO.Path.GetDirectoryName(StoragePath)!);
@@ -542,12 +542,16 @@ public partial class TemplateDesignerView
         ColorTheme = GetSelectedTag(ColorThemeComboBox) ?? "blue",
         FontFamily = GetSelectedTag(FontFamilyComboBox) ?? "Segoe UI",
         FontSize = ParseDouble(ElementFontSizeTextBox.Text, 11, 8, 28),
-        CardWidthMm = ParseDouble(CardWidthTextBox.Text, 46, 10, 200),
-        CardHeightMm = ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200),
-        PrintColumns = ParseInt(PrintColumnsTextBox.Text, 3, 1, 8),
-        PrintRows = ParseInt(PrintRowsTextBox.Text, 17, 1, 100),
-        LayoutRevision = 5,
+        CardWidthMm = ParseDouble(CardWidthTextBox.Text, 92.1, 10, 200),
+        CardHeightMm = ParseDouble(CardHeightTextBox.Text, 52, 10, 200),
+        PrintColumns = ParseInt(PrintColumnsTextBox.Text, 2, 1, 8),
+        PrintRows = ParseInt(PrintRowsTextBox.Text, 5, 1, 100),
+        LayoutRevision = 6,
         CardRotationDegrees = ParseDouble(CardRotationTextBox.Text, 0, -180, 180),
+        PageMarginTopMm = ParseDouble(PrintMarginTopTextBox.Text, 10, 0, 40),
+        PageMarginBottomMm = ParseDouble(PrintMarginBottomTextBox.Text, 10, 0, 40),
+        PageMarginLeftMm = ParseDouble(PrintMarginLeftTextBox.Text, 10, 0, 40),
+        PageMarginRightMm = ParseDouble(PrintMarginRightTextBox.Text, 10, 0, 40),
         ImportedBackgroundImagePath = _isRasterTemplateMode ? null : _importedTemplateImagePath,
         ImportedBackgroundImageBase64 = _isRasterTemplateMode ? null : GetImportedImageBase64(),
         ImportedBackgroundImageExtension = string.IsNullOrWhiteSpace(_importedTemplateImagePath) ? ".png" : System.IO.Path.GetExtension(_importedTemplateImagePath),
@@ -624,7 +628,7 @@ public partial class TemplateDesignerView
             state.ImportedBackgroundImageBase64 = null;
             state.ImportedBackgroundImageExtension = ".png";
             state.Format = TemplateFormatId;
-            state.LayoutRevision = 5;
+            state.LayoutRevision = 6;
         }
         else if (requiresDipCoordinateMigration)
         {
@@ -659,8 +663,8 @@ public partial class TemplateDesignerView
         CardWidthTextBox.Text = state.CardWidthMm.ToString("0.#", CultureInfo.InvariantCulture);
         CardHeightTextBox.Text = state.CardHeightMm.ToString("0.#", CultureInfo.InvariantCulture);
         CardRotationTextBox.Text = state.CardRotationDegrees.ToString("0.#", CultureInfo.InvariantCulture);
-        PrintColumnsTextBox.Text = ParseInt(state.PrintColumns.ToString(CultureInfo.InvariantCulture), 3, 1, 8).ToString(CultureInfo.InvariantCulture);
-        PrintRowsTextBox.Text = ParseInt(state.PrintRows.ToString(CultureInfo.InvariantCulture), 17, 1, 100).ToString(CultureInfo.InvariantCulture);
+        PrintColumnsTextBox.Text = ParseInt(state.PrintColumns.ToString(CultureInfo.InvariantCulture), 2, 1, 8).ToString(CultureInfo.InvariantCulture);
+        PrintRowsTextBox.Text = ParseInt(state.PrintRows.ToString(CultureInfo.InvariantCulture), 5, 1, 100).ToString(CultureInfo.InvariantCulture);
         _studioPreviewPageNumber = 1;
         var savedHotSpotPackage = HotspotPackageComboBox.Items.OfType<DemoCardPackage>()
             .FirstOrDefault(item => string.Equals(item.Key, state.HotspotPackageKey, StringComparison.OrdinalIgnoreCase));
@@ -797,12 +801,16 @@ public partial class TemplateDesignerView
         SelectComboTag(ColorThemeComboBox, "blue");
         SelectComboTag(FontFamilyComboBox, "Segoe UI");
         ElementFontSizeTextBox.Text = "11";
-        CardWidthTextBox.Text = "46";
-        CardHeightTextBox.Text = "15.8";
+        CardWidthTextBox.Text = "92.1";
+        CardHeightTextBox.Text = "52";
         CardRotationTextBox.Text = "0";
-        PrintColumnsTextBox.Text = "3";
-        PrintRowsTextBox.Text = "17";
+        PrintColumnsTextBox.Text = "2";
+        PrintRowsTextBox.Text = "5";
         PrintTotalCardsTextBox.Text = "153";
+        PrintMarginTopTextBox.Text = "10";
+        PrintMarginBottomTextBox.Text = "10";
+        PrintMarginLeftTextBox.Text = "10";
+        PrintMarginRightTextBox.Text = "10";
         _studioPreviewPageNumber = 1;
         // Begin from the 60 × 35 mm design coordinate system so the first transform
         // applies the same proportional remap used when the customer changes card size.
