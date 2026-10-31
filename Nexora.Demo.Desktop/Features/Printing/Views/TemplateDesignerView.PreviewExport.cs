@@ -47,7 +47,9 @@ public partial class TemplateDesignerView
             const double dipPerMillimeter = 96d / 25.4d;
             var pageWidth = StudioPageWidthMm * dipPerMillimeter;
             var pageHeight = StudioPageHeightMm * dipPerMillimeter;
-            var pageMargin = StudioPageMarginMm * dipPerMillimeter;
+            var pageMarginTop = PageMarginTopMm * dipPerMillimeter;
+            var pageMarginLeft = PageMarginLeftMm * dipPerMillimeter;
+            var usablePageWidth = StudioPageWidthMm - PageMarginLeftMm - PageMarginRightMm;
             var cardGap = StudioCardGapMm * dipPerMillimeter;
             var cardWidth = layout.CardWidthMm * dipPerMillimeter;
             var cardHeight = layout.CardHeightMm * dipPerMillimeter;
@@ -81,9 +83,7 @@ public partial class TemplateDesignerView
                     Math.Min(layout.CardsPerPage, layout.TotalCards - firstCardIndex));
                 var totalGridWidth = layout.Columns * layout.CardWidthMm +
                     Math.Max(0, layout.Columns - 1) * StudioCardGapMm;
-                var horizontalStart = Math.Max(
-                    StudioPageMarginMm,
-                    (StudioPageWidthMm - totalGridWidth) / 2d) * dipPerMillimeter;
+                var horizontalStart = (PageMarginLeftMm + Math.Max(0, (usablePageWidth - totalGridWidth) / 2d)) * dipPerMillimeter;
 
                 for (var localIndex = 0; localIndex < cardsOnPage; localIndex++)
                 {
@@ -110,7 +110,7 @@ public partial class TemplateDesignerView
                     var columnFromRight = localIndex % layout.Columns;
                     var left = horizontalStart +
                         (layout.Columns - 1 - columnFromRight) * (cardWidth + cardGap);
-                    var top = pageMargin + row * (cardHeight + cardGap);
+                    var top = pageMarginTop + row * (cardHeight + cardGap);
                     FixedPage.SetLeft(cardViewbox, left);
                     FixedPage.SetTop(cardViewbox, top);
                     page.Children.Add(cardViewbox);
