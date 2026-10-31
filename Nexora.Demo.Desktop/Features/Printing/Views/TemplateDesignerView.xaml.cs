@@ -246,10 +246,14 @@ public partial class TemplateDesignerView : UserControl
         public string ColorTheme { get; set; } = "blue";
         public string FontFamily { get; set; } = "Segoe UI";
         public double FontSize { get; set; } = 11;
-        public double CardWidthMm { get; set; } = 46;
-        public double CardHeightMm { get; set; } = 15.8;
-        public int PrintColumns { get; set; } = 3;
-        public int PrintRows { get; set; } = 17;
+        public double CardWidthMm { get; set; } = 92.1;
+        public double CardHeightMm { get; set; } = 52;
+        public int PrintColumns { get; set; } = 2;
+        public int PrintRows { get; set; } = 5;
+        public double PageMarginTopMm { get; set; } = 10;
+        public double PageMarginBottomMm { get; set; } = 10;
+        public double PageMarginLeftMm { get; set; } = 10;
+        public double PageMarginRightMm { get; set; } = 10;
         // Bumped when the built-in Default_Design receives a new readable card layout.
         // Missing values in older JSON intentionally deserialize as revision 0.
         public int LayoutRevision { get; set; }
