@@ -477,7 +477,7 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
-                        <RowDefinition Height="48"/>
+                        
                     </Grid.RowDefinitions>
                     <Grid Grid.Row="0">
                         <Grid.ColumnDefinitions>
@@ -545,12 +545,8 @@
                                                  LostFocus="PrintLayoutSetting_LostFocus"/>
                                     </StackPanel>
                                 </UniformGrid>
-                                <TextBlock x:Name="PrintLayoutSummaryTextBlock" Text="2 عمود × 5 صفوف · 10 كروت/صفحة"
-                                           FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}"
-                                           TextWrapping="Wrap" Margin="3,2,3,0"/>
-                                <Button Content="إعادة ضبط التخطيط" Height="29" HorizontalAlignment="Left"
-                                        Style="{StaticResource SecondaryButton}" Click="ResetPrintLayoutButton_Click"
-                                        Padding="10,0" Margin="2,2,0,0"/>
+                                
+                                
                             </StackPanel>
                         </Border>
 
@@ -585,40 +581,12 @@
                                                  LostFocus="PrintLayoutSetting_LostFocus"/>
                                     </StackPanel>
                                 </UniformGrid>
-                                <TextBlock Text="تُطبّق الهوامش على المعاينة والطباعة وPDF."
-                                           Style="{StaticResource StudioHint}" Margin="3,8,3,0"/>
+                                
                             </StackPanel>
                         </Border>
                     </Grid>
 
-                    <DockPanel Grid.Row="1" LastChildFill="True" Margin="3,7,3,0">
-                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                            <Button Style="{StaticResource StudioPrimaryActionButton}" Height="38" MinWidth="104"
-                                    Click="PrintStudioPreviewButton_Click" ToolTip="طباعة نموذج تخطيطي A4">
-                                <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
-                                    <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="16" Margin="0,0,6,0"/>
-                                    <TextBlock Text="طباعة نموذج" FontSize="12.5"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Style="{StaticResource StudioActionButton}" Height="38" MinWidth="104"
-                                    Click="ExportStudioPreviewPdfButton_Click" ToolTip="تصدير المعاينة إلى PDF">
-                                <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
-                                    <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="16" Margin="0,0,6,0"/>
-                                    <TextBlock Text="تصدير PDF" FontSize="12.5"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Style="{StaticResource StudioActionButton}" Height="38" MinWidth="108"
-                                    Click="PreviewTemplateButton_Click" ToolTip="فتح معاينة ورقة A4">
-                                <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
-                                    <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="16" Margin="0,0,6,0"/>
-                                    <TextBlock Text="معاينة" FontSize="12.5"/>
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-                        <TextBlock Text="ملاحظة: طباعة الدفعات الفعلية تتم من شاشة إصدار الكروت."
-                                   FontSize="10.5" Foreground="#718096" VerticalAlignment="Center"
-                                   Margin="0,0,12,0"/>
-                    </DockPanel>
+                    
                 </Grid>
             </Border>
         </Grid>
@@ -629,12 +597,12 @@
 
     <ToggleButton x:Name="FieldLoginToggleButton" Tag="login" Content="اسم المستخدم" Style="{StaticResource StudioFieldChip}" IsChecked="False" Visibility="Collapsed" Click="StudioFieldToggleButton_Click"/>
 
-    <Grid Visibility="Collapsed" Opacity="0" Width="0" Height="0" IsHitTestVisible="False"><StackPanel x:Name="DesignerLayersPanel"/>
+    <Grid Visibility="Collapsed" Opacity="0" Width="0" Height="0" IsHitTestVisible="False"><TextBlock x:Name="CanvasSizeTextBlock" Text="92.1 × 52 مم · دوران 0°"/><TextBlock x:Name="PrintLayoutSummaryTextBlock" Text="2 × 5 · 10 / صفحة"/><StackPanel x:Name="DesignerLayersPanel"/>
             <TabControl x:Name="StudioWorkspaceTabs" SelectedIndex="0" SelectionChanged="StudioWorkspaceTabs_SelectionChanged">
                 <TabItem Header="التصميم"/>
                 <TabItem Header="معاينة الصفحة"/>
             </TabControl>
-            <TextBlock x:Name="PrintLayoutSummaryHeaderTextBlock" Text="3 × 17 · 51 / صفحة"/>
+            <TextBlock x:Name="PrintLayoutSummaryHeaderTextBlock" Text="2 × 5 · 10 / صفحة"/>
             <Grid x:Name="PrintSheetPreviewHost" SizeChanged="PrintSheetPreviewHost_SizeChanged"/>
             <Grid x:Name="SingleCardPreviewHost"/>
             <Button x:Name="PrintPagePreviousButton" Click="PrintPagePreviousButton_Click"/>
