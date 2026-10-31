@@ -11,8 +11,12 @@ public partial class TemplateDesignerView
 {
     private const double StudioPageWidthMm = 210d;
     private const double StudioPageHeightMm = 297d;
-    private const double StudioPageMarginMm = 5d;
     private const double StudioCardGapMm = 1d;
+
+    private double PageMarginTopMm => ParseDouble(PrintMarginTopTextBox?.Text, 10, 0, 40);
+    private double PageMarginBottomMm => ParseDouble(PrintMarginBottomTextBox?.Text, 10, 0, 40);
+    private double PageMarginLeftMm => ParseDouble(PrintMarginLeftTextBox?.Text, 10, 0, 40);
+    private double PageMarginRightMm => ParseDouble(PrintMarginRightTextBox?.Text, 10, 0, 40);
     private int _studioPreviewPageNumber = 1;
     private bool _isStudioPreviewRendering;
 
@@ -70,8 +74,8 @@ public partial class TemplateDesignerView
     private void ApplyCardDimensionsButton_Click(object sender, RoutedEventArgs e)
     {
         if (!_isReady) return;
-        var width = ParseDouble(CardWidthTextBox.Text, 46, 10, 200);
-        var height = ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200);
+        var width = ParseDouble(CardWidthTextBox.Text, 92.1, 10, 200);
+        var height = ParseDouble(CardHeightTextBox.Text, 52, 10, 200);
         var rotation = ParseDouble(CardRotationTextBox.Text, 0, -180, 180);
         CardWidthTextBox.Text = width.ToString("0.#", CultureInfo.InvariantCulture);
         CardHeightTextBox.Text = height.ToString("0.#", CultureInfo.InvariantCulture);
@@ -121,8 +125,8 @@ public partial class TemplateDesignerView
         _isStudioPreviewRendering = true;
         try
         {
-            PrintColumnsTextBox.Text = "3";
-            PrintRowsTextBox.Text = "17";
+            PrintColumnsTextBox.Text = "2";
+            PrintRowsTextBox.Text = "5";
             _studioPreviewPageNumber = 1;
         }
         finally
@@ -130,7 +134,7 @@ public partial class TemplateDesignerView
             _isStudioPreviewRendering = wasRenderingPreview;
         }
         RefreshStudioPreviews();
-        SetStatus("تمت إعادة تخطيط المعاينة إلى 3 أعمدة × 17 صفًا. سيُحسب عدد الصفحات حسب إجمالي الكروت ومقاسها.", isSuccess: true);
+        SetStatus("تمت إعادة تخطيط A4 إلى عمودين × خمسة صفوف وفق مقاس 92.1 × 52 مم وهوامش 10 مم.", isSuccess: true);
     }
 
     private void PrintPagePreviousButton_Click(object sender, RoutedEventArgs e)
@@ -149,13 +153,13 @@ public partial class TemplateDesignerView
     private StudioPrintLayout CalculateStudioPrintLayout()
     {
         var totalCards = ParseInt(PrintTotalCardsTextBox?.Text, 153, 1, 10000);
-        var requestedColumns = ParseInt(PrintColumnsTextBox?.Text, 3, 1, 8);
-        var requestedRows = ParseInt(PrintRowsTextBox?.Text, 17, 1, 100);
-        var cardWidth = ParseDouble(CardWidthTextBox?.Text, 46, 10, 200);
-        var cardHeight = ParseDouble(CardHeightTextBox?.Text, 15.8, 10, 200);
+        var requestedColumns = ParseInt(PrintColumnsTextBox?.Text, 2, 1, 8);
+        var requestedRows = ParseInt(PrintRowsTextBox?.Text, 5, 1, 100);
+        var cardWidth = ParseDouble(CardWidthTextBox?.Text, 92.1, 10, 200);
+        var cardHeight = ParseDouble(CardHeightTextBox?.Text, 52, 10, 200);
 
-        var usableWidth = StudioPageWidthMm - StudioPageMarginMm * 2d;
-        var usableHeight = StudioPageHeightMm - StudioPageMarginMm * 2d;
+        var usableWidth = StudioPageWidthMm - PageMarginLeftMm - PageMarginRightMm;
+        var usableHeight = StudioPageHeightMm - PageMarginTopMm - PageMarginBottomMm;
         var maxColumns = Math.Max(1, (int)Math.Floor((usableWidth + StudioCardGapMm) / (cardWidth + StudioCardGapMm)));
         var maxRows = Math.Max(1, (int)Math.Floor((usableHeight + StudioCardGapMm) / (cardHeight + StudioCardGapMm)));
         var columns = Math.Max(1, Math.Min(requestedColumns, maxColumns));
@@ -259,9 +263,8 @@ public partial class TemplateDesignerView
 
         var totalGridWidth = layout.Columns * layout.CardWidthMm +
             Math.Max(0, layout.Columns - 1) * StudioCardGapMm;
-        var horizontalStart = Math.Max(
-            StudioPageMarginMm,
-            (StudioPageWidthMm - totalGridWidth) / 2d);
+        var usablePageWidth = StudioPageWidthMm - PageMarginLeftMm - PageMarginRightMm;
+        var horizontalStart = PageMarginLeftMm + Math.Max(0, (usablePageWidth - totalGridWidth) / 2d);
         var package = GetActivePackage();
         var hours = package?.TimeLimit ?? "—";
         var validity = package?.Validity ?? "—";
@@ -298,7 +301,7 @@ public partial class TemplateDesignerView
             var x = horizontalStart +
                 (layout.Columns - 1 - columnFromRight) *
                 (layout.CardWidthMm + StudioCardGapMm);
-            var y = StudioPageMarginMm +
+            var y = PageMarginTopMm +
                 row * (layout.CardHeightMm + StudioCardGapMm);
             Canvas.SetLeft(cardViewbox, x);
             Canvas.SetTop(cardViewbox, y);
