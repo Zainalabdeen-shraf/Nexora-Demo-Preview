@@ -178,7 +178,7 @@ public partial class TemplateDesignerView
             state.RasterTemplateImagePath = _rasterTemplateImagePath;
             state.RasterTemplateImageBase64 = GetRasterTemplateImageBase64();
             state.Format = TemplateFormatId;
-            state.LayoutRevision = 6;
+            state.LayoutRevision = 7;
 
             Directory.CreateDirectory(TemplateLibraryDirectory);
             Directory.CreateDirectory(System.IO.Path.GetDirectoryName(StoragePath)!);
@@ -208,7 +208,7 @@ public partial class TemplateDesignerView
         state.RasterTemplateImagePath = _rasterTemplateImagePath;
         state.RasterTemplateImageBase64 = GetRasterTemplateImageBase64();
         state.Format = TemplateFormatId;
-        state.LayoutRevision = 5;
+        state.LayoutRevision = 7;
 
         Directory.CreateDirectory(TemplateLibraryDirectory);
         Directory.CreateDirectory(System.IO.Path.GetDirectoryName(StoragePath)!);
@@ -546,7 +546,7 @@ public partial class TemplateDesignerView
         CardHeightMm = ParseDouble(CardHeightTextBox.Text, 52, 10, 200),
         PrintColumns = ParseInt(PrintColumnsTextBox.Text, 2, 1, 8),
         PrintRows = ParseInt(PrintRowsTextBox.Text, 5, 1, 100),
-        LayoutRevision = 6,
+        LayoutRevision = 7,
         CardRotationDegrees = ParseDouble(CardRotationTextBox.Text, 0, -180, 180),
         PageMarginTopMm = ParseDouble(PrintMarginTopTextBox.Text, 10, 0, 40),
         PageMarginBottomMm = ParseDouble(PrintMarginBottomTextBox.Text, 10, 0, 40),
@@ -612,12 +612,12 @@ public partial class TemplateDesignerView
                 }
             }
             state.ElementProperties = newProperties;
-            state.CardWidthMm = 46d;
-            state.CardHeightMm = 15.8d;
+            state.CardWidthMm = 92.1d;
+            state.CardHeightMm = 52d;
             state.ColorTheme = "blue";
             state.TemplateStyle = "classic";
-            state.PrintColumns = 3;
-            state.PrintRows = 17;
+            state.PrintColumns = 2;
+            state.PrintRows = 5;
             // Migrate the built-in card to the independent-layer design. Do not turn
             // the sample banner and fields into one baked image: clients can edit every field.
             state.VisibleElements = CreateDefaultVisibility();
@@ -628,7 +628,7 @@ public partial class TemplateDesignerView
             state.ImportedBackgroundImageBase64 = null;
             state.ImportedBackgroundImageExtension = ".png";
             state.Format = TemplateFormatId;
-            state.LayoutRevision = 6;
+            state.LayoutRevision = 7;
         }
         else if (requiresDipCoordinateMigration)
         {
@@ -745,25 +745,29 @@ public partial class TemplateDesignerView
             state.LayoutRevision = 5;
         }
 
-        // Upgrade only the built-in Default_Design. Older custom templates retain
-        // their own physical card dimensions and page layout.
-        if (string.Equals(state.TemplateName, DefaultTemplateName, StringComparison.OrdinalIgnoreCase) &&
-            state.LayoutRevision < 6)
+        // Repair the legacy Default_Design even when an earlier migration already
+        // marked it as current. A previous build advanced LayoutRevision while
+        // leaving the physical size at 46 × 15.8 mm, producing undersized cards.
+        var isBuiltInDefault = string.Equals(
+            state.TemplateName, DefaultTemplateName, StringComparison.OrdinalIgnoreCase);
+        var hasLegacyPhysicalCardSize =
+            Math.Abs(state.CardWidthMm - 46d) < 0.01 &&
+            Math.Abs(state.CardHeightMm - 15.8d) < 0.01;
+        if (isBuiltInDefault && hasLegacyPhysicalCardSize)
         {
-            if (Math.Abs(state.CardWidthMm - 46d) < 0.01 &&
-                Math.Abs(state.CardHeightMm - 15.8d) < 0.01)
-            {
-                state.CardWidthMm = 92.1d;
-                state.CardHeightMm = 52d;
-                state.PrintColumns = 2;
-                state.PrintRows = 5;
-            }
+            state.CardWidthMm = 92.1d;
+            state.CardHeightMm = 52d;
+            state.PrintColumns = 2;
+            state.PrintRows = 5;
+        }
 
+        if (isBuiltInDefault && (state.LayoutRevision < 7 || hasLegacyPhysicalCardSize))
+        {
             state.PageMarginTopMm = Math.Clamp(state.PageMarginTopMm, 0, 40);
             state.PageMarginBottomMm = Math.Clamp(state.PageMarginBottomMm, 0, 40);
             state.PageMarginLeftMm = Math.Clamp(state.PageMarginLeftMm, 0, 40);
             state.PageMarginRightMm = Math.Clamp(state.PageMarginRightMm, 0, 40);
-            state.LayoutRevision = 6;
+            state.LayoutRevision = 7;
         }
 
         _isRasterTemplateMode = state.IsRasterTemplateMode;
