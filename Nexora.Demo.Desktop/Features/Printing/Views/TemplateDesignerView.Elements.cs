@@ -481,7 +481,7 @@ public partial class TemplateDesignerView
         ApplyTheme();
         ApplyElementVisibility();
         UpdateSelectionFrame();
-        ElementCountTextBlock.Text = $"{_visibleElements.Count(pair => pair.Value && pair.Key != "شعار الشبكة")} عناصر ظاهرة";
+        ElementCountTextBlock.Text = _visibleElements.Count(pair => pair.Value && pair.Key != "شعار الشبكة").ToString(CultureInfo.InvariantCulture);
         SyncFieldToggleButtons();
         SyncSelectedElementEditor();
         RefreshStudioPreviews();
@@ -498,7 +498,7 @@ public partial class TemplateDesignerView
         if (_isRasterTemplateMode) ApplyRasterTemplateModeVisibility();
         ApplyCardDimensionTransform();
         var count = _visibleElements.Count(pair => pair.Value && pair.Key != "شعار الشبكة" && pair.Key != "رمز الدخول");
-        ElementCountTextBlock.Text = $"{count} عناصر ظاهرة";
+        ElementCountTextBlock.Text = count.ToString(CultureInfo.InvariantCulture);
         KeepUsernameCaptionAligned();
         KeepPasswordCaptionAligned();
         EnsureElementBorderOverlays();
