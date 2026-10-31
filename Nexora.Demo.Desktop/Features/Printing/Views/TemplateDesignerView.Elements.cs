@@ -453,8 +453,8 @@ public partial class TemplateDesignerView
             ElementAngleTextBox.Text = angle.ToString("0.#", CultureInfo.InvariantCulture);
         }
 
-        var cardWidth = ParseDouble(CardWidthTextBox.Text, 46, 10, 200);
-        var cardHeight = ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200);
+        var cardWidth = ParseDouble(CardWidthTextBox.Text, 92.1, 10, 200);
+        var cardHeight = ParseDouble(CardHeightTextBox.Text, 52, 10, 200);
         var cardAngle = ParseDouble(CardRotationTextBox.Text, 0, -180, 180);
         CardWidthTextBox.Text = cardWidth.ToString("0.#", CultureInfo.InvariantCulture);
         CardHeightTextBox.Text = cardHeight.ToString("0.#", CultureInfo.InvariantCulture);
