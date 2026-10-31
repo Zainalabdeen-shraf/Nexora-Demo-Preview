@@ -663,6 +663,10 @@ public partial class TemplateDesignerView
         CardWidthTextBox.Text = state.CardWidthMm.ToString("0.#", CultureInfo.InvariantCulture);
         CardHeightTextBox.Text = state.CardHeightMm.ToString("0.#", CultureInfo.InvariantCulture);
         CardRotationTextBox.Text = state.CardRotationDegrees.ToString("0.#", CultureInfo.InvariantCulture);
+        PrintMarginTopTextBox.Text = Math.Clamp(state.PageMarginTopMm, 0, 40).ToString("0.#", CultureInfo.InvariantCulture);
+        PrintMarginBottomTextBox.Text = Math.Clamp(state.PageMarginBottomMm, 0, 40).ToString("0.#", CultureInfo.InvariantCulture);
+        PrintMarginLeftTextBox.Text = Math.Clamp(state.PageMarginLeftMm, 0, 40).ToString("0.#", CultureInfo.InvariantCulture);
+        PrintMarginRightTextBox.Text = Math.Clamp(state.PageMarginRightMm, 0, 40).ToString("0.#", CultureInfo.InvariantCulture);
         PrintColumnsTextBox.Text = ParseInt(state.PrintColumns.ToString(CultureInfo.InvariantCulture), 2, 1, 8).ToString(CultureInfo.InvariantCulture);
         PrintRowsTextBox.Text = ParseInt(state.PrintRows.ToString(CultureInfo.InvariantCulture), 5, 1, 100).ToString(CultureInfo.InvariantCulture);
         _studioPreviewPageNumber = 1;
@@ -739,6 +743,27 @@ public partial class TemplateDesignerView
                 state.ImportedBackgroundImageExtension = ".png";
             }
             state.LayoutRevision = 5;
+        }
+
+        // Upgrade only the built-in Default_Design. Older custom templates retain
+        // their own physical card dimensions and page layout.
+        if (string.Equals(state.TemplateName, DefaultTemplateName, StringComparison.OrdinalIgnoreCase) &&
+            state.LayoutRevision < 6)
+        {
+            if (Math.Abs(state.CardWidthMm - 46d) < 0.01 &&
+                Math.Abs(state.CardHeightMm - 15.8d) < 0.01)
+            {
+                state.CardWidthMm = 92.1d;
+                state.CardHeightMm = 52d;
+                state.PrintColumns = 2;
+                state.PrintRows = 5;
+            }
+
+            state.PageMarginTopMm = Math.Clamp(state.PageMarginTopMm, 0, 40);
+            state.PageMarginBottomMm = Math.Clamp(state.PageMarginBottomMm, 0, 40);
+            state.PageMarginLeftMm = Math.Clamp(state.PageMarginLeftMm, 0, 40);
+            state.PageMarginRightMm = Math.Clamp(state.PageMarginRightMm, 0, 40);
+            state.LayoutRevision = 6;
         }
 
         _isRasterTemplateMode = state.IsRasterTemplateMode;
