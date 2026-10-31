@@ -49,6 +49,7 @@ public partial class TemplateDesignerView : UserControl
     private bool _isRasterTemplateMode;
     private bool _isLoadingTemplateLibrary;
     private string? _studioSelectedFieldTag = "username";
+    private bool _isSyncingElementOpacity;
     private bool _isResizingElement;
     private FrameworkElement? _resizeTarget;
     private string? _activeResizeHandle;
@@ -286,6 +287,8 @@ public partial class TemplateDesignerView : UserControl
         public bool IsVisible { get; set; } = true;
         public string? Text { get; set; }
         public bool IsBold { get; set; }
+        public bool IsItalic { get; set; }
+        public double Opacity { get; set; } = 1d;
         public string? ForegroundHex { get; set; }
         public string? BackgroundHex { get; set; }
         public double FontSize { get; set; } = 11;
