@@ -193,8 +193,8 @@ public partial class TemplateDesignerView
             PrintCurrentPageTextBlock.Text = $"{layout.PageNumber} / {layout.TotalPages}";
             var layoutSummary =
                 $"{layout.Columns} أعمدة × {layout.Rows} صفوف = {layout.CardsPerPage} كرت/صفحة" +
-                (layout.Columns < ParseInt(PrintColumnsTextBox.Text, 3, 1, 8) ||
-                 layout.Rows < ParseInt(PrintRowsTextBox.Text, 17, 1, 100)
+                (layout.Columns < ParseInt(PrintColumnsTextBox.Text, 2, 1, 8) ||
+                 layout.Rows < ParseInt(PrintRowsTextBox.Text, 5, 1, 100)
                     ? " · تم التقييد وفق مقاس الكرت وورقة A4"
                     : string.Empty);
             PrintLayoutSummaryTextBlock.Text = layoutSummary;
@@ -263,8 +263,12 @@ public partial class TemplateDesignerView
 
         var totalGridWidth = layout.Columns * layout.CardWidthMm +
             Math.Max(0, layout.Columns - 1) * StudioCardGapMm;
+        var totalGridHeight = layout.Rows * layout.CardHeightMm +
+            Math.Max(0, layout.Rows - 1) * StudioCardGapMm;
         var usablePageWidth = StudioPageWidthMm - PageMarginLeftMm - PageMarginRightMm;
+        var usablePageHeight = StudioPageHeightMm - PageMarginTopMm - PageMarginBottomMm;
         var horizontalStart = PageMarginLeftMm + Math.Max(0, (usablePageWidth - totalGridWidth) / 2d);
+        var verticalStart = PageMarginTopMm + Math.Max(0, (usablePageHeight - totalGridHeight) / 2d);
         var package = GetActivePackage();
         var hours = package?.TimeLimit ?? "—";
         var validity = package?.Validity ?? "—";
@@ -301,7 +305,7 @@ public partial class TemplateDesignerView
             var x = horizontalStart +
                 (layout.Columns - 1 - columnFromRight) *
                 (layout.CardWidthMm + StudioCardGapMm);
-            var y = PageMarginTopMm +
+            var y = verticalStart +
                 row * (layout.CardHeightMm + StudioCardGapMm);
             Canvas.SetLeft(cardViewbox, x);
             Canvas.SetTop(cardViewbox, y);
