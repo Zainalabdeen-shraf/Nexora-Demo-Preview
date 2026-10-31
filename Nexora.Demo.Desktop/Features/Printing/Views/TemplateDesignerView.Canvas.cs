@@ -382,8 +382,8 @@ public partial class TemplateDesignerView
     {
         if (CardDesignCanvas is null || DesignViewportCanvas is null || CardDesignViewbox is null) return;
 
-        var widthMm = ParseDouble(CardWidthTextBox.Text, 46, 10, 200);
-        var heightMm = ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200);
+        var widthMm = ParseDouble(CardWidthTextBox.Text, 92.1, 10, 200);
+        var heightMm = ParseDouble(CardHeightTextBox.Text, 52, 10, 200);
         var angle = ParseDouble(CardRotationTextBox.Text, 0, -180, 180);
         var canvasWidth = Math.Max(1, DesignBaseWidth * widthMm / BaseWidthMm);
         var canvasHeight = Math.Max(1, DesignBaseHeight * heightMm / BaseHeightMm);
@@ -424,7 +424,7 @@ public partial class TemplateDesignerView
         Canvas.SetTop(CardHeaderBorder, 0);
         CardDividerBorder.Width = Math.Max(1, canvasWidth * 310d / LegacyDesignBaseWidth);
         Canvas.SetLeft(CardDividerBorder, canvasWidth * 94d / LegacyDesignBaseWidth);
-        var legacyLogicalHeight = LegacyDesignBaseHeight * ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200) / BaseHeightMm;
+        var legacyLogicalHeight = LegacyDesignBaseHeight * ParseDouble(CardHeightTextBox.Text, 52, 10, 200) / BaseHeightMm;
         Canvas.SetTop(CardDividerBorder, Math.Min(canvasHeight - 2d, canvasHeight * 34d / legacyLogicalHeight));
 
         var radians = angle * Math.PI / 180d;
