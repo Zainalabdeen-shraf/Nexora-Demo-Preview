@@ -344,7 +344,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*" MinHeight="190"/>
-                <RowDefinition Height="198"/>
+                <RowDefinition Height="148"/>
             </Grid.RowDefinitions>
 
             <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#D7E3F0" BorderThickness="1" CornerRadius="10" Padding="5" Margin="0,0,0,6" FlowDirection="RightToLeft">
@@ -372,71 +372,40 @@
                     CornerRadius="14" Padding="10" Margin="0,0,0,10">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="52"/>
+                        <RowDefinition Height="40"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
-                        <RowDefinition Height="28"/>
+                        
                     </Grid.RowDefinitions>
 
                     <Border Grid.Row="0" Background="#F7F9FC" BorderBrush="#E2E8F0" BorderThickness="1"
-                            CornerRadius="10" Padding="8,5" Margin="0,0,0,8">
-                        <DockPanel LastChildFill="True">
-                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="مساحة التصميم" FontSize="13" FontWeight="Bold"
-                                           Foreground="#203654" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <Border Background="#E9F0FA" CornerRadius="6" Padding="8,4">
-                                    <TextBlock Text="وضع التحرير" FontSize="10.5" Foreground="#365A88" FontWeight="SemiBold"/>
-                                </Border>
-                            </StackPanel>
-                            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" FlowDirection="LeftToRight"
-                                        VerticalAlignment="Center">
-                                <Button Content="↻ 90°" Height="34" MinWidth="66" Margin="3,0"
-                                        Style="{StaticResource SecondaryButton}" Click="RotateSelectedFieldButton_Click"
-                                        ToolTip="تدوير العنصر المحدد"/>
-                                <Button Content="−" Width="36" Height="34" Margin="3,0"
-                                        Style="{StaticResource SecondaryButton}" Click="ZoomOutButton_Click"
-                                        ToolTip="تصغير مساحة العمل"/>
-                                <Border Background="#FFFFFF" BorderBrush="#CBD5E1" BorderThickness="1"
-                                        CornerRadius="7" Padding="9,5" Margin="3,0">
-                                    <TextBlock x:Name="ZoomPercentageTextBlock" Text="100%" FontSize="12"
-                                               FontWeight="Bold" MinWidth="48" TextAlignment="Center"
-                                               VerticalAlignment="Center"/>
-                                </Border>
-                                <Button Content="＋" Width="36" Height="34" Margin="3,0"
-                                        Style="{StaticResource SecondaryButton}" Click="ZoomInButton_Click"
-                                        ToolTip="تكبير مساحة العمل"/>
-                                <Slider x:Name="ZoomSlider" Width="145" Minimum="0.2" Maximum="8.0"
-                                        Value="1" SmallChange="0.1" LargeChange="0.5" Margin="8,0"
-                                        VerticalAlignment="Center" FlowDirection="LeftToRight"
-                                        ValueChanged="ZoomSlider_ValueChanged"/>
-                                <Button Content="ملاءمة" Height="34" MinWidth="74" Margin="3,0"
-                                        Style="{StaticResource SecondaryButton}" Click="ZoomFitButton_Click"
-                                        ToolTip="إظهار البطاقة كاملة داخل مساحة العمل"/>
-                            </StackPanel>
-                        </DockPanel>
+                        CornerRadius="8" Padding="4" Margin="0,0,0,5">
+                <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Button Content="↻" Width="32" Height="30" Margin="2,0" Style="{StaticResource SecondaryButton}" Click="RotateSelectedFieldButton_Click" ToolTip="تدوير"/>
+                    <Button Content="−" Width="32" Height="30" Margin="2,0" Style="{StaticResource SecondaryButton}" Click="ZoomOutButton_Click" ToolTip="تصغير"/>
+                    <Border Background="#FFFFFF" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="7,3" Margin="2,0">
+                        <TextBlock x:Name="ZoomPercentageTextBlock" Text="100%" FontSize="11" FontWeight="Bold" MinWidth="40" TextAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
-
-                    <Border Grid.Row="1" Background="#F8FAFD" BorderBrush="#E2E8F0" BorderThickness="1"
-                            CornerRadius="8" Padding="5" Margin="0,0,0,7">
-                        <DockPanel LastChildFill="True">
-                            <TextBlock DockPanel.Dock="Right" Text="المسطرة · مم" FontSize="10.5"
-                                       Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <UniformGrid Columns="10">
-                                <TextBlock Text="0" FontSize="10" Foreground="#52647D" TextAlignment="Center"/>
-                                <TextBlock Text="10" FontSize="10" Foreground="#52647D" TextAlignment="Center"/>
-                                <TextBlock Text="20" FontSize="10" Foreground="#52647D" TextAlignment="Center"/>
-                                <TextBlock Text="30" FontSize="10" Foreground="#52647D" TextAlignment="Center"/>
-                                <TextBlock Text="40" FontSize="10" Foreground="#52647D" TextAlignment="Center"/>
-                                <TextBlock Text="50" FontSize="10" Foreground="#52647D" TextAlignment="Center"/>
-                                <TextBlock Text="60" FontSize="10" Foreground="#52647D" TextAlignment="Center"/>
-                                <TextBlock Text="70" FontSize="10" Foreground="#52647D" TextAlignment="Center"/>
-                                <TextBlock Text="80" FontSize="10" Foreground="#52647D" TextAlignment="Center"/>
-                                <TextBlock Text="90" FontSize="10" Foreground="#52647D" TextAlignment="Center"/>
-                            </UniformGrid>
-                        </DockPanel>
-                    </Border>
-
-                    <Grid Grid.Row="2">
+                    <Button Content="＋" Width="32" Height="30" Margin="2,0" Style="{StaticResource SecondaryButton}" Click="ZoomInButton_Click" ToolTip="تكبير"/>
+                    <Slider x:Name="ZoomSlider" Width="128" Minimum="0.2" Maximum="8.0" Value="1" SmallChange="0.1" LargeChange="0.5" Margin="7,0" VerticalAlignment="Center" FlowDirection="LeftToRight" ValueChanged="ZoomSlider_ValueChanged"/>
+                    <Button Content="ملاءمة" Height="30" MinWidth="62" Margin="2,0" Style="{StaticResource SecondaryButton}" Click="ZoomFitButton_Click" ToolTip="ملاءمة البطاقة"/>
+                </StackPanel>
+            </Border>
+            <Border Grid.Row="1" Background="#F8FAFD" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="7" Padding="3" Margin="0,0,0,5">
+                <UniformGrid Columns="10">
+                    <TextBlock Text="0" FontSize="9" Foreground="#52647D" TextAlignment="Center"/>
+                    <TextBlock Text="10" FontSize="9" Foreground="#52647D" TextAlignment="Center"/>
+                    <TextBlock Text="20" FontSize="9" Foreground="#52647D" TextAlignment="Center"/>
+                    <TextBlock Text="30" FontSize="9" Foreground="#52647D" TextAlignment="Center"/>
+                    <TextBlock Text="40" FontSize="9" Foreground="#52647D" TextAlignment="Center"/>
+                    <TextBlock Text="50" FontSize="9" Foreground="#52647D" TextAlignment="Center"/>
+                    <TextBlock Text="60" FontSize="9" Foreground="#52647D" TextAlignment="Center"/>
+                    <TextBlock Text="70" FontSize="9" Foreground="#52647D" TextAlignment="Center"/>
+                    <TextBlock Text="80" FontSize="9" Foreground="#52647D" TextAlignment="Center"/>
+                    <TextBlock Text="90" FontSize="9" Foreground="#52647D" TextAlignment="Center"/>
+                </UniformGrid>
+            </Border>
+            <Grid Grid.Row="2">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="34"/>
                             <ColumnDefinition Width="*"/>
@@ -449,6 +418,7 @@
                                 <TextBlock Text="20" FontSize="10" Foreground="#52647D" Margin="0,0,0,28"/>
                                 <TextBlock Text="30" FontSize="10" Foreground="#52647D" Margin="0,0,0,28"/>
                                 <TextBlock Text="40" FontSize="10" Foreground="#52647D"/>
+                                <TextBlock Text="50" FontSize="10" Foreground="#52647D" Margin="0,10,0,0"/>
                             </StackPanel>
                         </Border>
                         <Border Grid.Column="1" Background="#EDF3F9" BorderBrush="#D7E2EF"
@@ -497,15 +467,7 @@
                         </Border>
                     </Grid>
 
-                    <DockPanel Grid.Row="3" LastChildFill="True" Margin="3,5,3,0">
-                        <Border DockPanel.Dock="Right" Background="#F1F5FA" BorderBrush="#DFE7F1"
-                                BorderThickness="1" CornerRadius="6" Padding="8,3" Margin="0,0,8,0">
-                            <TextBlock x:Name="CanvasSizeTextBlock" Text="46 × 15.8 مم · دوران 0°"
-                                       FontSize="10.5" Foreground="#52647D" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="حدد العنصر لتحريكه أو تغيير أبعاده من لوحة الخصائص."
-                                   FontSize="10.5" Foreground="#748198" VerticalAlignment="Center"/>
-                    </DockPanel>
+                    
                 </Grid>
             </Border>
 
