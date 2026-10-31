@@ -239,6 +239,8 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="7"/>
+                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0">
                                         <TextBlock Text="نوع الخط" Style="{StaticResource StudioHint}" Margin="0,0,0,4"/>
@@ -254,6 +256,11 @@
                                                   Style="{StaticResource StudioAlignmentToggleStyle}"
                                                   FontSize="15" FontWeight="Bold" Click="ElementStyleControl_Click"
                                                   ToolTip="تفعيل أو إيقاف الخط العريض"/>
+                                    <ToggleButton x:Name="ItalicElementCheckBox" Grid.Column="4" Content="I"
+                                                  IsChecked="False" Width="46" Height="38" Margin="0,18,0,0"
+                                                  Style="{StaticResource StudioAlignmentToggleStyle}"
+                                                  FontSize="15" FontStyle="Italic" Click="ElementStyleControl_Click"
+                                                  ToolTip="تفعيل أو إيقاف الخط المائل"/>
                                 </Grid>
 
                                 <TextBlock Text="محاذاة النص" Style="{StaticResource StudioHint}" Margin="0,0,0,5"/>
@@ -271,6 +278,23 @@
                                         <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="16"/>
                                     </ToggleButton>
                                 </StackPanel>
+
+                                <Grid Margin="0,0,0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="شفافية العنصر" FontSize="11.5" FontWeight="SemiBold"
+                                               Foreground="#263B59" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="ElementOpacityValueTextBlock" Grid.Column="1" Text="100%"
+                                               FontSize="11.5" FontWeight="SemiBold" Foreground="#263B59"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                                <Slider x:Name="ElementOpacitySlider" Minimum="0" Maximum="100" Value="100"
+                                        SmallChange="1" LargeChange="10" TickFrequency="5" Height="25"
+                                        Margin="2,0,2,11" FlowDirection="LeftToRight"
+                                        ValueChanged="ElementOpacitySlider_ValueChanged"
+                                        ToolTip="التحكم في شفافية العنصر المحدد من 0% إلى 100%"/>
 
                                 <TextBlock Text="الألوان والإطار" FontSize="12.5" FontWeight="Bold"
                                            Foreground="#233653" Margin="1,0,0,8"/>
