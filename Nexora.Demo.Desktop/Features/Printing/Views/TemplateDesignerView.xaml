@@ -176,7 +176,7 @@
                                Foreground="#9AA6B7" VerticalAlignment="Center" FontWeight="Bold"/>
                 </DockPanel>
 
-                <TabControl Grid.Row="1" FontSize="12" BorderThickness="0" Background="Transparent">
+                <TabControl x:Name="InspectorTabs" Grid.Row="1" FontSize="12" BorderThickness="0" Background="Transparent">
                     <TabItem Header="خصائص العنصر" Padding="10,7">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Margin="4,10,4,5">
@@ -666,7 +666,6 @@
 
     <ToggleButton x:Name="FieldLoginToggleButton" Tag="login" Content="اسم المستخدم" Style="{StaticResource StudioFieldChip}" IsChecked="False" Visibility="Collapsed" Click="StudioFieldToggleButton_Click"/>
 
-    <TabControl x:Name="InspectorTabs" Visibility="Collapsed" Width="0" Height="0"/>
     <Grid Visibility="Collapsed" Opacity="0" Width="0" Height="0" IsHitTestVisible="False">
             <TabControl x:Name="StudioWorkspaceTabs" SelectedIndex="0" SelectionChanged="StudioWorkspaceTabs_SelectionChanged">
                 <TabItem Header="التصميم"/>
