@@ -15,6 +15,7 @@ using Nexora.Demo.Desktop.Features.Cards.Models;
 namespace Nexora.Demo.Desktop.Features.Printing.Views;
 
 // Responsibility: Canvas scaling, zoom, selection, and drag interactions.
+// Fit percentage is relative to the available workspace; physical fit scale is stored separately.
 public partial class TemplateDesignerView
 {
     private void TemplateDesignerView_Loaded(object sender, RoutedEventArgs e)
