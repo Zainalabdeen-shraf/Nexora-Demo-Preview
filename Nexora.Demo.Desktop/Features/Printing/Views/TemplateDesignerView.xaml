@@ -540,7 +540,7 @@
                                                 <TextBlock x:Name="PreviewSerialTextBlock" Canvas.Left="98" Canvas.Top="95" Width="145" Height="12" Text="الرقم التسلسلي: 0001" FontSize="8.5" Foreground="#777D86" Visibility="Collapsed" FlowDirection="RightToLeft"/>
                                                 <TextBlock x:Name="PreviewExtraTextBlock" Canvas.Left="98" Canvas.Top="95" Width="310" Height="12" Text="للدعم: تواصل مع مسؤول الشبكة" FontSize="8.5" Foreground="#777D86" Visibility="Collapsed" FlowDirection="RightToLeft"/>
                                                 <TextBlock x:Name="PreviewContactTextBlock" Canvas.Left="98" Canvas.Top="95" Width="350" Height="13" Text="" FontSize="12.5" Foreground="#777D86" Visibility="Visible" FlowDirection="RightToLeft"/>
-                                                <Border x:Name="SelectionFrameBorder" Canvas.Left="98" Canvas.Top="5" Width="245" Height="27" BorderBrush="{StaticResource PrimaryBrush}" BorderThickness="1.2" Background="Transparent" IsHitTestVisible="False" Visibility="Collapsed" Panel.ZIndex="9999"/>
+                                                <Border x:Name="SelectionFrameBorder" Canvas.Left="98" Canvas.Top="5" Width="245" Height="27" BorderBrush="#1684F3" BorderThickness="1.2" Background="Transparent" IsHitTestVisible="False" Visibility="Collapsed" Panel.ZIndex="9999"/>
                                             </Canvas>
                                 </Canvas>
                                 </Viewbox>
