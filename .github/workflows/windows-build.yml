@@ -6,14 +6,15 @@ on:
       - main
       - "demo/**"
       - "feature/**"
+      - "audit/**"
     tags:
       - "demo-v*"
   pull_request:
     branches:
       - main
   workflow_dispatch:
-
 permissions:
+
   contents: read
 
 concurrency:
