@@ -199,7 +199,7 @@ public partial class TemplateDesignerView
         if (!double.IsFinite(top)) top = 0;
         var width = GetElementWidth(selected);
         var height = GetElementHeight(selected);
-        const double handleSize = 12d;
+        const double handleSize = 8d;
 
         var handles = new (string Name, double X, double Y, Cursor Cursor)[]
         {
@@ -226,8 +226,8 @@ public partial class TemplateDesignerView
             // corner handles. The selection outline is the only visible overlay.
             var handleVisual = new FrameworkElementFactory(typeof(Border));
             handleVisual.SetValue(Border.BackgroundProperty, Brushes.White);
-            handleVisual.SetValue(Border.BorderBrushProperty, new SolidColorBrush(Color.FromRgb(0xC5, 0x1D, 0x2E)));
-            handleVisual.SetValue(Border.BorderThicknessProperty, new Thickness(1.2));
+            handleVisual.SetValue(Border.BorderBrushProperty, new SolidColorBrush(Color.FromRgb(0x16, 0x84, 0xF3)));
+            handleVisual.SetValue(Border.BorderThicknessProperty, new Thickness(0.9));
             handleVisual.SetValue(Border.CornerRadiusProperty, new CornerRadius(3));
             var handleTemplate = new ControlTemplate(typeof(Thumb)) { VisualTree = handleVisual };
             var thumb = new Thumb
@@ -237,7 +237,7 @@ public partial class TemplateDesignerView
                 Tag = item.Name,
                 Cursor = item.Cursor,
                 Background = Brushes.White,
-                BorderBrush = new SolidColorBrush(Color.FromRgb(0xC5, 0x1D, 0x2E)),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(0x16, 0x84, 0xF3)),
                 BorderThickness = new Thickness(1),
                 Template = handleTemplate,
                 Focusable = false,
@@ -264,7 +264,7 @@ public partial class TemplateDesignerView
         if (!double.IsFinite(top)) top = 0;
         var width = GetElementWidth(selected);
         var height = GetElementHeight(selected);
-        const double handleSize = 12d;
+        const double handleSize = 8d;
         var centerX = left + width / 2d;
         var centerY = top + height / 2d;
         var radians = GetElementRotation(selected) * Math.PI / 180d;
