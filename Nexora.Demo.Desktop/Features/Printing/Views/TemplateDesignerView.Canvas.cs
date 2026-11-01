@@ -38,21 +38,19 @@ public partial class TemplateDesignerView
     private void ZoomFitButton_Click(object sender, RoutedEventArgs e) => FitCardToWorkspace();
     private void FitCardToWorkspace()
     {
-        if (DesignPreviewHost is null || ZoomSlider is null || DesignPreviewHost.ActualWidth < 40 || DesignPreviewHost.ActualHeight < 40)
+        if (DesignPreviewHost is null || ZoomSlider is null
+            || DesignPreviewHost.ActualWidth < 40 || DesignPreviewHost.ActualHeight < 40)
             return;
 
         _isApplyingFitZoom = true;
         try
         {
-            ApplyCardDimensionTransform();
-            var availableWidth = Math.Max(40, DesignPreviewHost.ActualWidth - 8);
-            var availableHeight = Math.Max(40, DesignPreviewHost.ActualHeight - 8);
-            var baseWidth = Math.Max(1, DesignViewportCanvas.Width);
-            var baseHeight = Math.Max(1, DesignViewportCanvas.Height);
-            var fittedZoom = Math.Clamp(Math.Min(availableWidth / baseWidth, availableHeight / baseHeight), 0.2, 8.0);
-            _zoom = fittedZoom;
-            ZoomSlider.Value = fittedZoom;
+            // "Fit" is the user's 100% baseline. The physical scale needed to fit
+            // the card is kept separately so zoom labels remain intuitive.
             _isAutoFitZoom = true;
+            _zoom = 1d;
+            if (Math.Abs(ZoomSlider.Value - 1d) > 0.001d)
+                ZoomSlider.Value = 1d;
             ApplyCardDimensionTransform();
         }
         finally
@@ -459,8 +457,17 @@ public partial class TemplateDesignerView
 
         _lastCanvasWidth = canvasWidth;
         _lastCanvasHeight = canvasHeight;
-        CardDesignViewbox.Width = Math.Max(1, boundsWidth * _zoom);
-        CardDesignViewbox.Height = Math.Max(1, boundsHeight * _zoom);
+
+        if (_isAutoFitZoom && DesignPreviewHost is not null
+            && DesignPreviewHost.ActualWidth > 40 && DesignPreviewHost.ActualHeight > 40)
+        {
+            var fitWidth = Math.Max(40, DesignPreviewHost.ActualWidth - 24);
+            var fitHeight = Math.Max(40, DesignPreviewHost.ActualHeight - 24);
+            _fitZoom = Math.Clamp(Math.Min(fitWidth / boundsWidth, fitHeight / boundsHeight), 0.2, 8.0);
+        }
+
+        CardDesignViewbox.Width = Math.Max(1, boundsWidth * _fitZoom * _zoom);
+        CardDesignViewbox.Height = Math.Max(1, boundsHeight * _fitZoom * _zoom);
         CardDesignCanvas.ToolTip = $"مقاس القالب: {widthMm:0.#} × {heightMm:0.#} مم؛ الدوران: {angle:0.#}°";
         CanvasSizeTextBlock.Text = $"{widthMm:0.#} × {heightMm:0.#} مم · دوران {angle:0.#}°";
         ZoomPercentageTextBlock.Text = $"{_zoom * 100:0}%";
