@@ -135,6 +135,7 @@ public partial class TemplateDesignerView : UserControl
         var credentialLayoutRepaired = RepairCredentialLayoutIfNeeded();
         if (credentialLayoutRepaired) UpdatePreview();
         SyncSelectedElementEditor();
+        RefreshDesignerLayers();
         SetStatus(
             !string.IsNullOrWhiteSpace(_packageCatalogLoadError)
                 ? _packageCatalogLoadError
