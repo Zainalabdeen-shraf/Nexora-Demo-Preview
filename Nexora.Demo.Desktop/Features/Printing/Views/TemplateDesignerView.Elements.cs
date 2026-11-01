@@ -950,23 +950,46 @@ public partial class TemplateDesignerView
     private void ToggleSelectedFieldVisibilityButton_Click(object sender, RoutedEventArgs e)
     {
         if (!_isReady) return;
+
         var tag = _studioSelectedFieldTag ?? GetSelectedTag(SelectedElementComboBox);
-        var key = tag switch
+        if (string.IsNullOrWhiteSpace(tag))
         {
-            "login" or "username" => "اسم المستخدم",
-            "password" => "كلمة المرور",
-            _ => string.Empty
-        };
-        if (string.IsNullOrEmpty(key))
-        {
-            SetStatus("حدد اسم المستخدم أو كلمة المرور أولًا.", isSuccess: false);
+            SetStatus("حدد عنصراً من البطاقة أولاً.", isSuccess: false);
             return;
         }
+
+        // Custom text elements have their own visibility state on the canvas.
+        if (tag.StartsWith("custom-", StringComparison.Ordinal))
+        {
+            if (GetElementByTag(tag) is not FrameworkElement customElement) return;
+            customElement.Visibility = customElement.Visibility == Visibility.Visible
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            ToggleSelectedFieldVisibilityButton.Content =
+                customElement.Visibility == Visibility.Visible ? "إخفاء العنصر" : "إظهار العنصر";
+            UpdateSelectionFrame();
+            RefreshStudioPreviews();
+            return;
+        }
+
+        var key = VisibilityKeyForLayerTag(tag);
+        if (string.IsNullOrWhiteSpace(key)) return;
+
+        // Login code and username are the same visual field.
+        if (string.Equals(key, "رمز الدخول", StringComparison.Ordinal))
+            key = "اسم المستخدم";
+
         _visibleElements[key] = !IsTemplateElementVisible(key);
+        if (string.Equals(key, "اسم المستخدم", StringComparison.Ordinal))
+            _visibleElements["رمز الدخول"] = false;
+
         SyncMainElementChecks();
         UpdatePreview();
         SyncFieldToggleButtons();
         SyncSelectedElementEditor();
+        SetStatus(IsTemplateElementVisible(key)
+            ? $"تم إظهار العنصر: {GetFieldDisplayName(tag)}."
+            : $"تم إخفاء العنصر: {GetFieldDisplayName(tag)}.", isSuccess: true);
     }
 
     private void RotateSelectedFieldButton_Click(object sender, RoutedEventArgs e)
