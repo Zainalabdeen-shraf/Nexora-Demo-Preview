@@ -129,7 +129,7 @@
             </UniformGrid>
             <TextBox x:Name="TemplateNameTextBox" Text="Default_Design" Style="{StaticResource StudioInput}"
                      Width="0" Height="0" Visibility="Collapsed" Padding="0"/>
-        </Grid>apPanel>
+        </Grid>
     </Border>
 
     <!-- Work area: inspector on the left, canvas studio on the right -->
