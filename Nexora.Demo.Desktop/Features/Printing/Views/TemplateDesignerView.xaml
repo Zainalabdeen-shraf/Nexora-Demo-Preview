@@ -135,9 +135,9 @@
     <!-- Work area: inspector on the left, canvas studio on the right -->
     <Grid Grid.Row="1" FlowDirection="LeftToRight">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="310" MinWidth="300" MaxWidth="330"/>
+            <ColumnDefinition Width="0.25*" MinWidth="264" MaxWidth="330"/>
             <ColumnDefinition Width="10"/>
-            <ColumnDefinition Width="*" MinWidth="580"/>
+            <ColumnDefinition Width="*" MinWidth="520"/>
         </Grid.ColumnDefinitions>
 
         <!-- Inspector and layer management -->
