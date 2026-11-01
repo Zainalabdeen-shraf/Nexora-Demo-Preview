@@ -215,13 +215,42 @@ public partial class TemplateDesignerView
         if (element is null)
         {
             if (SelectedFieldNameTextBlock is not null) SelectedFieldNameTextBlock.Text = "لم يتم تحديد حقل";
-            if (ToggleSelectedFieldVisibilityButton is not null) ToggleSelectedFieldVisibilityButton.Content = "اختر حقلًا";
+            if (SelectedElementTextBox is not null)
+            {
+                SelectedElementTextBox.Text = string.Empty;
+                SelectedElementTextBox.IsEnabled = false;
+            }
+            if (ElementFontSizeTextBox is not null)
+            {
+                ElementFontSizeTextBox.Text = string.Empty;
+                ElementFontSizeTextBox.IsEnabled = false;
+            }
+            if (BoldElementCheckBox is not null) { BoldElementCheckBox.IsChecked = false; BoldElementCheckBox.IsEnabled = false; }
+            if (ItalicElementCheckBox is not null) { ItalicElementCheckBox.IsChecked = false; ItalicElementCheckBox.IsEnabled = false; }
+            if (ElementTextAlignLeftButton is not null) { ElementTextAlignLeftButton.IsChecked = false; ElementTextAlignLeftButton.IsEnabled = false; }
+            if (ElementTextAlignCenterButton is not null) { ElementTextAlignCenterButton.IsChecked = false; ElementTextAlignCenterButton.IsEnabled = false; }
+            if (ElementTextAlignRightButton is not null) { ElementTextAlignRightButton.IsChecked = false; ElementTextAlignRightButton.IsEnabled = false; }
+            if (ElementOpacitySlider is not null)
+            {
+                _isSyncingElementOpacity = true;
+                ElementOpacitySlider.Value = 0;
+                ElementOpacitySlider.IsEnabled = false;
+                _isSyncingElementOpacity = false;
+            }
+            if (ElementOpacityValueTextBlock is not null) ElementOpacityValueTextBlock.Text = "—";
+            if (ToggleSelectedFieldVisibilityButton is not null)
+            {
+                ToggleSelectedFieldVisibilityButton.Content = "اختر عنصراً";
+                ToggleSelectedFieldVisibilityButton.IsEnabled = false;
+            }
             UpdateSelectionFrame();
             return;
         }
+        if (ToggleSelectedFieldVisibilityButton is not null)
+            ToggleSelectedFieldVisibilityButton.IsEnabled = true;
         if (SelectedFieldNameTextBlock is not null)
         {
-            SelectedFieldNameTextBlock.Text = GetFieldDisplayName(_studioSelectedFieldTag ?? GetSelectedTag(SelectedElementComboBox));
+            SelectedFieldNameTextBlock.Text = GetFieldDisplayName(_studioSelectedFieldTag ?? (SelectedElementComboBox is { } selectedCombo ? GetSelectedTag(selectedCombo) : null));
             SelectedFieldNameTextBlock.Visibility = Visibility.Visible;
         }
 
@@ -234,6 +263,17 @@ public partial class TemplateDesignerView
         ElementWidthTextBox.Text = GetElementWidth(element).ToString("0.#", CultureInfo.InvariantCulture);
         ElementHeightTextBox.Text = GetElementHeight(element).ToString("0.#", CultureInfo.InvariantCulture);
         ElementAngleTextBox.Text = GetElementRotation(element).ToString("0.#", CultureInfo.InvariantCulture);
+        _isSyncingElementOpacity = true;
+        try
+        {
+            ElementOpacitySlider.Value = Math.Clamp(element.Opacity * 100d, 0d, 100d);
+            ElementOpacityValueTextBlock.Text = $"{ElementOpacitySlider.Value:0}%";
+            ElementOpacitySlider.IsEnabled = true;
+        }
+        finally
+        {
+            _isSyncingElementOpacity = false;
+        }
 
         SetDesignerTextBoxText("ElementForegroundHexTextBox", GetElementForegroundHex(element));
         SetDesignerTextBoxText("ElementBackgroundHexTextBox", GetElementBackgroundHex(element));
@@ -256,9 +296,11 @@ public partial class TemplateDesignerView
             SelectedElementTextBox.Text = textBlock.Text;
             ElementFontSizeTextBox.Text = textBlock.FontSize.ToString("0.#", CultureInfo.InvariantCulture);
             BoldElementCheckBox.IsChecked = textBlock.FontWeight == FontWeights.Bold || textBlock.FontWeight == FontWeights.SemiBold;
+            ItalicElementCheckBox.IsChecked = textBlock.FontStyle == FontStyles.Italic;
             SelectedElementTextBox.IsEnabled = true;
             ElementFontSizeTextBox.IsEnabled = true;
             BoldElementCheckBox.IsEnabled = true;
+            ItalicElementCheckBox.IsEnabled = true;
             ElementTextAlignLeftButton.IsEnabled = true;
             ElementTextAlignCenterButton.IsEnabled = true;
             ElementTextAlignRightButton.IsEnabled = true;
@@ -273,6 +315,8 @@ public partial class TemplateDesignerView
             ElementFontSizeTextBox.IsEnabled = false;
             BoldElementCheckBox.IsChecked = false;
             BoldElementCheckBox.IsEnabled = false;
+            ItalicElementCheckBox.IsChecked = false;
+            ItalicElementCheckBox.IsEnabled = false;
             ElementTextAlignLeftButton.IsChecked = false;
             ElementTextAlignCenterButton.IsChecked = false;
             ElementTextAlignRightButton.IsChecked = false;
@@ -418,6 +462,7 @@ public partial class TemplateDesignerView
             var angle = ParseDouble(ElementAngleTextBox.Text, GetElementRotation(selected), -180, 180);
             selected.Width = width;
             selected.Height = height;
+            selected.Opacity = Math.Clamp(ElementOpacitySlider.Value / 100d, 0d, 1d);
             selected.RenderTransformOrigin = new Point(0.5, 0.5);
             selected.RenderTransform = new RotateTransform(angle);
             var clampedPosition = ClampElementPosition(selected, x, y);
@@ -434,6 +479,7 @@ public partial class TemplateDesignerView
                     textBlock.FlowDirection = FlowDirection.LeftToRight;
                 textBlock.FontFamily = family;
                 textBlock.FontWeight = BoldElementCheckBox.IsChecked == true ? FontWeights.Bold : FontWeights.Normal;
+                textBlock.FontStyle = ItalicElementCheckBox.IsChecked == true ? FontStyles.Italic : FontStyles.Normal;
                 textBlock.FontSize = ParseDouble(ElementFontSizeTextBox.Text, textBlock.FontSize, 4, 60);
                 if (TryParseBrush(GetDesignerTextBoxText("ElementForegroundHexTextBox", GetElementForegroundHex(textBlock)), out var foreground)) textBlock.Foreground = foreground;
                 if (TryParseBrush(GetDesignerTextBoxText("ElementBackgroundHexTextBox", GetElementBackgroundHex(textBlock)), out var background)) textBlock.Background = background;
@@ -453,8 +499,8 @@ public partial class TemplateDesignerView
             ElementAngleTextBox.Text = angle.ToString("0.#", CultureInfo.InvariantCulture);
         }
 
-        var cardWidth = ParseDouble(CardWidthTextBox.Text, 46, 10, 200);
-        var cardHeight = ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200);
+        var cardWidth = ParseDouble(CardWidthTextBox.Text, 92.1, 10, 200);
+        var cardHeight = ParseDouble(CardHeightTextBox.Text, 52, 10, 200);
         var cardAngle = ParseDouble(CardRotationTextBox.Text, 0, -180, 180);
         CardWidthTextBox.Text = cardWidth.ToString("0.#", CultureInfo.InvariantCulture);
         CardHeightTextBox.Text = cardHeight.ToString("0.#", CultureInfo.InvariantCulture);
@@ -855,8 +901,22 @@ public partial class TemplateDesignerView
     }
     private FrameworkElement? GetSelectedElement()
     {
-        var tag = _studioSelectedFieldTag ?? GetSelectedTag(SelectedElementComboBox);
-        return string.IsNullOrWhiteSpace(tag) ? null : GetElementByTag(tag);
+        // Prefer the last explicit canvas selection, but never trust a stale tag
+        // from an old saved template.
+        if (!string.IsNullOrWhiteSpace(_studioSelectedFieldTag)
+            && GetElementByTag(_studioSelectedFieldTag) is FrameworkElement explicitSelection)
+            return explicitSelection;
+
+        var comboTag = GetSelectedTag(SelectedElementComboBox);
+        if (!string.IsNullOrWhiteSpace(comboTag)
+            && GetElementByTag(comboTag) is FrameworkElement comboSelection)
+        {
+            _studioSelectedFieldTag = comboTag;
+            return comboSelection;
+        }
+
+        _studioSelectedFieldTag = null;
+        return null;
     }
 
     private static string GetFieldDisplayName(string? tag) => tag switch
@@ -933,23 +993,46 @@ public partial class TemplateDesignerView
     private void ToggleSelectedFieldVisibilityButton_Click(object sender, RoutedEventArgs e)
     {
         if (!_isReady) return;
+
         var tag = _studioSelectedFieldTag ?? GetSelectedTag(SelectedElementComboBox);
-        var key = tag switch
+        if (string.IsNullOrWhiteSpace(tag))
         {
-            "login" or "username" => "اسم المستخدم",
-            "password" => "كلمة المرور",
-            _ => string.Empty
-        };
-        if (string.IsNullOrEmpty(key))
-        {
-            SetStatus("حدد اسم المستخدم أو كلمة المرور أولًا.", isSuccess: false);
+            SetStatus("حدد عنصراً من البطاقة أولاً.", isSuccess: false);
             return;
         }
+
+        // Custom text elements have their own visibility state on the canvas.
+        if (tag.StartsWith("custom-", StringComparison.Ordinal))
+        {
+            if (GetElementByTag(tag) is not FrameworkElement customElement) return;
+            customElement.Visibility = customElement.Visibility == Visibility.Visible
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            ToggleSelectedFieldVisibilityButton.Content =
+                customElement.Visibility == Visibility.Visible ? "إخفاء العنصر" : "إظهار العنصر";
+            UpdateSelectionFrame();
+            RefreshStudioPreviews();
+            return;
+        }
+
+        var key = VisibilityKeyForLayerTag(tag);
+        if (string.IsNullOrWhiteSpace(key)) return;
+
+        // Login code and username are the same visual field.
+        if (string.Equals(key, "رمز الدخول", StringComparison.Ordinal))
+            key = "اسم المستخدم";
+
         _visibleElements[key] = !IsTemplateElementVisible(key);
+        if (string.Equals(key, "اسم المستخدم", StringComparison.Ordinal))
+            _visibleElements["رمز الدخول"] = false;
+
         SyncMainElementChecks();
         UpdatePreview();
         SyncFieldToggleButtons();
         SyncSelectedElementEditor();
+        SetStatus(IsTemplateElementVisible(key)
+            ? $"تم إظهار العنصر: {GetFieldDisplayName(tag)}."
+            : $"تم إخفاء العنصر: {GetFieldDisplayName(tag)}.", isSuccess: true);
     }
 
     private void RotateSelectedFieldButton_Click(object sender, RoutedEventArgs e)
@@ -1152,6 +1235,16 @@ public partial class TemplateDesignerView
     private void ElementStyleControl_Click(object sender, RoutedEventArgs e)
     {
         if (_isReady) ApplyPropertiesButton_Click(this, new RoutedEventArgs());
+    }
+
+    private void ElementOpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (!_isReady || _isSyncingElementOpacity || GetSelectedElement() is not FrameworkElement element) return;
+        var opacity = Math.Clamp(e.NewValue / 100d, 0d, 1d);
+        element.Opacity = opacity;
+        if (ElementOpacityValueTextBlock is not null)
+            ElementOpacityValueTextBlock.Text = $"{Math.Round(opacity * 100d):0}%";
+        RefreshStudioPreviews();
     }
 
     private void ElementForegroundColorButton_Click(object sender, RoutedEventArgs e)
@@ -1369,6 +1462,8 @@ public partial class TemplateDesignerView
                 IsVisible = element.Visibility == Visibility.Visible,
                 Text = (element as TextBlock)?.Text,
                 IsBold = element is TextBlock textBlock && (textBlock.FontWeight == FontWeights.Bold || textBlock.FontWeight == FontWeights.SemiBold),
+                IsItalic = element is TextBlock italicText && italicText.FontStyle == FontStyles.Italic,
+                Opacity = double.IsFinite(element.Opacity) ? Math.Clamp(element.Opacity, 0d, 1d) : 1d,
                 ForegroundHex = GetElementForegroundHex(element),
                 BackgroundHex = GetElementBackgroundHex(element),
                 FontSize = element is TextBlock tb ? tb.FontSize : 11,
@@ -1397,6 +1492,7 @@ public partial class TemplateDesignerView
             if (double.IsFinite(design.Height) && design.Height >= 1) element.Height = Math.Clamp(design.Height, 1, maxCanvasHeight);
             element.RenderTransformOrigin = new Point(0.5, 0.5);
             element.RenderTransform = new RotateTransform(Math.Clamp(design.RotationDegrees, -180, 180));
+            element.Opacity = double.IsFinite(design.Opacity) ? Math.Clamp(design.Opacity, 0d, 1d) : 1d;
             // Standard field visibility is stored in VisibleElements; custom layer
             // visibility lives with its element properties and defaults true in old saves.
             if (pair.Key.StartsWith("custom-", StringComparison.Ordinal))
@@ -1411,6 +1507,7 @@ public partial class TemplateDesignerView
                             : design.Text;
                 if (pair.Key is "username" or "password") textBlock.FlowDirection = FlowDirection.LeftToRight;
                 textBlock.FontWeight = design.IsBold ? FontWeights.Bold : FontWeights.Normal;
+                textBlock.FontStyle = design.IsItalic ? FontStyles.Italic : FontStyles.Normal;
                 if (design.FontSize is >= 4 and <= 60) textBlock.FontSize = design.FontSize;
                 if (!string.IsNullOrWhiteSpace(design.FontFamily)) textBlock.FontFamily = new FontFamily(design.FontFamily);
                 if (!string.IsNullOrWhiteSpace(design.TextAlignment) && Enum.TryParse<TextAlignment>(design.TextAlignment, true, out var textAlignment))

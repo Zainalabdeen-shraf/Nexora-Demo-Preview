@@ -15,6 +15,7 @@ using Nexora.Demo.Desktop.Features.Cards.Models;
 namespace Nexora.Demo.Desktop.Features.Printing.Views;
 
 // Responsibility: Canvas scaling, zoom, selection, and drag interactions.
+// Fit percentage is relative to the available workspace; physical fit scale is stored separately.
 public partial class TemplateDesignerView
 {
     private void TemplateDesignerView_Loaded(object sender, RoutedEventArgs e)
@@ -30,29 +31,27 @@ public partial class TemplateDesignerView
     {
         if (!_isReady) return;
         if (!_isApplyingFitZoom) _isAutoFitZoom = false;
-        _zoom = Math.Clamp(e.NewValue, 0.1, 4.0);
+        _zoom = Math.Clamp(e.NewValue, 0.2, 8.0);
         ApplyCardDimensionTransform();
     }
-    private void ZoomInButton_Click(object sender, RoutedEventArgs e) => ZoomSlider.Value = Math.Min(4.0, ZoomSlider.Value + 0.1);
-    private void ZoomOutButton_Click(object sender, RoutedEventArgs e) => ZoomSlider.Value = Math.Max(0.1, ZoomSlider.Value - 0.1);
+    private void ZoomInButton_Click(object sender, RoutedEventArgs e) => ZoomSlider.Value = Math.Min(8.0, ZoomSlider.Value + 0.2);
+    private void ZoomOutButton_Click(object sender, RoutedEventArgs e) => ZoomSlider.Value = Math.Max(0.2, ZoomSlider.Value - 0.2);
     private void ZoomFitButton_Click(object sender, RoutedEventArgs e) => FitCardToWorkspace();
     private void FitCardToWorkspace()
     {
-        if (DesignPreviewHost is null || ZoomSlider is null || DesignPreviewHost.ActualWidth < 40 || DesignPreviewHost.ActualHeight < 40)
+        if (DesignPreviewHost is null || ZoomSlider is null
+            || DesignPreviewHost.ActualWidth < 40 || DesignPreviewHost.ActualHeight < 40)
             return;
 
         _isApplyingFitZoom = true;
         try
         {
-            ApplyCardDimensionTransform();
-            var availableWidth = Math.Max(40, DesignPreviewHost.ActualWidth - 8);
-            var availableHeight = Math.Max(40, DesignPreviewHost.ActualHeight - 8);
-            var baseWidth = Math.Max(1, DesignViewportCanvas.Width);
-            var baseHeight = Math.Max(1, DesignViewportCanvas.Height);
-            var fittedZoom = Math.Clamp(Math.Min(availableWidth / baseWidth, availableHeight / baseHeight), 0.1, 4.0);
-            _zoom = fittedZoom;
-            ZoomSlider.Value = fittedZoom;
+            // "Fit" is the user's 100% baseline. The physical scale needed to fit
+            // the card is kept separately so zoom labels remain intuitive.
             _isAutoFitZoom = true;
+            _zoom = 1d;
+            if (Math.Abs(ZoomSlider.Value - 1d) > 0.001d)
+                ZoomSlider.Value = 1d;
             ApplyCardDimensionTransform();
         }
         finally
@@ -167,7 +166,7 @@ public partial class TemplateDesignerView
     {
         UpdateElementBorderOverlays();
         var selected = GetSelectedElement();
-        if (selected is null || SelectionFrameBorder is null)
+        if (selected is null || selected.Visibility != Visibility.Visible || SelectionFrameBorder is null)
         {
             if (SelectionFrameBorder is not null) SelectionFrameBorder.Visibility = Visibility.Collapsed;
             RemoveResizeHandles();
@@ -199,7 +198,7 @@ public partial class TemplateDesignerView
         if (!double.IsFinite(top)) top = 0;
         var width = GetElementWidth(selected);
         var height = GetElementHeight(selected);
-        const double handleSize = 9d;
+        const double handleSize = 8d;
 
         var handles = new (string Name, double X, double Y, Cursor Cursor)[]
         {
@@ -225,9 +224,10 @@ public partial class TemplateDesignerView
             // The resize targets stay hit-testable, but are not drawn as visible
             // corner handles. The selection outline is the only visible overlay.
             var handleVisual = new FrameworkElementFactory(typeof(Border));
-            handleVisual.SetValue(Border.BackgroundProperty, new SolidColorBrush(Color.FromArgb(1, 255, 255, 255)));
-            handleVisual.SetValue(Border.BorderBrushProperty, Brushes.Transparent);
-            handleVisual.SetValue(Border.BorderThicknessProperty, new Thickness(0));
+            handleVisual.SetValue(Border.BackgroundProperty, Brushes.White);
+            handleVisual.SetValue(Border.BorderBrushProperty, new SolidColorBrush(Color.FromRgb(0x16, 0x84, 0xF3)));
+            handleVisual.SetValue(Border.BorderThicknessProperty, new Thickness(0.9));
+            handleVisual.SetValue(Border.CornerRadiusProperty, new CornerRadius(3));
             var handleTemplate = new ControlTemplate(typeof(Thumb)) { VisualTree = handleVisual };
             var thumb = new Thumb
             {
@@ -235,9 +235,9 @@ public partial class TemplateDesignerView
                 Height = handleSize,
                 Tag = item.Name,
                 Cursor = item.Cursor,
-                Background = new SolidColorBrush(Color.FromArgb(1, 255, 255, 255)),
-                BorderBrush = Brushes.Transparent,
-                BorderThickness = new Thickness(0),
+                Background = Brushes.White,
+                BorderBrush = new SolidColorBrush(Color.FromRgb(0x16, 0x84, 0xF3)),
+                BorderThickness = new Thickness(1),
                 Template = handleTemplate,
                 Focusable = false,
                 ToolTip = "اسحب لتغيير حجم الحقل",
@@ -263,7 +263,7 @@ public partial class TemplateDesignerView
         if (!double.IsFinite(top)) top = 0;
         var width = GetElementWidth(selected);
         var height = GetElementHeight(selected);
-        const double handleSize = 9d;
+        const double handleSize = 8d;
         var centerX = left + width / 2d;
         var centerY = top + height / 2d;
         var radians = GetElementRotation(selected) * Math.PI / 180d;
@@ -381,8 +381,8 @@ public partial class TemplateDesignerView
     {
         if (CardDesignCanvas is null || DesignViewportCanvas is null || CardDesignViewbox is null) return;
 
-        var widthMm = ParseDouble(CardWidthTextBox.Text, 46, 10, 200);
-        var heightMm = ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200);
+        var widthMm = ParseDouble(CardWidthTextBox.Text, 92.1, 10, 200);
+        var heightMm = ParseDouble(CardHeightTextBox.Text, 52, 10, 200);
         var angle = ParseDouble(CardRotationTextBox.Text, 0, -180, 180);
         var canvasWidth = Math.Max(1, DesignBaseWidth * widthMm / BaseWidthMm);
         var canvasHeight = Math.Max(1, DesignBaseHeight * heightMm / BaseHeightMm);
@@ -423,14 +423,14 @@ public partial class TemplateDesignerView
         Canvas.SetTop(CardHeaderBorder, 0);
         CardDividerBorder.Width = Math.Max(1, canvasWidth * 310d / LegacyDesignBaseWidth);
         Canvas.SetLeft(CardDividerBorder, canvasWidth * 94d / LegacyDesignBaseWidth);
-        var legacyLogicalHeight = LegacyDesignBaseHeight * ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200) / BaseHeightMm;
+        var legacyLogicalHeight = LegacyDesignBaseHeight * ParseDouble(CardHeightTextBox.Text, 52, 10, 200) / BaseHeightMm;
         Canvas.SetTop(CardDividerBorder, Math.Min(canvasHeight - 2d, canvasHeight * 34d / legacyLogicalHeight));
 
         var radians = angle * Math.PI / 180d;
         var boundsWidth = Math.Abs(canvasWidth * Math.Cos(radians)) + Math.Abs(canvasHeight * Math.Sin(radians));
         var boundsHeight = Math.Abs(canvasWidth * Math.Sin(radians)) + Math.Abs(canvasHeight * Math.Cos(radians));
         // Keep the preview viewport at the exact physical bounds. The old +4 canvas-unit
-        // safety padding made a 46 × 15.8 mm card shrink inside its measured print size.
+        // safety padding made the physical card shrink inside its measured print size.
         boundsWidth = Math.Max(1, boundsWidth);
         boundsHeight = Math.Max(1, boundsHeight);
 
@@ -458,8 +458,17 @@ public partial class TemplateDesignerView
 
         _lastCanvasWidth = canvasWidth;
         _lastCanvasHeight = canvasHeight;
-        CardDesignViewbox.Width = Math.Max(1, boundsWidth * _zoom);
-        CardDesignViewbox.Height = Math.Max(1, boundsHeight * _zoom);
+
+        if (_isAutoFitZoom && DesignPreviewHost is not null
+            && DesignPreviewHost.ActualWidth > 40 && DesignPreviewHost.ActualHeight > 40)
+        {
+            var fitWidth = Math.Max(40, DesignPreviewHost.ActualWidth - 24);
+            var fitHeight = Math.Max(40, DesignPreviewHost.ActualHeight - 24);
+            _fitZoom = Math.Clamp(Math.Min(fitWidth / boundsWidth, fitHeight / boundsHeight), 0.2, 8.0);
+        }
+
+        CardDesignViewbox.Width = Math.Max(1, boundsWidth * _fitZoom * _zoom);
+        CardDesignViewbox.Height = Math.Max(1, boundsHeight * _fitZoom * _zoom);
         CardDesignCanvas.ToolTip = $"مقاس القالب: {widthMm:0.#} × {heightMm:0.#} مم؛ الدوران: {angle:0.#}°";
         CanvasSizeTextBlock.Text = $"{widthMm:0.#} × {heightMm:0.#} مم · دوران {angle:0.#}°";
         ZoomPercentageTextBlock.Text = $"{_zoom * 100:0}%";
