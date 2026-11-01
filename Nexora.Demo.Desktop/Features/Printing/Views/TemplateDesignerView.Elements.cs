@@ -215,10 +215,39 @@ public partial class TemplateDesignerView
         if (element is null)
         {
             if (SelectedFieldNameTextBlock is not null) SelectedFieldNameTextBlock.Text = "لم يتم تحديد حقل";
-            if (ToggleSelectedFieldVisibilityButton is not null) ToggleSelectedFieldVisibilityButton.Content = "اختر حقلًا";
+            if (SelectedElementTextBox is not null)
+            {
+                SelectedElementTextBox.Text = string.Empty;
+                SelectedElementTextBox.IsEnabled = false;
+            }
+            if (ElementFontSizeTextBox is not null)
+            {
+                ElementFontSizeTextBox.Text = string.Empty;
+                ElementFontSizeTextBox.IsEnabled = false;
+            }
+            if (BoldElementCheckBox is not null) { BoldElementCheckBox.IsChecked = false; BoldElementCheckBox.IsEnabled = false; }
+            if (ItalicElementCheckBox is not null) { ItalicElementCheckBox.IsChecked = false; ItalicElementCheckBox.IsEnabled = false; }
+            if (ElementTextAlignLeftButton is not null) { ElementTextAlignLeftButton.IsChecked = false; ElementTextAlignLeftButton.IsEnabled = false; }
+            if (ElementTextAlignCenterButton is not null) { ElementTextAlignCenterButton.IsChecked = false; ElementTextAlignCenterButton.IsEnabled = false; }
+            if (ElementTextAlignRightButton is not null) { ElementTextAlignRightButton.IsChecked = false; ElementTextAlignRightButton.IsEnabled = false; }
+            if (ElementOpacitySlider is not null)
+            {
+                _isSyncingElementOpacity = true;
+                ElementOpacitySlider.Value = 0;
+                ElementOpacitySlider.IsEnabled = false;
+                _isSyncingElementOpacity = false;
+            }
+            if (ElementOpacityValueTextBlock is not null) ElementOpacityValueTextBlock.Text = "—";
+            if (ToggleSelectedFieldVisibilityButton is not null)
+            {
+                ToggleSelectedFieldVisibilityButton.Content = "اختر عنصراً";
+                ToggleSelectedFieldVisibilityButton.IsEnabled = false;
+            }
             UpdateSelectionFrame();
             return;
         }
+        if (ToggleSelectedFieldVisibilityButton is not null)
+            ToggleSelectedFieldVisibilityButton.IsEnabled = true;
         if (SelectedFieldNameTextBlock is not null)
         {
             SelectedFieldNameTextBlock.Text = GetFieldDisplayName(_studioSelectedFieldTag ?? (SelectedElementComboBox is { } selectedCombo ? GetSelectedTag(selectedCombo) : null));
@@ -498,7 +527,7 @@ public partial class TemplateDesignerView
         if (_isRasterTemplateMode) ApplyRasterTemplateModeVisibility();
         ApplyCardDimensionTransform();
         var count = _visibleElements.Count(pair => pair.Value && pair.Key != "شعار الشبكة" && pair.Key != "رمز الدخول");
-        ElementCountTextBlock.Text = count.ToString(CultureInfo.InvariantCulture);
+        ElementCountTextBlock.Text = $"{count} عناصر ظاهرة";
         KeepUsernameCaptionAligned();
         KeepPasswordCaptionAligned();
         EnsureElementBorderOverlays();
@@ -872,8 +901,22 @@ public partial class TemplateDesignerView
     }
     private FrameworkElement? GetSelectedElement()
     {
-        var tag = _studioSelectedFieldTag ?? GetSelectedTag(SelectedElementComboBox);
-        return string.IsNullOrWhiteSpace(tag) ? null : GetElementByTag(tag);
+        // Prefer the last explicit canvas selection, but never trust a stale tag
+        // from an old saved template.
+        if (!string.IsNullOrWhiteSpace(_studioSelectedFieldTag)
+            && GetElementByTag(_studioSelectedFieldTag) is FrameworkElement explicitSelection)
+            return explicitSelection;
+
+        var comboTag = GetSelectedTag(SelectedElementComboBox);
+        if (!string.IsNullOrWhiteSpace(comboTag)
+            && GetElementByTag(comboTag) is FrameworkElement comboSelection)
+        {
+            _studioSelectedFieldTag = comboTag;
+            return comboSelection;
+        }
+
+        _studioSelectedFieldTag = null;
+        return null;
     }
 
     private static string GetFieldDisplayName(string? tag) => tag switch
