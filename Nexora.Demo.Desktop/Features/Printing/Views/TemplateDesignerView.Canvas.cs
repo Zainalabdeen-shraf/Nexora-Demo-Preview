@@ -165,7 +165,7 @@ public partial class TemplateDesignerView
     {
         UpdateElementBorderOverlays();
         var selected = GetSelectedElement();
-        if (selected is null || SelectionFrameBorder is null)
+        if (selected is null || selected.Visibility != Visibility.Visible || SelectionFrameBorder is null)
         {
             if (SelectionFrameBorder is not null) SelectionFrameBorder.Visibility = Visibility.Collapsed;
             RemoveResizeHandles();
