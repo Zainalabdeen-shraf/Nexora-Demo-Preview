@@ -786,6 +786,22 @@ public partial class TemplateDesignerView
         var restoredSelectedTag = string.IsNullOrWhiteSpace(state.SelectedElementTag) || string.Equals(state.SelectedElementTag, "login", StringComparison.Ordinal)
             ? "username"
             : state.SelectedElementTag;
+
+        // Old template files can contain a removed/renamed element tag. Resolve the
+        // restored selection against the live canvas before touching the inspector.
+        if (GetElementByTag(restoredSelectedTag) is null)
+            restoredSelectedTag = GetElementByTag("username") is not null ? "username" : "password";
+
+        if (!SelectedElementComboBox.Items.OfType<ComboBoxItem>()
+                .Any(item => string.Equals(item.Tag as string, restoredSelectedTag, StringComparison.Ordinal)))
+        {
+            SelectedElementComboBox.Items.Add(new ComboBoxItem
+            {
+                Content = GetFieldDisplayName(restoredSelectedTag),
+                Tag = restoredSelectedTag
+            });
+        }
+
         SelectComboTag(SelectedElementComboBox, restoredSelectedTag);
         _studioSelectedFieldTag = restoredSelectedTag;
         if (state.ElementProperties is not { Count: > 0 })
