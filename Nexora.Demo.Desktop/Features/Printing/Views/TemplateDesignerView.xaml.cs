@@ -64,6 +64,7 @@ public partial class TemplateDesignerView : UserControl
     private double _dragStartLeft;
     private double _dragStartTop;
     private double _zoom = 1d;
+    private double _fitZoom = 1d;
     // Logical canvas dimensions track the card's physical dimensions. Element sizes and
     // font sizes remain independent; resizing the card only remaps element positions.
     private double _lastCanvasWidth = DesignBaseWidth;
