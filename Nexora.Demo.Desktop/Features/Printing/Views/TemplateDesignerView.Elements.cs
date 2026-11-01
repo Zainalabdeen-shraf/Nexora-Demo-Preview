@@ -510,7 +510,7 @@ public partial class TemplateDesignerView
         ApplyTheme();
         ApplyElementVisibility();
         UpdateSelectionFrame();
-        ElementCountTextBlock.Text = _visibleElements.Count(pair => pair.Value && pair.Key != "شعار الشبكة").ToString(CultureInfo.InvariantCulture);
+        ElementCountTextBlock.Text = $"{_visibleElements.Count(pair => pair.Value && pair.Key != "شعار الشبكة")} عناصر ظاهرة";
         SyncFieldToggleButtons();
         SyncSelectedElementEditor();
         RefreshStudioPreviews();
