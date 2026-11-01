@@ -88,11 +88,8 @@ public partial class TemplateDesignerView
         var cardCount = AddTextField(settingsPanel, "إجمالي الكروت", PrintTotalCardsTextBox.Text);
         var columns = AddTextField(settingsPanel, "عدد الأعمدة", PrintColumnsTextBox.Text);
         var rows = AddTextField(settingsPanel, "حد الصفوف/صفحة", PrintRowsTextBox.Text);
-        var currentUsername = NormalizeUsernameText(PreviewUsernameTextBlock.Text);
-        var initialNumber = long.TryParse(currentUsername, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedUsername)
-            ? parsedUsername.ToString(CultureInfo.InvariantCulture)
-            : "1";
-        var numberPrefix = AddTextField(settingsPanel, "بداية اسم المستخدم", initialNumber);
+        var numberPrefix = AddTextField(settingsPanel, "بداية الرقم", "50723001");
+        var usernamePrefix = AddTextField(settingsPanel, "بادئة اسم المستخدم", "");
         var passwordPrefix = AddTextField(settingsPanel, "بادئة كلمة المرور", "");
         var packageName = AddTextField(settingsPanel, "اسم الباقة", selectedPackage is not null ? GetPackageName(selectedPackage) : "—");
         var networkName = AddTextField(settingsPanel, "اسم الشبكة", PreviewNetworkTextBlock.Text);
@@ -133,7 +130,7 @@ public partial class TemplateDesignerView
         previewRoot.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         var previewSummary = new TextBlock
         {
-            Text = "ورقة A4 عمودية (210 × 297 مم) — افتراضيًا 3 أعمدة × 17 صفًا = 51 كرتًا.",
+            Text = "A4 عمودي · توزيع تلقائي حسب مقاس البطاقة والهوامش.",
             Foreground = (Brush)FindResource("MutedBrush"),
             FontSize = 10.5,
             Margin = new Thickness(3, 0, 3, 4)
@@ -189,14 +186,17 @@ public partial class TemplateDesignerView
 
         void RenderSampleCards()
         {
-            const double pageMarginMm = 5d;
             const double cardGapMm = 1d;
-            var total = ParseInt(cardCount.Text, 51, 1, 10000);
-            var requestedColumns = ParseInt(columns.Text, 3, 1, 8);
-            var cardWidthMm = ParseDouble(CardWidthTextBox.Text, 46, 10, 200);
-            var cardHeightMm = ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200);
-            var usableWidthMm = pageWidthUnits - pageMarginMm * 2d;
-            var usableHeightMm = pageHeightUnits - pageMarginMm * 2d;
+            var pageMarginTopMm = PageMarginTopMm;
+            var pageMarginBottomMm = PageMarginBottomMm;
+            var pageMarginLeftMm = PageMarginLeftMm;
+            var pageMarginRightMm = PageMarginRightMm;
+            var total = ParseInt(cardCount.Text, 153, 1, 10000);
+            var requestedColumns = ParseInt(columns.Text, 2, 1, 8);
+            var cardWidthMm = ParseDouble(CardWidthTextBox.Text, 92.1, 10, 200);
+            var cardHeightMm = ParseDouble(CardHeightTextBox.Text, 52, 10, 200);
+            var usableWidthMm = pageWidthUnits - pageMarginLeftMm - pageMarginRightMm;
+            var usableHeightMm = pageHeightUnits - pageMarginTopMm - pageMarginBottomMm;
             var maxColumns = Math.Max(1, (int)Math.Floor((usableWidthMm + cardGapMm) / (cardWidthMm + cardGapMm)));
             var maxRows = Math.Max(1, (int)Math.Floor((usableHeightMm + cardGapMm) / (cardHeightMm + cardGapMm)));
             var colCount = Math.Min(requestedColumns, maxColumns);
@@ -204,6 +204,10 @@ public partial class TemplateDesignerView
             var rowCapacity = Math.Min(requestedRows, maxRows);
             var perPage = Math.Max(1, rowCapacity * colCount);
             var totalPages = Math.Max(1, (int)Math.Ceiling(total / (double)perPage));
+            var totalGridWidth = colCount * cardWidthMm + Math.Max(0, colCount - 1) * cardGapMm;
+            var totalGridHeight = rowCapacity * cardHeightMm + Math.Max(0, rowCapacity - 1) * cardGapMm;
+            var horizontalStart = pageMarginLeftMm + Math.Max(0, (usableWidthMm - totalGridWidth) / 2d);
+            var verticalStart = pageMarginTopMm + Math.Max(0, (usableHeightMm - totalGridHeight) / 2d);
             var pageNumber = ParseInt(previewPage.Text, 1, 1, totalPages);
             previewPage.Text = pageNumber.ToString(CultureInfo.InvariantCulture);
             columns.Text = colCount.ToString(CultureInfo.InvariantCulture);
@@ -219,7 +223,7 @@ public partial class TemplateDesignerView
             pageCards.Children.Clear();
             var firstIndex = (pageNumber - 1) * perPage;
             var cardsOnPage = Math.Min(perPage, Math.Max(0, total - firstIndex));
-            var first = ParseLong(numberPrefix.Text, 1);
+            var first = ParseLong(numberPrefix.Text, 50723001);
             var priceText = string.IsNullOrWhiteSpace(price.Text) ? "—" : price.Text.Trim();
             var uploadText = string.IsNullOrWhiteSpace(upload.Text) ? "—" : upload.Text.Trim();
             previewSummary.Text = $"A4 عمودي · الصفحة {pageNumber} من {totalPages} · {colCount} أعمدة × {rowCapacity} صفوف · السعة {perPage} كرت/صفحة · {cardsOnPage} كرت في هذه الصفحة · إجمالي {total:N0} كرت · المقاس {cardWidthMm:0.#} × {cardHeightMm:0.#} مم";
@@ -229,9 +233,9 @@ public partial class TemplateDesignerView
             {
                 var globalIndex = firstIndex + i;
                 var cardNumber = (first + globalIndex).ToString(CultureInfo.InvariantCulture);
-                // The card number is the username. Do not create or print a second
-                // independent credential value unless a future product rule requires it.
-                var sampleUsername = cardNumber;
+                var sampleUsername = string.IsNullOrWhiteSpace(usernamePrefix.Text)
+                    ? cardNumber
+                    : usernamePrefix.Text.Trim() + (globalIndex + 1).ToString(CultureInfo.InvariantCulture);
                 var samplePassword = string.IsNullOrWhiteSpace(passwordPrefix.Text)
                     ? "143" + (globalIndex % 10).ToString(CultureInfo.InvariantCulture)
                     : passwordPrefix.Text.Trim() + (globalIndex + 1).ToString(CultureInfo.InvariantCulture);
@@ -250,8 +254,8 @@ public partial class TemplateDesignerView
                 };
                 var rowIndex = i / colCount;
                 var columnIndexFromRight = i % colCount;
-                var x = pageWidthUnits - pageMarginMm - cardWidthMm - columnIndexFromRight * (cardWidthMm + cardGapMm);
-                var y = pageMarginMm + rowIndex * (cardHeightMm + cardGapMm);
+                var x = horizontalStart + (colCount - 1 - columnIndexFromRight) * (cardWidthMm + cardGapMm);
+                var y = verticalStart + rowIndex * (cardHeightMm + cardGapMm);
                 Canvas.SetLeft(cardViewbox, x);
                 Canvas.SetTop(cardViewbox, y);
                 cardViewbox.Cursor = Cursors.Hand;

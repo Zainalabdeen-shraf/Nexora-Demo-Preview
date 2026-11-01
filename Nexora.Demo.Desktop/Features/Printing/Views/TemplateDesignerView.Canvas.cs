@@ -30,11 +30,11 @@ public partial class TemplateDesignerView
     {
         if (!_isReady) return;
         if (!_isApplyingFitZoom) _isAutoFitZoom = false;
-        _zoom = Math.Clamp(e.NewValue, 0.1, 4.0);
+        _zoom = Math.Clamp(e.NewValue, 0.2, 8.0);
         ApplyCardDimensionTransform();
     }
-    private void ZoomInButton_Click(object sender, RoutedEventArgs e) => ZoomSlider.Value = Math.Min(4.0, ZoomSlider.Value + 0.1);
-    private void ZoomOutButton_Click(object sender, RoutedEventArgs e) => ZoomSlider.Value = Math.Max(0.1, ZoomSlider.Value - 0.1);
+    private void ZoomInButton_Click(object sender, RoutedEventArgs e) => ZoomSlider.Value = Math.Min(8.0, ZoomSlider.Value + 0.2);
+    private void ZoomOutButton_Click(object sender, RoutedEventArgs e) => ZoomSlider.Value = Math.Max(0.2, ZoomSlider.Value - 0.2);
     private void ZoomFitButton_Click(object sender, RoutedEventArgs e) => FitCardToWorkspace();
     private void FitCardToWorkspace()
     {
@@ -49,7 +49,7 @@ public partial class TemplateDesignerView
             var availableHeight = Math.Max(40, DesignPreviewHost.ActualHeight - 8);
             var baseWidth = Math.Max(1, DesignViewportCanvas.Width);
             var baseHeight = Math.Max(1, DesignViewportCanvas.Height);
-            var fittedZoom = Math.Clamp(Math.Min(availableWidth / baseWidth, availableHeight / baseHeight), 0.1, 4.0);
+            var fittedZoom = Math.Clamp(Math.Min(availableWidth / baseWidth, availableHeight / baseHeight), 0.2, 8.0);
             _zoom = fittedZoom;
             ZoomSlider.Value = fittedZoom;
             _isAutoFitZoom = true;
@@ -199,7 +199,7 @@ public partial class TemplateDesignerView
         if (!double.IsFinite(top)) top = 0;
         var width = GetElementWidth(selected);
         var height = GetElementHeight(selected);
-        const double handleSize = 9d;
+        const double handleSize = 12d;
 
         var handles = new (string Name, double X, double Y, Cursor Cursor)[]
         {
@@ -225,9 +225,10 @@ public partial class TemplateDesignerView
             // The resize targets stay hit-testable, but are not drawn as visible
             // corner handles. The selection outline is the only visible overlay.
             var handleVisual = new FrameworkElementFactory(typeof(Border));
-            handleVisual.SetValue(Border.BackgroundProperty, new SolidColorBrush(Color.FromArgb(1, 255, 255, 255)));
-            handleVisual.SetValue(Border.BorderBrushProperty, Brushes.Transparent);
-            handleVisual.SetValue(Border.BorderThicknessProperty, new Thickness(0));
+            handleVisual.SetValue(Border.BackgroundProperty, Brushes.White);
+            handleVisual.SetValue(Border.BorderBrushProperty, new SolidColorBrush(Color.FromRgb(0xC5, 0x1D, 0x2E)));
+            handleVisual.SetValue(Border.BorderThicknessProperty, new Thickness(1.2));
+            handleVisual.SetValue(Border.CornerRadiusProperty, new CornerRadius(3));
             var handleTemplate = new ControlTemplate(typeof(Thumb)) { VisualTree = handleVisual };
             var thumb = new Thumb
             {
@@ -235,9 +236,9 @@ public partial class TemplateDesignerView
                 Height = handleSize,
                 Tag = item.Name,
                 Cursor = item.Cursor,
-                Background = new SolidColorBrush(Color.FromArgb(1, 255, 255, 255)),
-                BorderBrush = Brushes.Transparent,
-                BorderThickness = new Thickness(0),
+                Background = Brushes.White,
+                BorderBrush = new SolidColorBrush(Color.FromRgb(0xC5, 0x1D, 0x2E)),
+                BorderThickness = new Thickness(1),
                 Template = handleTemplate,
                 Focusable = false,
                 ToolTip = "اسحب لتغيير حجم الحقل",
@@ -263,7 +264,7 @@ public partial class TemplateDesignerView
         if (!double.IsFinite(top)) top = 0;
         var width = GetElementWidth(selected);
         var height = GetElementHeight(selected);
-        const double handleSize = 9d;
+        const double handleSize = 12d;
         var centerX = left + width / 2d;
         var centerY = top + height / 2d;
         var radians = GetElementRotation(selected) * Math.PI / 180d;
@@ -381,8 +382,8 @@ public partial class TemplateDesignerView
     {
         if (CardDesignCanvas is null || DesignViewportCanvas is null || CardDesignViewbox is null) return;
 
-        var widthMm = ParseDouble(CardWidthTextBox.Text, 46, 10, 200);
-        var heightMm = ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200);
+        var widthMm = ParseDouble(CardWidthTextBox.Text, 92.1, 10, 200);
+        var heightMm = ParseDouble(CardHeightTextBox.Text, 52, 10, 200);
         var angle = ParseDouble(CardRotationTextBox.Text, 0, -180, 180);
         var canvasWidth = Math.Max(1, DesignBaseWidth * widthMm / BaseWidthMm);
         var canvasHeight = Math.Max(1, DesignBaseHeight * heightMm / BaseHeightMm);
@@ -423,14 +424,14 @@ public partial class TemplateDesignerView
         Canvas.SetTop(CardHeaderBorder, 0);
         CardDividerBorder.Width = Math.Max(1, canvasWidth * 310d / LegacyDesignBaseWidth);
         Canvas.SetLeft(CardDividerBorder, canvasWidth * 94d / LegacyDesignBaseWidth);
-        var legacyLogicalHeight = LegacyDesignBaseHeight * ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200) / BaseHeightMm;
+        var legacyLogicalHeight = LegacyDesignBaseHeight * ParseDouble(CardHeightTextBox.Text, 52, 10, 200) / BaseHeightMm;
         Canvas.SetTop(CardDividerBorder, Math.Min(canvasHeight - 2d, canvasHeight * 34d / legacyLogicalHeight));
 
         var radians = angle * Math.PI / 180d;
         var boundsWidth = Math.Abs(canvasWidth * Math.Cos(radians)) + Math.Abs(canvasHeight * Math.Sin(radians));
         var boundsHeight = Math.Abs(canvasWidth * Math.Sin(radians)) + Math.Abs(canvasHeight * Math.Cos(radians));
         // Keep the preview viewport at the exact physical bounds. The old +4 canvas-unit
-        // safety padding made a 46 × 15.8 mm card shrink inside its measured print size.
+        // safety padding made the physical card shrink inside its measured print size.
         boundsWidth = Math.Max(1, boundsWidth);
         boundsHeight = Math.Max(1, boundsHeight);
 

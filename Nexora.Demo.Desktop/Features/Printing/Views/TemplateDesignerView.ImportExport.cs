@@ -178,7 +178,7 @@ public partial class TemplateDesignerView
             state.RasterTemplateImagePath = _rasterTemplateImagePath;
             state.RasterTemplateImageBase64 = GetRasterTemplateImageBase64();
             state.Format = TemplateFormatId;
-            state.LayoutRevision = 5;
+            state.LayoutRevision = 7;
 
             Directory.CreateDirectory(TemplateLibraryDirectory);
             Directory.CreateDirectory(System.IO.Path.GetDirectoryName(StoragePath)!);
@@ -208,7 +208,7 @@ public partial class TemplateDesignerView
         state.RasterTemplateImagePath = _rasterTemplateImagePath;
         state.RasterTemplateImageBase64 = GetRasterTemplateImageBase64();
         state.Format = TemplateFormatId;
-        state.LayoutRevision = 5;
+        state.LayoutRevision = 7;
 
         Directory.CreateDirectory(TemplateLibraryDirectory);
         Directory.CreateDirectory(System.IO.Path.GetDirectoryName(StoragePath)!);
@@ -443,31 +443,91 @@ public partial class TemplateDesignerView
     }
     private void DeleteTemplateButton_Click(object sender, RoutedEventArgs e)
     {
-        var answer = MessageBox.Show(
-            "سيتم حذف نسخة القالب المحفوظة محليًا وإرجاع الشاشة إلى الإعدادات الافتراضية. لا تتأثر الكروت أو بيانات المشروع الأخرى. هل تريد المتابعة؟",
-            "حذف القالب المحفوظ",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning);
-        if (answer != MessageBoxResult.Yes) return;
+        // Never infer a deletion target from editable ComboBox text. Only a real,
+        // explicitly selected library entry is eligible for deletion.
+        if (SavedTemplateComboBox.SelectedItem is not SavedTemplateEntry selectedEntry ||
+            string.IsNullOrWhiteSpace(selectedEntry.Path))
+        {
+            SetStatus("اختر قالبًا محفوظًا من قائمة القوالب أولًا؛ لن يُحذف القالب الحالي بمجرد كتابة اسمه.", isSuccess: false);
+            MessageBox.Show(
+                "لم يتم تحديد قالب محفوظ للحذف. اختر قالبًا من قائمة القوالب ثم حاول مجددًا.",
+                "لم يتم تحديد قالب",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return;
+        }
 
         try
         {
-            var selectedEntry = SavedTemplateComboBox.SelectedItem as SavedTemplateEntry;
-            var selectedPath = selectedEntry?.Path;
-            var currentName = TemplateNameTextBox.Text?.Trim();
-            if (!string.IsNullOrWhiteSpace(selectedPath) &&
-                System.IO.Path.GetFullPath(selectedPath).StartsWith(
-                    System.IO.Path.GetFullPath(TemplateLibraryDirectory).TrimEnd('\\', '/') + System.IO.Path.DirectorySeparatorChar,
-                    StringComparison.OrdinalIgnoreCase) && File.Exists(selectedPath))
-                File.Delete(selectedPath);
+            var libraryRoot = System.IO.Path.GetFullPath(TemplateLibraryDirectory);
+            var libraryPrefix = libraryRoot.TrimEnd(
+                System.IO.Path.DirectorySeparatorChar,
+                System.IO.Path.AltDirectorySeparatorChar) + System.IO.Path.DirectorySeparatorChar;
+            var selectedPath = System.IO.Path.GetFullPath(selectedEntry.Path);
 
-            if (File.Exists(StoragePath) &&
-                (selectedEntry is null ||
-                 string.Equals(selectedEntry.Name, currentName, StringComparison.OrdinalIgnoreCase)))
-                File.Delete(StoragePath);
-            ResetToDefaults();
-            LoadTemplateLibrary();
-            SetStatus("تم حذف القالب المحفوظ المحدد وإعادة الشاشة إلى التصميم الافتراضي.", isSuccess: true);
+            // Block deleting StoragePath or any file outside the dedicated template library.
+            if (!selectedPath.StartsWith(libraryPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                SetStatus("الحذف متاح للقوالب الموجودة في مكتبة القوالب فقط.", isSuccess: false);
+                MessageBox.Show(
+                    "هذا الملف ليس قالبًا داخل مكتبة القوالب، لذلك لم يتم حذفه.",
+                    "عملية حذف غير مسموحة",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!File.Exists(selectedPath))
+            {
+                LoadTemplateLibrary(TemplateNameTextBox.Text?.Trim());
+                SetStatus("ملف القالب المحدد غير موجود؛ تم تحديث قائمة القوالب.", isSuccess: false);
+                return;
+            }
+
+            var templateName = selectedEntry.Name.Trim();
+            var firstAnswer = MessageBox.Show(
+                $"أنت على وشك حذف القالب «{templateName}» فقط.\n\nلن يتم حذف الكروت أو الدفعات أو أي قالب آخر. هل تريد المتابعة؟",
+                "تأكيد حذف القالب",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+            if (firstAnswer != MessageBoxResult.Yes) return;
+
+            var finalAnswer = MessageBox.Show(
+                $"تأكيد نهائي: حذف «{templateName}» من مكتبة القوالب؟\n\nلا يمكن التراجع عن حذف هذا الملف.",
+                "تأكيد نهائي للحذف",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Stop);
+            if (finalAnswer != MessageBoxResult.Yes) return;
+
+            var currentName = TemplateNameTextBox.Text?.Trim();
+            var deletesActiveTemplate = string.Equals(
+                templateName,
+                currentName,
+                StringComparison.OrdinalIgnoreCase);
+
+            File.Delete(selectedPath);
+
+            if (deletesActiveTemplate)
+            {
+                // Keep the separate active-template snapshot valid and replace it
+                // with the built-in default rather than deleting StoragePath.
+                ResetToDefaults();
+                SelectedTemplatePath = null;
+                Directory.CreateDirectory(System.IO.Path.GetDirectoryName(StoragePath)!);
+                File.WriteAllText(StoragePath, JsonSerializer.Serialize(CaptureState(), JsonOptions));
+                LoadTemplateLibrary(DefaultTemplateName);
+            }
+            else
+            {
+                // Deleting a different library item must not reset the design in progress.
+                LoadTemplateLibrary(currentName);
+            }
+
+            SetStatus(
+                deletesActiveTemplate
+                    ? $"تم حذف القالب «{templateName}» فقط، وتم إبقاء القالب الافتراضي محفوظًا."
+                    : $"تم حذف القالب «{templateName}» فقط؛ بقي التصميم الحالي دون تغيير.",
+                isSuccess: true);
         }
         catch (Exception ex)
         {
@@ -482,12 +542,16 @@ public partial class TemplateDesignerView
         ColorTheme = GetSelectedTag(ColorThemeComboBox) ?? "blue",
         FontFamily = GetSelectedTag(FontFamilyComboBox) ?? "Segoe UI",
         FontSize = ParseDouble(ElementFontSizeTextBox.Text, 11, 8, 28),
-        CardWidthMm = ParseDouble(CardWidthTextBox.Text, 46, 10, 200),
-        CardHeightMm = ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200),
-        PrintColumns = ParseInt(PrintColumnsTextBox.Text, 3, 1, 8),
-        PrintRows = ParseInt(PrintRowsTextBox.Text, 17, 1, 100),
-        LayoutRevision = 6,
+        CardWidthMm = ParseDouble(CardWidthTextBox.Text, 92.1, 10, 200),
+        CardHeightMm = ParseDouble(CardHeightTextBox.Text, 52, 10, 200),
+        PrintColumns = ParseInt(PrintColumnsTextBox.Text, 2, 1, 8),
+        PrintRows = ParseInt(PrintRowsTextBox.Text, 5, 1, 100),
+        LayoutRevision = 7,
         CardRotationDegrees = ParseDouble(CardRotationTextBox.Text, 0, -180, 180),
+        PageMarginTopMm = ParseDouble(PrintMarginTopTextBox.Text, 10, 0, 40),
+        PageMarginBottomMm = ParseDouble(PrintMarginBottomTextBox.Text, 10, 0, 40),
+        PageMarginLeftMm = ParseDouble(PrintMarginLeftTextBox.Text, 10, 0, 40),
+        PageMarginRightMm = ParseDouble(PrintMarginRightTextBox.Text, 10, 0, 40),
         ImportedBackgroundImagePath = _isRasterTemplateMode ? null : _importedTemplateImagePath,
         ImportedBackgroundImageBase64 = _isRasterTemplateMode ? null : GetImportedImageBase64(),
         ImportedBackgroundImageExtension = string.IsNullOrWhiteSpace(_importedTemplateImagePath) ? ".png" : System.IO.Path.GetExtension(_importedTemplateImagePath),
@@ -548,12 +612,12 @@ public partial class TemplateDesignerView
                 }
             }
             state.ElementProperties = newProperties;
-            state.CardWidthMm = 46d;
-            state.CardHeightMm = 15.8d;
+            state.CardWidthMm = 92.1d;
+            state.CardHeightMm = 52d;
             state.ColorTheme = "blue";
             state.TemplateStyle = "classic";
-            state.PrintColumns = 3;
-            state.PrintRows = 17;
+            state.PrintColumns = 2;
+            state.PrintRows = 5;
             // Migrate the built-in card to the independent-layer design. Do not turn
             // the sample banner and fields into one baked image: clients can edit every field.
             state.VisibleElements = CreateDefaultVisibility();
@@ -564,23 +628,8 @@ public partial class TemplateDesignerView
             state.ImportedBackgroundImageBase64 = null;
             state.ImportedBackgroundImageExtension = ".png";
             state.Format = TemplateFormatId;
-            state.LayoutRevision = 5;
+            state.LayoutRevision = 7;
         }
-        // Revision 6 changes only the built-in starter: a new design opens as a
-        // blank white card. Existing user-authored templates are not touched.
-        if (string.Equals(state.TemplateName, DefaultTemplateName, StringComparison.OrdinalIgnoreCase)
-            && state.LayoutRevision < 6)
-        {
-            state.VisibleElements = CreateDefaultVisibility();
-            state.IsRasterTemplateMode = false;
-            state.RasterTemplateImagePath = null;
-            state.RasterTemplateImageBase64 = null;
-            state.ImportedBackgroundImagePath = null;
-            state.ImportedBackgroundImageBase64 = null;
-            state.ImportedBackgroundImageExtension = ".png";
-            state.LayoutRevision = 6;
-        }
-
         else if (requiresDipCoordinateMigration)
         {
             // V1 stored base-canvas positions; V2 stored positions after sizing the canvas.
@@ -614,8 +663,12 @@ public partial class TemplateDesignerView
         CardWidthTextBox.Text = state.CardWidthMm.ToString("0.#", CultureInfo.InvariantCulture);
         CardHeightTextBox.Text = state.CardHeightMm.ToString("0.#", CultureInfo.InvariantCulture);
         CardRotationTextBox.Text = state.CardRotationDegrees.ToString("0.#", CultureInfo.InvariantCulture);
-        PrintColumnsTextBox.Text = ParseInt(state.PrintColumns.ToString(CultureInfo.InvariantCulture), 3, 1, 8).ToString(CultureInfo.InvariantCulture);
-        PrintRowsTextBox.Text = ParseInt(state.PrintRows.ToString(CultureInfo.InvariantCulture), 17, 1, 100).ToString(CultureInfo.InvariantCulture);
+        PrintMarginTopTextBox.Text = Math.Clamp(state.PageMarginTopMm, 0, 40).ToString("0.#", CultureInfo.InvariantCulture);
+        PrintMarginBottomTextBox.Text = Math.Clamp(state.PageMarginBottomMm, 0, 40).ToString("0.#", CultureInfo.InvariantCulture);
+        PrintMarginLeftTextBox.Text = Math.Clamp(state.PageMarginLeftMm, 0, 40).ToString("0.#", CultureInfo.InvariantCulture);
+        PrintMarginRightTextBox.Text = Math.Clamp(state.PageMarginRightMm, 0, 40).ToString("0.#", CultureInfo.InvariantCulture);
+        PrintColumnsTextBox.Text = ParseInt(state.PrintColumns.ToString(CultureInfo.InvariantCulture), 2, 1, 8).ToString(CultureInfo.InvariantCulture);
+        PrintRowsTextBox.Text = ParseInt(state.PrintRows.ToString(CultureInfo.InvariantCulture), 5, 1, 100).ToString(CultureInfo.InvariantCulture);
         _studioPreviewPageNumber = 1;
         var savedHotSpotPackage = HotspotPackageComboBox.Items.OfType<DemoCardPackage>()
             .FirstOrDefault(item => string.Equals(item.Key, state.HotspotPackageKey, StringComparison.OrdinalIgnoreCase));
@@ -692,6 +745,31 @@ public partial class TemplateDesignerView
             state.LayoutRevision = 5;
         }
 
+        // Repair the legacy Default_Design even when an earlier migration already
+        // marked it as current. A previous build advanced LayoutRevision while
+        // leaving the physical size at 46 × 15.8 mm, producing undersized cards.
+        var isBuiltInDefault = string.Equals(
+            state.TemplateName, DefaultTemplateName, StringComparison.OrdinalIgnoreCase);
+        var hasLegacyPhysicalCardSize =
+            Math.Abs(state.CardWidthMm - 46d) < 0.01 &&
+            Math.Abs(state.CardHeightMm - 15.8d) < 0.01;
+        if (isBuiltInDefault && hasLegacyPhysicalCardSize)
+        {
+            state.CardWidthMm = 92.1d;
+            state.CardHeightMm = 52d;
+            state.PrintColumns = 2;
+            state.PrintRows = 5;
+        }
+
+        if (isBuiltInDefault && (state.LayoutRevision < 7 || hasLegacyPhysicalCardSize))
+        {
+            state.PageMarginTopMm = Math.Clamp(state.PageMarginTopMm, 0, 40);
+            state.PageMarginBottomMm = Math.Clamp(state.PageMarginBottomMm, 0, 40);
+            state.PageMarginLeftMm = Math.Clamp(state.PageMarginLeftMm, 0, 40);
+            state.PageMarginRightMm = Math.Clamp(state.PageMarginRightMm, 0, 40);
+            state.LayoutRevision = 7;
+        }
+
         _isRasterTemplateMode = state.IsRasterTemplateMode;
         _rasterTemplateImagePath = _isRasterTemplateMode ? RestoreRasterTemplateFromState(state) : null;
         _importedTemplateImagePath = _isRasterTemplateMode ? null : RestoreBackgroundFromState(state);
@@ -722,8 +800,8 @@ public partial class TemplateDesignerView
         }
         UpdateSamplePackageFields();
         SyncMainElementChecks();
-        var targetCanvasWidth = DesignBaseWidth * ParseDouble(CardWidthTextBox.Text, 46, 10, 200) / BaseWidthMm;
-        var targetCanvasHeight = DesignBaseHeight * ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200) / BaseHeightMm;
+        var targetCanvasWidth = DesignBaseWidth * ParseDouble(CardWidthTextBox.Text, 92.1, 10, 200) / BaseWidthMm;
+        var targetCanvasHeight = DesignBaseHeight * ParseDouble(CardHeightTextBox.Text, 52, 10, 200) / BaseHeightMm;
         // V2 state stores coordinates in the actual canvas. Legacy V1 state stores base-canvas
         // coordinates, so let ApplyCardDimensionTransform map those positions once on migration.
         if (!isLegacyCoordinateState)
@@ -741,27 +819,27 @@ public partial class TemplateDesignerView
         RestoreCustomElements(null);
         _visibleElements.Clear();
         foreach (var pair in CreateDefaultVisibility()) _visibleElements[pair.Key] = pair.Value;
-        // New templates start as a clean white card. Artwork is opt-in through
-        // the existing background-import command, never silently preloaded.
-        _importedTemplateImagePath = null;
+        _importedTemplateImagePath = File.Exists(DefaultStarterTemplateImagePath) ? DefaultStarterTemplateImagePath : null;
         _rasterTemplateImagePath = null;
         _isRasterTemplateMode = false;
         TemplateBackgroundImage.Source = null;
         TemplateBackgroundImage.Visibility = Visibility.Collapsed;
-        CardSurfaceBorder.Background = Brushes.White;
-        CardSurfaceBorder.BorderBrush = new SolidColorBrush(Color.FromRgb(0xD7, 0xE1, 0xED));
-        CardSurfaceBorder.BorderThickness = new Thickness(1);
+        if (_importedTemplateImagePath is not null) LoadBackgroundImageFromPath(_importedTemplateImagePath);
         TemplateNameTextBox.Text = DefaultTemplateName;
         SelectComboTag(TemplateStyleComboBox, "classic");
         SelectComboTag(ColorThemeComboBox, "blue");
         SelectComboTag(FontFamilyComboBox, "Segoe UI");
         ElementFontSizeTextBox.Text = "11";
-        CardWidthTextBox.Text = "46";
-        CardHeightTextBox.Text = "15.8";
+        CardWidthTextBox.Text = "92.1";
+        CardHeightTextBox.Text = "52";
         CardRotationTextBox.Text = "0";
-        PrintColumnsTextBox.Text = "3";
-        PrintRowsTextBox.Text = "17";
+        PrintColumnsTextBox.Text = "2";
+        PrintRowsTextBox.Text = "5";
         PrintTotalCardsTextBox.Text = "153";
+        PrintMarginTopTextBox.Text = "10";
+        PrintMarginBottomTextBox.Text = "10";
+        PrintMarginLeftTextBox.Text = "10";
+        PrintMarginRightTextBox.Text = "10";
         _studioPreviewPageNumber = 1;
         // Begin from the 60 × 35 mm design coordinate system so the first transform
         // applies the same proportional remap used when the customer changes card size.
@@ -769,6 +847,7 @@ public partial class TemplateDesignerView
         _lastCanvasHeight = DesignBaseHeight;
         ApplyElementProperties(CreateDefaultElementProperties());
         ApplyCardDimensionTransform();
+        ApplyDefaultStarterLayout();
         _zoom = 1d;
         ZoomSlider.Value = 1d;
         HotspotPackageComboBox.SelectedIndex = 0;
@@ -776,8 +855,8 @@ public partial class TemplateDesignerView
         _activePackageSource = "hotspot";
         _loginPageUrl = DefaultLoginUrl;
         _barcodeText = "50723015";
-        SelectedElementComboBox.SelectedIndex = -1;
-        _studioSelectedFieldTag = null;
+        SelectComboTag(SelectedElementComboBox, "username");
+        _studioSelectedFieldTag = "username";
         UpdateSamplePackageFields();
         SyncSelectedElementEditor();
         SyncMainElementChecks();

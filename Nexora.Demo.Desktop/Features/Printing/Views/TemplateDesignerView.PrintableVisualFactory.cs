@@ -60,13 +60,12 @@ public partial class TemplateDesignerView
     private Canvas BuildDesignedPrintPreviewCard(string number, string username, string password, string hours, string validity, string price, string upload, string network, string packageName, string contact, int cardIndex)
     {
         // This builder is intentionally preview-only. The editor surface is 420 × 245,
-        // but the physical card defaults to 46 × 15.8 mm. Most visible template content
-        // occupies only the upper part of the editor canvas; crop that unused workspace
-        // and compact Y coordinates so each preview slot uses the full physical card area.
+        // Physical card dimensions are 92.1 × 52 mm by default. Crop only unused canvas space
+        // while preserving the selected template's physical aspect ratio.
         var sourceWidth = Math.Max(1, CardDesignCanvas.Width);
         var sourceHeight = Math.Max(1, CardDesignCanvas.Height);
-        var physicalWidth = ParseDouble(CardWidthTextBox.Text, 46, 10, 200);
-        var physicalHeight = ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200);
+        var physicalWidth = ParseDouble(CardWidthTextBox.Text, 92.1, 10, 200);
+        var physicalHeight = ParseDouble(CardHeightTextBox.Text, 52, 10, 200);
 
         // Some default fields deliberately extend slightly past the editor canvas's
         // right edge (for example the password/contact labels). Include their bounds so
@@ -91,10 +90,7 @@ public partial class TemplateDesignerView
 
         var previewWidth = Math.Max(sourceWidth, contentRight);
         var previewHeight = Math.Max(1, previewWidth * physicalHeight / physicalWidth);
-        // Fit the occupied design content to the full physical card height.
-        // Capping this at 1 left most default elements compressed into the top
-        // third of the card and made the print preview appear almost empty.
-        var verticalScale = Math.Clamp(previewHeight / Math.Max(1d, contentBottom), 0.1d, 6d);
+        var verticalScale = Math.Min(1d, previewHeight / contentBottom);
         var previewCanvas = new Canvas
         {
             Width = previewWidth,
@@ -321,8 +317,8 @@ public Size GetCardLayoutSizeMillimeters() => new Size(
     }
     public Size GetPhysicalCardSizeMillimeters()
     {
-        var width = ParseDouble(CardWidthTextBox.Text, 46, 10, 200);
-        var height = ParseDouble(CardHeightTextBox.Text, 15.8, 10, 200);
+        var width = ParseDouble(CardWidthTextBox.Text, 92.1, 10, 200);
+        var height = ParseDouble(CardHeightTextBox.Text, 52, 10, 200);
         var radians = ParseDouble(CardRotationTextBox.Text, 0, -180, 180) * Math.PI / 180d;
         return new Size(
             Math.Abs(width * Math.Cos(radians)) + Math.Abs(height * Math.Sin(radians)),
